@@ -9,17 +9,21 @@ class AtomScope extends InheritedWidget {
     super.key,
     required super.child,
     Store? store,
-  }) : _store = store ?? Store();
+  }) : store = store ?? Store();
 
-  final Store _store;
+  final Store store;
 
   @override
   bool updateShouldNotify(covariant AtomScope oldWidget) =>
-      oldWidget._store != _store;
+      oldWidget.store != store;
 
   static Store of(BuildContext context) {
     final AtomScope? result =
         context.dependOnInheritedWidgetOfExactType<AtomScope>();
-    return result?._store ?? defaultStore;
+    return result?.store ?? defaultStore;
   }
+}
+
+extension NucleusBuildContextExt on BuildContext {
+  A readAtom<A>(Atom<A> atom) => AtomScope.of(this).read(atom);
 }
