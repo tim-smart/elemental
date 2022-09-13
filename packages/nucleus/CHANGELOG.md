@@ -1,3 +1,7 @@
+## 0.0.6
+
+- Improve performance
+
 ## 0.0.5
 
 - Improve read api
