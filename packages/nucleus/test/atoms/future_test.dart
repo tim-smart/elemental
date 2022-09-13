@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
@@ -11,11 +13,21 @@ void main() {
     test('returns a FutureValue', () async {
       final store = Store();
 
-      await store.use(delayed123.first, () async {
-        expect(store.read(delayed123.first), FutureValue.loading());
-        await store.read(delayed123.second);
-        expect(store.read(delayed123.first), FutureValue.data(123));
+      expect(store.read(delayed123.first), FutureValue.loading());
+      await store.read(delayed123.second);
+      expect(store.read(delayed123.first), FutureValue.data(123));
+    });
+
+    test('works with subscribe', () async {
+      final store = Store();
+      final c = StreamController<FutureValue<int>>();
+
+      final cancel = store.subscribe(delayed123.first, () {
+        c.add(store.read(delayed123.first));
       });
+
+      expect(await c.stream.first, FutureValue.data(123));
+      cancel();
     });
   });
 }

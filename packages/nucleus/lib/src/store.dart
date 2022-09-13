@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
-
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:collection/collection.dart';
 
 import './atoms.dart';
 
@@ -44,19 +43,7 @@ class AtomState {
         disposers: disposers,
       );
 
-  bool dependenciesChanged(Map<Atom, int> other) {
-    if (identical(dependencies, other)) {
-      return false;
-    } else if (other.length != dependencies.length) {
-      return false;
-    }
-
-    // This could potentially be a race condition
-    final otherRevisionTotal = other.values.sumBy((i) => i);
-    final thisRevisionTotal = dependencies.values.sumBy((i) => i);
-
-    return thisRevisionTotal != otherRevisionTotal;
-  }
+  static const _dependencyEquality = MapEquality<Atom, int>();
 
   @override
   operator ==(Object? other) =>
@@ -64,7 +51,7 @@ class AtomState {
       other.value == value &&
       other.revision == revision &&
       other.valid == valid &&
-      !dependenciesChanged(other.dependencies);
+      _dependencyEquality.equals(other.dependencies, dependencies);
 
   @override
   int get hashCode => Object.hash(
@@ -72,7 +59,7 @@ class AtomState {
         value,
         revision,
         valid,
-        dependencies,
+        _dependencyEquality.hash(dependencies),
       );
 }
 
@@ -94,10 +81,10 @@ class Store {
     List<AtomInitialValue> initialValues = const [],
 
     /// For testing only
-    HashMap<int, AtomState>? stateMap,
+    HashMap<Atom, AtomState>? stateMap,
 
     /// For testing only
-    HashMap<int, AtomMount>? mountMap,
+    HashMap<Atom, AtomMount>? mountMap,
   })  : _atomStateMap = stateMap ?? HashMap(),
         _atomMountedMap = mountMap ?? HashMap() {
     for (final value in initialValues) {
@@ -105,13 +92,13 @@ class Store {
     }
   }
 
-  final HashMap<int, AtomState> _atomStateMap;
-  final HashMap<int, AtomMount> _atomMountedMap;
+  final HashMap<Atom, AtomState> _atomStateMap;
+  final HashMap<Atom, AtomMount> _atomMountedMap;
 
   var _pendingWrites = HashMap<Atom, AtomState?>();
 
   Future<void>? _schedulerFuture;
-  final _atomsScheduledForRemoval = <int>[];
+  final _atomsScheduledForRemoval = <Atom>[];
 
   // === Public api
   Value read<Value>(Atom<Value> atom) {
@@ -155,18 +142,18 @@ class Store {
 
   // === Internal api
   void _setState(Atom atom, AtomState state, AtomState? previousState) {
-    _atomStateMap[atom.hashCode] = state;
+    _atomStateMap[atom] = state;
     _pendingWrites.putIfAbsent(atom, () => previousState);
   }
 
   AtomMount _ensureMounted(Atom atom) {
-    var mount = _atomMountedMap[atom.hashCode];
+    var mount = _atomMountedMap[atom];
     if (mount != null) {
       return mount;
     }
 
     mount = AtomMount(atom);
-    _atomMountedMap[atom.hashCode] = mount;
+    _atomMountedMap[atom] = mount;
 
     final state = _read(atom);
 
@@ -184,9 +171,9 @@ class Store {
 
     final atom = mount.atom;
 
-    _atomMountedMap.remove(atom.hashCode);
+    _atomMountedMap.remove(atom);
 
-    final state = _atomStateMap[atom.hashCode];
+    final state = _atomStateMap[atom];
     if (state == null) {
       return;
     }
@@ -197,7 +184,7 @@ class Store {
     for (final dep in state.dependencies.keys) {
       if (dep == atom) continue;
 
-      final depMount = _atomMountedMap[dep.hashCode];
+      final depMount = _atomMountedMap[dep];
       if (depMount == null) continue;
 
       depMount.dependants.remove(atom);
@@ -206,7 +193,7 @@ class Store {
   }
 
   AtomState _read(Atom atom) {
-    final currentState = _atomStateMap[atom.hashCode];
+    final currentState = _atomStateMap[atom];
 
     if (currentState != null) {
       // Maybe update dependencies.
@@ -214,8 +201,8 @@ class Store {
       for (final dep in currentState.dependencies.keys) {
         if (dep == atom) continue;
 
-        if (_atomMountedMap.containsKey(dep.hashCode)) {
-          final depState = _atomStateMap[dep.hashCode];
+        if (_atomMountedMap.containsKey(dep)) {
+          final depState = _atomStateMap[dep];
           if (!(depState?.valid == true)) {
             _read(dep);
           }
@@ -226,7 +213,7 @@ class Store {
 
       // If any dep revision is different, recompute.
       final depsAreSame = currentState.dependencies.entries
-          .every((e) => _atomStateMap[e.key.hashCode]?.revision == e.value);
+          .every((e) => _atomStateMap[e.key]?.revision == e.value);
 
       if (depsAreSame) {
         if (!currentState.valid) {
@@ -253,7 +240,7 @@ class Store {
         previous: currentState?.value ?? value,
       );
 
-      return _atomStateMap[atom.hashCode] ??
+      return _atomStateMap[atom] ??
           _put(
             atom,
             value,
@@ -276,7 +263,7 @@ class Store {
     var merged = HashMap<Atom, int>();
 
     for (final dep in toAdd) {
-      final state = _atomStateMap[dep.hashCode];
+      final state = _atomStateMap[dep];
       merged[dep] = state?.revision ?? 0;
     }
 
@@ -285,7 +272,7 @@ class Store {
 
   AtomGetter _buildGetter(Atom parent, Set<Atom> usedDeps) => <Value>(dep) {
         usedDeps.add(dep);
-        final state = dep == parent ? _atomStateMap[dep.hashCode] : _read(dep);
+        final state = dep == parent ? _atomStateMap[dep] : _read(dep);
 
         if (state != null) {
           return state.value as Value;
@@ -321,7 +308,7 @@ class Store {
     HashSet<Atom>? dependencies,
     List<void Function()>? disposers,
   }) {
-    final currentState = _atomStateMap[atom.hashCode];
+    final currentState = _atomStateMap[atom];
 
     // Bump revision if value has changed
     final revision =
@@ -355,7 +342,7 @@ class Store {
   }
 
   void _invalidateDependants(Atom atom) {
-    final dependants = _atomMountedMap[atom.hashCode]?.dependants;
+    final dependants = _atomMountedMap[atom]?.dependants;
     if (dependants == null) {
       return;
     }
@@ -363,7 +350,7 @@ class Store {
     for (final dep in dependants) {
       if (dep == atom) continue;
 
-      final state = _atomStateMap[dep.hashCode];
+      final state = _atomStateMap[dep];
       if (state != null) {
         _setState(dep, state.copyWith(valid: false), state);
       }
@@ -381,7 +368,7 @@ class Store {
       for (final e in pending.entries) {
         final atom = e.key;
         final previousState = e.value;
-        final currentState = _atomStateMap[atom.hashCode];
+        final currentState = _atomStateMap[atom];
 
         if (currentState != null &&
             currentState.value != previousState?.value) {
@@ -397,7 +384,7 @@ class Store {
           _read(atom);
         }
 
-        final mount = _atomMountedMap[atom.hashCode];
+        final mount = _atomMountedMap[atom];
         if (mount != null) {
           for (final fn in mount.listeners) {
             fn();
@@ -412,17 +399,17 @@ class Store {
     AtomState state,
     HashMap<Atom, int>? previousDependencies,
   ) {
-    final ignored = HashSet<int>();
+    final ignored = HashSet<Atom>();
 
     if (previousDependencies != null) {
       for (final dep in previousDependencies.keys) {
         if (state.dependencies.containsKey(dep)) {
           // Not changed
-          ignored.add(dep.hashCode);
+          ignored.add(dep);
           continue;
         }
 
-        final mount = _atomMountedMap[dep.hashCode];
+        final mount = _atomMountedMap[dep];
         if (mount != null) {
           mount.dependants.remove(atom);
           _maybeUnmount(mount);
@@ -431,13 +418,13 @@ class Store {
     }
 
     for (final dep in state.dependencies.keys) {
-      if (ignored.contains(dep.hashCode)) continue;
+      if (ignored.contains(dep)) continue;
 
-      final mount = _atomMountedMap[dep.hashCode];
+      final mount = _atomMountedMap[dep];
 
       if (mount != null) {
         mount.dependants.add(atom);
-      } else if (_atomMountedMap.containsKey(atom.hashCode)) {
+      } else if (_atomMountedMap.containsKey(atom)) {
         _ensureMounted(dep).dependants.add(atom);
       }
     }
@@ -458,11 +445,11 @@ class Store {
 
   void _maybeScheduleAtomRemoval(Atom atom, [bool skipMountCheck = false]) {
     if (atom.shouldKeepAlive ||
-        (!skipMountCheck && _atomMountedMap.containsKey(atom.hashCode))) {
+        (!skipMountCheck && _atomMountedMap.containsKey(atom))) {
       return;
     }
 
-    _atomsScheduledForRemoval.add(atom.hashCode);
+    _atomsScheduledForRemoval.add(atom);
     _schedulerFuture ??= Future.microtask(_runScheduledTasks);
   }
 }

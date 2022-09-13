@@ -39,6 +39,9 @@ class FutureData<A> extends FutureValue<A> {
 
   @override
   int get hashCode => Object.hash(runtimeType, data);
+
+  @override
+  String toString() => "FutureValue<$A>.data(data: $data)";
 }
 
 class FutureError<A> extends FutureValue<A> {
@@ -66,6 +69,9 @@ class FutureError<A> extends FutureValue<A> {
 
   @override
   int get hashCode => Object.hash(runtimeType, error, stackTrace);
+
+  @override
+  String toString() => "FutureValue<$A>.error(error: $error)";
 }
 
 class FutureLoading<A> extends FutureValue<A> {
@@ -92,6 +98,9 @@ class FutureLoading<A> extends FutureValue<A> {
 
   @override
   int get hashCode => Object.hash(runtimeType, previousData);
+
+  @override
+  String toString() => "FutureValue<$A>.loading()";
 }
 
 Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
