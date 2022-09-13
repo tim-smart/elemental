@@ -4,24 +4,22 @@ typedef AtomGetter = A Function<A>(Atom<A> atom);
 typedef AtomReader<Value> = Value Function(AtomGetter get);
 typedef AtomInitialValue = Tuple2<Atom, Object?>;
 
-int _globalKeyCount = 0;
-String _createKey() => "nucleus${_globalKeyCount++}";
-
 abstract class Atom<Value> {
-  Symbol _symbol = Symbol(_createKey());
-  Symbol get symbol => _symbol;
-
   bool _calledKeepAlive = false;
   bool _shouldKeepAlive = true;
   bool get shouldKeepAlive => _shouldKeepAlive;
 
+  int? _hashCodeOverride;
+
   static Atom<Value> Function(Arg arg) family<Value, Arg>(
     Atom<Value> Function(Arg arg) create,
   ) {
-    final familyKey = _createKey();
+    final familyAtom = {};
+    final familyHashCode = familyAtom.hashCode;
+
     return (arg) {
       final atom = create(arg);
-      atom._symbol = Symbol("${familyKey}_${arg.hashCode}");
+      atom._hashCodeOverride = familyHashCode ^ arg.hashCode;
 
       // Auto dispose by default
       if (atom.shouldKeepAlive && !atom._calledKeepAlive) {
@@ -48,10 +46,10 @@ abstract class Atom<Value> {
   AtomInitialValue withInitialValue(Value value) => Tuple2(this, value);
 
   @override
-  operator ==(Object? other) => other is Atom && other._symbol == _symbol;
+  operator ==(Object? other) => other.hashCode == hashCode;
 
   @override
-  int get hashCode => symbol.hashCode;
+  int get hashCode => _hashCodeOverride ?? super.hashCode;
 }
 
 // Family creator

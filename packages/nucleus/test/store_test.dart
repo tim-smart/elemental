@@ -30,38 +30,38 @@ void main() {
     });
 
     test('it unmounts atoms if autoDispose() was called', () async {
-      final stateMap = HashMap<Atom, AtomState>();
-      final mountMap = HashMap<Atom, AtomMount>();
+      final stateMap = HashMap<int, AtomState>();
+      final mountMap = HashMap<int, AtomMount>();
       final store = Store(stateMap: stateMap, mountMap: mountMap);
 
       await store.use(counterAutoDispose, () {
         expect(store.read(counterAutoDispose), 0);
-        expect(mountMap.containsKey(counterAutoDispose), true);
+        expect(mountMap.containsKey(counterAutoDispose.hashCode), true);
       });
 
-      expect(mountMap.containsKey(counterAutoDispose), false);
+      expect(mountMap.containsKey(counterAutoDispose.hashCode), false);
 
       // State is removed next frame
-      expect(stateMap[counterAutoDispose] != null, true);
+      expect(stateMap[counterAutoDispose.hashCode] != null, true);
       await Future.microtask(() {});
-      expect(stateMap[counterAutoDispose] != null, false);
+      expect(stateMap[counterAutoDispose.hashCode] != null, false);
     });
 
     test('state is kept between mounts if autoDispose is not called', () async {
-      final stateMap = HashMap<Atom, AtomState>();
-      final mountMap = HashMap<Atom, AtomMount>();
+      final stateMap = HashMap<int, AtomState>();
+      final mountMap = HashMap<int, AtomMount>();
       final store = Store(stateMap: stateMap, mountMap: mountMap);
 
       await store.use(counter, () {
         expect(store.read(counter), 0);
-        expect(mountMap.containsKey(counter), true);
+        expect(mountMap.containsKey(counter.hashCode), true);
       });
 
-      expect(mountMap.containsKey(counter), false);
+      expect(mountMap.containsKey(counter.hashCode), false);
 
-      expect(stateMap[counter] != null, true);
+      expect(stateMap[counter.hashCode] != null, true);
       await Future.microtask(() {});
-      expect(stateMap[counter] != null, true);
+      expect(stateMap[counter.hashCode] != null, true);
     });
 
     test('onDispose is called on disposal', () async {
