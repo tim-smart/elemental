@@ -10,10 +10,12 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter:
     sdk: flutter
+  flutter_hooks: ^0.18.5+1
+  flutter_nucleus: ^0.0.1
+  
+dependency_overrides:
   flutter_nucleus:
     path: ../
-  nucleus:
-    path: ../../nucleus
 
 dev_dependencies:
   flutter_test:

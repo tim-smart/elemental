@@ -1,6 +1,12 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
-import 'package:nucleus/nucleus.dart';
+
+class AtomNotifierWithValue<A> {
+  const AtomNotifierWithValue._(this.notifier, this.value);
+
+  final AtomNotifier<A> notifier;
+  final A value;
+}
 
 AtomNotifier<A> useAtomNotifier<A>(AtomBase<A> atom) {
   final context = useContext();
@@ -9,6 +15,12 @@ AtomNotifier<A> useAtomNotifier<A>(AtomBase<A> atom) {
     [atom],
   );
   useEffect(() => notifier.dispose, [notifier]);
+  return notifier;
+}
+
+AtomNotifier<A> useAtom<A>(AtomBase<A> atom) {
+  final notifier = useAtomNotifier(atom);
+  useListenable(notifier);
   return notifier;
 }
 

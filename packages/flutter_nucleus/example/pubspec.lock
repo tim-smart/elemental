@@ -57,11 +57,25 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0"
+  fast_immutable_collections:
+    dependency: transitive
+    description:
+      name: fast_immutable_collections
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "7.4.1"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_hooks:
+    dependency: "direct main"
+    description:
+      name: flutter_hooks
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.18.5+1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -69,6 +83,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  flutter_nucleus:
+    dependency: "direct main"
+    description:
+      path: ".."
+      relative: true
+    source: path
+    version: "0.0.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -102,6 +123,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  nucleus:
+    dependency: transitive
+    description:
+      name: nucleus
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   path:
     dependency: transitive
     description:
@@ -156,6 +184,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.9"
+  value_notifier_ext:
+    dependency: transitive
+    description:
+      name: value_notifier_ext
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4"
   vector_math:
     dependency: transitive
     description:
@@ -165,3 +200,4 @@ packages:
     version: "2.1.2"
 sdks:
   dart: ">=2.17.6 <3.0.0"
+  flutter: ">=3.0.0"

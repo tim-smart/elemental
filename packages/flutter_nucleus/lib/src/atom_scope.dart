@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:nucleus/nucleus.dart';
+import 'package:flutter_nucleus/flutter_nucleus.dart';
 
 class AtomScope extends InheritedWidget {
+  // ignore: unnecessary_late
+  static late final defaultStore = Store();
+
   AtomScope({
     super.key,
     required super.child,
@@ -17,7 +20,6 @@ class AtomScope extends InheritedWidget {
   static Store of(BuildContext context) {
     final AtomScope? result =
         context.dependOnInheritedWidgetOfExactType<AtomScope>();
-    assert(result != null, 'No AtomScope found in context');
-    return result!._store;
+    return result?._store ?? defaultStore;
   }
 }
