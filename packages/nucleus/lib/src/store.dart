@@ -17,7 +17,7 @@ class AtomState {
   final Object? value;
   final int revision;
   final bool valid;
-  final IMap<AtomBase, int> dependencies;
+  final IMap<Atom, int> dependencies;
   final List<void Function()> disposers;
 
   void onDispose() {
@@ -34,7 +34,7 @@ class AtomState {
     Object? value,
     int? revision,
     bool? valid,
-    IMap<AtomBase, int>? dependencies,
+    IMap<Atom, int>? dependencies,
   }) =>
       AtomState(
         value: value ?? this.value,
@@ -65,9 +65,9 @@ class AtomState {
 class AtomMount {
   AtomMount(this.atom);
 
-  final AtomBase atom;
+  final Atom atom;
   final List<void Function()> listeners = [];
-  final Set<AtomBase> dependants = {};
+  final Set<Atom> dependants = {};
 
   bool get isUnmountable =>
       listeners.isEmpty &&
@@ -84,14 +84,14 @@ class Store {
     }
   }
 
-  final Map<AtomBase, AtomState> _atomStateMap = HashMap();
-  final Map<AtomBase, AtomMount> _atomMountedMap = HashMap();
+  final Map<Atom, AtomState> _atomStateMap = HashMap();
+  final Map<Atom, AtomMount> _atomMountedMap = HashMap();
 
   Future<void>? _schedulerFuture;
-  final _atomsScheduledForRemoval = <AtomBase>{};
+  final _atomsScheduledForRemoval = <Atom>{};
 
   // === Public api
-  Value read<Value>(AtomBase<Value> atom) {
+  Value read<Value>(Atom<Value> atom) {
     if (!_atomMountedMap.containsKey(atom)) {
       throw ArgumentError.value(
         atom,
@@ -103,10 +103,10 @@ class Store {
   }
 
   void put<Value>(
-    AtomBase<Value> atom,
+    Atom<Value> atom,
     Value value,
   ) {
-    if (atom is! Atom<Value>) {
+    if (atom is! PrimitiveAtom<Value>) {
       throw ArgumentError.value(
         atom,
         "atom",
@@ -118,7 +118,7 @@ class Store {
   }
 
   void Function() subscribe(
-    AtomBase atom,
+    Atom atom,
     void Function() onChange,
   ) {
     final mount = _ensureMounted(atom);
@@ -130,7 +130,7 @@ class Store {
     };
   }
 
-  Future<R> use<R>(AtomBase atom, FutureOr<R> Function() f) async {
+  Future<R> use<R>(Atom atom, FutureOr<R> Function() f) async {
     final mount = _ensureMounted(atom);
 
     try {
@@ -141,7 +141,7 @@ class Store {
   }
 
   // === Internal api
-  AtomMount _ensureMounted(AtomBase atom) {
+  AtomMount _ensureMounted(Atom atom) {
     var mount = _atomMountedMap[atom];
     if (mount != null) {
       return mount;
@@ -159,7 +159,7 @@ class Store {
     return mount;
   }
 
-  void _unmountAtom(AtomBase atom) {
+  void _unmountAtom(Atom atom) {
     final mount = _atomMountedMap[atom];
     if (mount != null) {
       _unmount(mount);
@@ -193,7 +193,7 @@ class Store {
     }
   }
 
-  AtomState _read(AtomBase atom) {
+  AtomState _read(Atom atom) {
     final currentState = _atomStateMap[atom];
 
     if (currentState != null) {
@@ -226,7 +226,7 @@ class Store {
     }
 
     // Needs recomputation
-    final usedDeps = <AtomBase>{};
+    final usedDeps = <Atom>{};
     final getter = _buildGetter(atom, usedDeps);
     final value = atom.read(getter);
 
@@ -253,15 +253,15 @@ class Store {
     return _put(atom, value, dependencies: usedDeps);
   }
 
-  IMap<AtomBase, int> _createDependencies(
-    IMap<AtomBase, int> previous,
-    Set<AtomBase>? toAdd,
+  IMap<Atom, int> _createDependencies(
+    IMap<Atom, int> previous,
+    Set<Atom>? toAdd,
   ) {
     if (toAdd == null) {
       return previous;
     }
 
-    var merged = IMap<AtomBase, int>();
+    var merged = IMap<Atom, int>();
 
     for (final dep in toAdd) {
       final state = _atomStateMap[dep];
@@ -271,8 +271,7 @@ class Store {
     return merged;
   }
 
-  AtomGetter _buildGetter(AtomBase parent, Set<AtomBase> usedDeps) =>
-      <Value>(dep) {
+  AtomGetter _buildGetter(Atom parent, Set<Atom> usedDeps) => <Value>(dep) {
         usedDeps.add(dep);
         final state = dep == parent ? _atomStateMap[dep] : _read(dep);
 
@@ -280,7 +279,7 @@ class Store {
           return state.value as Value;
         }
 
-        if (dep is Atom<Value>) {
+        if (dep is PrimitiveAtom<Value>) {
           return dep.initialValue;
         } else if (dep is ManagedAtom<Value>) {
           return dep.initialValue;
@@ -290,8 +289,8 @@ class Store {
       };
 
   void Function(Value value) _buildSetter<Value>(
-    AtomBase<Value> atom,
-    Set<AtomBase> dependencies,
+    Atom<Value> atom,
+    Set<Atom> dependencies,
     List<void Function()> disposers,
   ) =>
       (value) {
@@ -304,9 +303,9 @@ class Store {
       };
 
   AtomState _put(
-    AtomBase atom,
+    Atom atom,
     Object? value, {
-    Set<AtomBase>? dependencies,
+    Set<Atom>? dependencies,
     List<void Function()>? disposers,
   }) {
     final currentState = _atomStateMap[atom];
@@ -346,7 +345,7 @@ class Store {
     return nextState;
   }
 
-  void _invalidateDependants(AtomBase atom) {
+  void _invalidateDependants(Atom atom) {
     final dependants = _atomMountedMap[atom]?.dependants;
     if (dependants == null) {
       return;
@@ -372,7 +371,7 @@ class Store {
     _atomsScheduledForRemoval.clear();
   }
 
-  void _maybeScheduleAtomRemoval(AtomBase atom) {
+  void _maybeScheduleAtomRemoval(Atom atom) {
     if (atom.keepAlive) {
       return;
     }

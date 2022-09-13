@@ -16,7 +16,7 @@ class ManagedAtomContext<T> {
   final void Function(void Function()) onDispose;
 }
 
-class ManagedAtom<Value> extends AtomBase<Value> {
+class ManagedAtom<Value> extends Atom<Value> {
   ManagedAtom(
     this.initialValue,
     this._create, {
@@ -46,7 +46,7 @@ class ManagedAtom<Value> extends AtomBase<Value> {
 
 // Function API
 
-AtomBase<Value> managedAtom<Value>(
+Atom<Value> managedAtom<Value>(
   Value initialValue,
   ManagedAtomCreate<Value> create, {
   bool? keepAlive,

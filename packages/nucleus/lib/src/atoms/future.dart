@@ -94,7 +94,7 @@ class FutureLoading<A> extends FutureValue<A> {
   int get hashCode => Object.hash(runtimeType, previousData);
 }
 
-AtomBase<FutureValue<T>> futureAtom<T>(
+Atom<FutureValue<T>> futureAtom<T>(
   AtomReader<Future<T>> create, {
   bool? keepAlive,
 }) {
@@ -120,11 +120,11 @@ AtomBase<FutureValue<T>> futureAtom<T>(
   return managedAtom(FutureLoading(), createFuture, keepAlive: keepAlive);
 }
 
-Tuple2<AtomBase<FutureValue<A>>, AtomBase<Future<A>>> futureAtomTuple<A>(
+Tuple2<Atom<FutureValue<A>>, Atom<Future<A>>> futureAtomTuple<A>(
   AtomReader<Future<A>> create, {
   bool? keepAlive,
 }) {
-  final future = derivedAtom(create, keepAlive: keepAlive);
+  final future = readOnlyAtom(create, keepAlive: keepAlive);
   final value = futureAtom<A>((get) => get(future), keepAlive: keepAlive);
   return Tuple2(value, future);
 }

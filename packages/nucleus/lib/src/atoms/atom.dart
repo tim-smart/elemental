@@ -1,21 +1,39 @@
-import 'package:nucleus/nucleus.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-class Atom<Value> extends AtomBase<Value> {
-  Atom(
-    this.initialValue, {
-    super.keepAlive,
-  });
+typedef AtomGetter = A Function<A>(Atom<A> atom);
+typedef AtomReader<Value> = Value Function(AtomGetter get);
+typedef AtomInitialValue = Tuple2<Atom, dynamic>;
 
-  final Value initialValue;
+int _globalKeyCount = 0;
+String _createKey() => "nucleus${_globalKeyCount++}";
+
+abstract class Atom<Value> {
+  Atom({bool? keepAlive}) : keepAlive = keepAlive ?? false;
+
+  Symbol _symbol = Symbol(_createKey());
+  Symbol get symbol => _symbol;
+  final bool keepAlive;
+
+  Value read(AtomGetter getter);
 
   @override
-  Value read(AtomGetter getter) => getter(this);
+  operator ==(Object? other) => other is Atom && other._symbol == _symbol;
+
+  @override
+  int get hashCode => symbol.hashCode;
+
+  AtomInitialValue withInitialValue(Value value) => Tuple2(this, value);
 }
 
-// Function API
+// Family creator
 
-AtomBase<Value> atom<Value>(
-  Value initialValue, {
-  bool? keepAlive,
-}) =>
-    Atom(initialValue, keepAlive: keepAlive);
+Atom<Value> Function(Arg arg) atomFamily<Value, Arg>(
+  Atom<Value> Function(Arg arg) create,
+) {
+  final familyKey = _createKey();
+  return (arg) {
+    final atom = create(arg);
+    atom._symbol = Symbol("${familyKey}_${arg.hashCode}");
+    return atom;
+  };
+}

@@ -2,7 +2,7 @@ import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
 final counter = atom(0);
-final multiplied = derivedAtom((get) => get(counter) * 2);
+final multiplied = readOnlyAtom((get) => get(counter) * 2);
 
 void main() {
   group('Store', () {
