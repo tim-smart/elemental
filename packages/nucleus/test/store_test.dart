@@ -44,9 +44,9 @@ void main() {
       expect(mountMap.containsKey(counterAutoDispose), false);
 
       // State is removed next frame
-      expect(stateMap.containsKey(counterAutoDispose), true);
+      expect(stateMap[counterAutoDispose] != null, true);
       await Future.microtask(() {});
-      expect(stateMap.containsKey(counterAutoDispose), false);
+      expect(stateMap[counterAutoDispose] != null, false);
     });
 
     test('state is kept between mounts if autoDispose is not called', () async {
@@ -62,9 +62,9 @@ void main() {
       expect(mountMap.containsKey(counter), false);
 
       // State is removed next frame
-      expect(stateMap.containsKey(counter), true);
+      expect(stateMap[counter] != null, true);
       await Future.microtask(() {});
-      expect(stateMap.containsKey(counter), true);
+      expect(stateMap[counter] != null, true);
     });
 
     test('onDispose is called on disposal', () async {

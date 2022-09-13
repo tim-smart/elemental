@@ -101,14 +101,9 @@ class Store {
 
   // === Public api
   Value read<Value>(Atom<Value> atom) {
-    if (!_atomMountedMap.containsKey(atom)) {
-      throw ArgumentError.value(
-        atom,
-        "atom",
-        "has to be mounted to be read. Try calling subscribe first.",
-      );
-    }
-    return _read(atom).value as Value;
+    final value = _read(atom).value as Value;
+    _maybeScheduleAtomRemoval(atom);
+    return value;
   }
 
   void put<Value>(Atom<Value> atom, Value value) {
@@ -182,7 +177,7 @@ class Store {
       return;
     }
 
-    _maybeScheduleAtomRemoval(atom);
+    _maybeScheduleAtomRemoval(atom, true);
 
     // dependants
     for (final dep in state.dependencies.keys) {
@@ -441,8 +436,9 @@ class Store {
     _atomsScheduledForRemoval.clear();
   }
 
-  void _maybeScheduleAtomRemoval(Atom atom) {
-    if (atom.keepAlive) {
+  void _maybeScheduleAtomRemoval(Atom atom, [bool skipMountCheck = false]) {
+    if (atom.shouldKeepAlive ||
+        (!skipMountCheck && _atomMountedMap.containsKey(atom))) {
       return;
     }
 

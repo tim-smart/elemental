@@ -11,8 +11,9 @@ abstract class Atom<Value> {
   Symbol _symbol = Symbol(_createKey());
   Symbol get symbol => _symbol;
 
-  bool _keepAlive = true;
-  bool get keepAlive => _keepAlive;
+  bool _calledKeepAlive = false;
+  bool _shouldKeepAlive = true;
+  bool get shouldKeepAlive => _shouldKeepAlive;
 
   static Atom<Value> Function(Arg arg) family<Value, Arg>(
     Atom<Value> Function(Arg arg) create,
@@ -21,6 +22,12 @@ abstract class Atom<Value> {
     return (arg) {
       final atom = create(arg);
       atom._symbol = Symbol("${familyKey}_${arg.hashCode}");
+
+      // Auto dispose by default
+      if (atom.shouldKeepAlive && !atom._calledKeepAlive) {
+        atom.autoDispose();
+      }
+
       return atom;
     };
   }
@@ -28,7 +35,13 @@ abstract class Atom<Value> {
   Value read(AtomGetter getter);
 
   Atom<Value> autoDispose() {
-    _keepAlive = false;
+    _shouldKeepAlive = false;
+    return this;
+  }
+
+  Atom<Value> keepAlive() {
+    _shouldKeepAlive = true;
+    _calledKeepAlive = true;
     return this;
   }
 
