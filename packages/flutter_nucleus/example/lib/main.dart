@@ -9,12 +9,13 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends HookWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: useAtomValue(messenger),
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,

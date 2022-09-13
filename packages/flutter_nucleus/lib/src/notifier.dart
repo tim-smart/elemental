@@ -6,11 +6,11 @@ class AtomNotifier<A> extends ChangeNotifier implements ValueNotifier<A> {
     _unsubscribe = _store.subscribe(_atom, notifyListeners);
   }
 
-  factory AtomNotifier.from(BuildContext context, AtomBase<A> atom) =>
+  factory AtomNotifier.from(BuildContext context, Atom<A> atom) =>
       AtomNotifier(AtomScope.of(context), atom);
 
   Store _store;
-  AtomBase<A> _atom;
+  Atom<A> _atom;
 
   late final void Function() _unsubscribe;
 
