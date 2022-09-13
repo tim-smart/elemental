@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Internal refactor
+
 ## 0.0.6
 
 - Improve performance
