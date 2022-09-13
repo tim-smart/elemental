@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
 final counterAtom = atom(0);
+final messenger = readOnlyAtom((_) => GlobalKey<ScaffoldMessengerState>());
 
 void main() {
   runApp(const MyApp());

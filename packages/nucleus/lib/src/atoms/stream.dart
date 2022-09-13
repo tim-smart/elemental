@@ -4,7 +4,6 @@ import 'package:nucleus/nucleus.dart';
 Atom<FutureValue<A>> streamAtom<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
-  bool? keepAlive,
 }) =>
     managedAtom<FutureValue<A>>(
       initialValue != null
@@ -15,7 +14,6 @@ Atom<FutureValue<A>> streamAtom<A>(
             .listen((data) => ctx.set(FutureValue.data(data)))
             .cancel);
       },
-      keepAlive: keepAlive,
     );
 
 Tuple2<Atom<FutureValue<A>>, Atom<Stream<A>>> streamAtomTuple<A>(
@@ -23,11 +21,12 @@ Tuple2<Atom<FutureValue<A>>, Atom<Stream<A>>> streamAtomTuple<A>(
   A? initialValue,
   bool? keepAlive,
 }) {
-  final stream = readOnlyAtom(create, keepAlive: keepAlive);
-  final value = streamAtom(
-    (get) => get(stream),
-    initialValue: initialValue,
-    keepAlive: keepAlive,
-  );
+  final stream = readOnlyAtom(create).autoDispose();
+  final value = streamAtom((get) => get(stream), initialValue: initialValue);
+
+  if (keepAlive == false) {
+    value.autoDispose();
+  }
+
   return Tuple2(value, stream);
 }

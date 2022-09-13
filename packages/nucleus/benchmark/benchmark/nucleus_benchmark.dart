@@ -4,6 +4,9 @@ import 'package:nucleus/nucleus.dart';
 final parent = atom(0);
 final nucleus = atomFamily((int i) => readOnlyAtom((get) => get(parent) + i));
 
+final nested =
+    readOnlyAtom((_) => List.generate(100000, (i) => atom(i).autoDispose()));
+
 void main() {
   group('nucleus', () {
     benchmark('100k', () {
@@ -13,9 +16,16 @@ void main() {
         store.use(atom, () {
           final state = store.read(atom);
           store.put(atom, state + 1);
-          final newState = store.read(atom);
+          store.read(atom);
         });
       }
+    });
+
+    benchmark('nesting', () {
+      final store = Store();
+      store.use(nested, () {
+        store.read(nested);
+      });
     });
   });
 }

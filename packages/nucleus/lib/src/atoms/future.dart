@@ -94,37 +94,36 @@ class FutureLoading<A> extends FutureValue<A> {
   int get hashCode => Object.hash(runtimeType, previousData);
 }
 
-Atom<FutureValue<T>> futureAtom<T>(
-  AtomReader<Future<T>> create, {
-  bool? keepAlive,
-}) {
-  void createFuture(ManagedAtomContext<FutureValue<T>> ctx) async {
-    bool disposed = false;
-    ctx.onDispose(() => disposed = true);
+Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
+    managedAtom(FutureLoading(), (ctx) async {
+      bool disposed = false;
+      ctx.onDispose(() => disposed = true);
 
-    final previous = ctx.previousValue;
-    if (previous is FutureData<T>) {
-      ctx.set(FutureValue.loading(previous.data));
-    }
+      final previous = ctx.previousValue;
+      if (previous is FutureData<T>) {
+        ctx.set(FutureValue.loading(previous.data));
+      }
 
-    try {
-      final result = await create(ctx.get);
-      if (disposed) return;
-      ctx.set(FutureValue.data(result));
-    } catch (err, stack) {
-      if (disposed) return;
-      ctx.set(FutureValue.error(err, stack));
-    }
-  }
-
-  return managedAtom(FutureLoading(), createFuture, keepAlive: keepAlive);
-}
+      try {
+        final result = await create(ctx.get);
+        if (disposed) return;
+        ctx.set(FutureValue.data(result));
+      } catch (err, stack) {
+        if (disposed) return;
+        ctx.set(FutureValue.error(err, stack));
+      }
+    });
 
 Tuple2<Atom<FutureValue<A>>, Atom<Future<A>>> futureAtomTuple<A>(
   AtomReader<Future<A>> create, {
   bool? keepAlive,
 }) {
-  final future = readOnlyAtom(create, keepAlive: keepAlive);
-  final value = futureAtom<A>((get) => get(future), keepAlive: keepAlive);
+  final future = readOnlyAtom(create).autoDispose();
+  final value = futureAtom<A>((get) => get(future));
+
+  if (keepAlive == false) {
+    value.autoDispose();
+  }
+
   return Tuple2(value, future);
 }

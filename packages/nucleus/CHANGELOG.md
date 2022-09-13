@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Fix writes and dependencies
+
 ## 0.0.3
 
 - Rename `DerivedAtom` to `ReadOnlyAtom`

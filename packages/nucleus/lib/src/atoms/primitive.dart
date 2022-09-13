@@ -1,10 +1,7 @@
 import 'package:nucleus/nucleus.dart';
 
 class PrimitiveAtom<Value> extends Atom<Value> {
-  PrimitiveAtom(
-    this.initialValue, {
-    super.keepAlive,
-  });
+  PrimitiveAtom(this.initialValue);
 
   final Value initialValue;
 
@@ -14,8 +11,4 @@ class PrimitiveAtom<Value> extends Atom<Value> {
 
 // Function API
 
-Atom<Value> atom<Value>(
-  Value initialValue, {
-  bool? keepAlive,
-}) =>
-    PrimitiveAtom(initialValue, keepAlive: keepAlive);
+Atom<Value> atom<Value>(Value initialValue) => PrimitiveAtom(initialValue);

@@ -1,10 +1,7 @@
 import 'package:nucleus/nucleus.dart';
 
 class ReadOnlyAtom<Value> extends Atom<Value> {
-  ReadOnlyAtom(
-    this._reader, {
-    super.keepAlive,
-  });
+  ReadOnlyAtom(this._reader);
 
   final AtomReader<Value> _reader;
 
@@ -14,11 +11,5 @@ class ReadOnlyAtom<Value> extends Atom<Value> {
 
 // Function API
 
-Atom<Value> readOnlyAtom<Value>(
-  AtomReader<Value> create, {
-  bool? keepAlive,
-}) =>
-    ReadOnlyAtom(
-      create,
-      keepAlive: keepAlive,
-    );
+Atom<Value> readOnlyAtom<Value>(AtomReader<Value> create) =>
+    ReadOnlyAtom(create);

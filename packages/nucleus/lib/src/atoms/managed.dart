@@ -19,9 +19,8 @@ class ManagedAtomContext<T> {
 class ManagedAtom<Value> extends Atom<Value> {
   ManagedAtom(
     this.initialValue,
-    this._create, {
-    super.keepAlive,
-  });
+    this._create,
+  );
 
   final Value initialValue;
   final ManagedAtomCreate<Value> _create;
@@ -51,4 +50,4 @@ Atom<Value> managedAtom<Value>(
   ManagedAtomCreate<Value> create, {
   bool? keepAlive,
 }) =>
-    ManagedAtom(initialValue, create, keepAlive: keepAlive);
+    ManagedAtom(initialValue, create);

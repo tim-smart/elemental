@@ -78,14 +78,23 @@ class AtomMount {
 class Store {
   Store({
     List<AtomInitialValue> initialValues = const [],
-  }) {
+
+    /// For testing only
+    HashMap<Atom, AtomState>? stateMap,
+
+    /// For testing only
+    HashMap<Atom, AtomMount>? mountMap,
+  })  : _atomStateMap = stateMap ?? HashMap(),
+        _atomMountedMap = mountMap ?? HashMap() {
     for (final value in initialValues) {
       _put(value.first, value.second);
     }
   }
 
-  final Map<Atom, AtomState> _atomStateMap = HashMap();
-  final Map<Atom, AtomMount> _atomMountedMap = HashMap();
+  final HashMap<Atom, AtomState> _atomStateMap;
+  final HashMap<Atom, AtomMount> _atomMountedMap;
+
+  var _pendingWrites = HashMap<Atom, AtomState?>();
 
   Future<void>? _schedulerFuture;
   final _atomsScheduledForRemoval = <Atom>{};
@@ -102,31 +111,26 @@ class Store {
     return _read(atom).value as Value;
   }
 
-  void put<Value>(
-    Atom<Value> atom,
-    Value value,
-  ) {
+  void put<Value>(Atom<Value> atom, Value value) {
     if (atom is! PrimitiveAtom<Value>) {
       throw ArgumentError.value(
         atom,
         "atom",
-        "You can not write to DerivedAtom or WritableAtom",
+        "You can only write to a PrimitiveAtom",
       );
     }
 
     _put(atom, value);
+    _flushPending();
   }
 
-  void Function() subscribe(
-    Atom atom,
-    void Function() onChange,
-  ) {
+  void Function() subscribe(Atom atom, void Function() onChange) {
     final mount = _ensureMounted(atom);
     mount.listeners.add(onChange);
 
     return () {
       mount.listeners.remove(onChange);
-      _unmountAtom(atom);
+      _maybeUnmount(mount);
     };
   }
 
@@ -136,11 +140,16 @@ class Store {
     try {
       return await f();
     } finally {
-      _unmount(mount);
+      _maybeUnmount(mount);
     }
   }
 
   // === Internal api
+  void _setState(Atom atom, AtomState state, AtomState? previousState) {
+    _atomStateMap[atom] = state;
+    _pendingWrites.putIfAbsent(atom, () => previousState);
+  }
+
   AtomMount _ensureMounted(Atom atom) {
     var mount = _atomMountedMap[atom];
     if (mount != null) {
@@ -159,37 +168,31 @@ class Store {
     return mount;
   }
 
-  void _unmountAtom(Atom atom) {
-    final mount = _atomMountedMap[atom];
-    if (mount != null) {
-      _unmount(mount);
-    }
-  }
-
-  void _unmount(AtomMount mount) {
+  void _maybeUnmount(AtomMount mount) {
     if (!mount.isUnmountable) {
       return;
     }
 
+    final atom = mount.atom;
+
     _atomMountedMap.remove(atom);
 
     final state = _atomStateMap[atom];
-
     if (state == null) {
       return;
     }
 
-    _maybeScheduleAtomRemoval(mount.atom);
+    _maybeScheduleAtomRemoval(atom);
 
     // dependants
     for (final dep in state.dependencies.keys) {
-      if (dep == mount.atom) continue;
+      if (dep == atom) continue;
 
       final depMount = _atomMountedMap[dep];
       if (depMount == null) continue;
 
       depMount.dependants.remove(atom);
-      _unmount(depMount);
+      _maybeUnmount(depMount);
     }
   }
 
@@ -300,6 +303,7 @@ class Store {
           dependencies: dependencies,
           disposers: disposers,
         );
+        _flushPending();
       };
 
   AtomState _put(
@@ -331,16 +335,8 @@ class Store {
       return currentState!;
     }
 
-    _atomStateMap[atom] = nextState;
-
+    _setState(atom, nextState, currentState);
     _invalidateDependants(atom);
-
-    final listeners = _atomMountedMap[atom]?.listeners;
-    if (listeners != null) {
-      for (final l in listeners) {
-        l();
-      }
-    }
 
     return nextState;
   }
@@ -354,12 +350,86 @@ class Store {
     for (final dep in dependants) {
       if (dep == atom) continue;
 
-      _atomStateMap.update(dep, (s) => s.copyWith(valid: false));
+      final state = _atomStateMap[dep];
+      if (state != null) {
+        _setState(dep, state.copyWith(valid: false), state);
+      }
+
       _invalidateDependants(dep);
     }
   }
 
+  // ==== Pending writes
+  void _flushPending() {
+    while (_pendingWrites.isNotEmpty) {
+      final pending = _pendingWrites;
+      _pendingWrites = HashMap();
+
+      for (final e in pending.entries) {
+        final atom = e.key;
+        final previousState = e.value;
+        final currentState = _atomStateMap[atom];
+
+        if (currentState != null &&
+            currentState.value != previousState?.value) {
+          _mountDependencies(atom, currentState, previousState?.dependencies);
+        }
+
+        if (previousState?.valid == false && currentState?.valid == true) {
+          continue;
+        }
+
+        // Eagerly refresh managed atoms
+        if (atom is ManagedAtom) {
+          _read(atom);
+        }
+
+        final mount = _atomMountedMap[atom];
+        if (mount != null) {
+          for (final fn in mount.listeners) {
+            fn();
+          }
+        }
+      }
+    }
+  }
+
+  void _mountDependencies(
+    Atom atom,
+    AtomState state,
+    IMap<Atom, int>? previousDependencies,
+  ) {
+    var dependencies = state.dependencies;
+
+    if (previousDependencies != null) {
+      for (final dep in previousDependencies.keys) {
+        if (dependencies.containsKey(dep)) {
+          // Not changed
+          dependencies = dependencies.remove(dep);
+          continue;
+        }
+
+        final mount = _atomMountedMap[dep];
+        if (mount != null) {
+          mount.dependants.remove(atom);
+          _maybeUnmount(mount);
+        }
+      }
+    }
+
+    for (final dep in dependencies.keys) {
+      final mount = _atomMountedMap[dep];
+
+      if (mount != null) {
+        mount.dependants.add(atom);
+      } else if (_atomMountedMap.containsKey(atom)) {
+        _ensureMounted(dep).dependants.add(atom);
+      }
+    }
+  }
+
   // ==== Scheduler
+
   void _runScheduledTasks() {
     _schedulerFuture = null;
 
