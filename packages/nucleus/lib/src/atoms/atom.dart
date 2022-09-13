@@ -1,4 +1,5 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:nucleus/nucleus.dart';
 
 typedef AtomGetter = A Function<A>(Atom<A> atom);
 typedef AtomReader<Value> = Value Function(AtomGetter get);
@@ -31,6 +32,9 @@ abstract class Atom<Value> {
   }
 
   Value read(AtomGetter getter);
+
+  Atom<B> select<B>(B Function(Value a) f) =>
+      ReadOnlyAtom((get) => f(get(this)));
 
   Atom<Value> autoDispose() {
     _shouldKeepAlive = false;

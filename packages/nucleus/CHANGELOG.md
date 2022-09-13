@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Add `select` to `Atom`
+
 ## 0.0.7
 
 - Internal refactor
