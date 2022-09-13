@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
+  fast_immutable_collections:
+    dependency: "direct main"
+    description:
+      name: fast_immutable_collections
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "7.4.1"
   file:
     dependency: transitive
     description:
@@ -324,4 +331,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.17.6 <3.0.0"
+  dart: ">=2.17.0 <3.0.0"
