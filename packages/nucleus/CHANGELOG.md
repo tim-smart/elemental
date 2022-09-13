@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Improve read api
+
 ## 0.0.4
 
 - Fix writes and dependencies

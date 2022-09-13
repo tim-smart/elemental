@@ -12,14 +12,12 @@ void main() {
     test('it reads and writes', () {
       final store = Store();
 
-      store.use(multiplied, () {
-        expect(store.read(counter), 0);
-        expect(store.read(multiplied), 0);
+      expect(store.read(counter), 0);
+      expect(store.read(multiplied), 0);
 
-        store.put(counter, 1);
-        expect(store.read(counter), 1);
-        expect(store.read(multiplied), 2);
-      });
+      store.put(counter, 1);
+      expect(store.read(counter), 1);
+      expect(store.read(multiplied), 2);
     });
 
     test('initialValues are set', () {
@@ -61,7 +59,6 @@ void main() {
 
       expect(mountMap.containsKey(counter), false);
 
-      // State is removed next frame
       expect(stateMap[counter] != null, true);
       await Future.microtask(() {});
       expect(stateMap[counter] != null, true);
@@ -74,7 +71,7 @@ void main() {
       final atom = managedAtom(0, (ctx) => ctx.onDispose(() => disposed = true))
           .autoDispose();
 
-      await store.use(atom, () {});
+      store.read(atom);
 
       expect(disposed, false);
       await Future.microtask(() {});
@@ -87,16 +84,15 @@ void main() {
       final count = atom(0);
 
       var disposed = false;
-      final dependency = managedAtom(0, (ctx) {
-        ctx.get(count);
-        ctx.onDispose(() => disposed = true);
+      final dependency = managedAtom(0, (x) {
+        x.get(count);
+        x.onDispose(() => disposed = true);
       });
 
-      await store.use(dependency, () {
-        expect(disposed, false);
-        store.put(count, 1);
-        expect(disposed, true);
-      });
+      store.read(dependency);
+      expect(disposed, false);
+      store.put(count, 1);
+      expect(disposed, true);
     });
   });
 }
