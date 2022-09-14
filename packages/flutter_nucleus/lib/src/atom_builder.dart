@@ -12,7 +12,7 @@ class AtomBuilder extends StatefulWidget {
 
   final Widget Function(
     BuildContext context,
-    AtomGetter get,
+    AtomGetter watch,
     Widget? child,
   ) builder;
   final Widget? child;
@@ -24,22 +24,23 @@ class AtomBuilder extends StatefulWidget {
 class _AtomBuilderState extends State<AtomBuilder> {
   late final _store = AtomScope.of(context);
   final _cancellers = HashMap<Atom, void Function()>();
+  final _valueCache = HashMap<Atom, Object?>();
 
-  A _get<A>(Atom<A> atom) {
+  A _watch<A>(Atom<A> atom) {
     if (!_cancellers.containsKey(atom)) {
-      _cancellers[atom] = _store.subscribe(atom, _onChange);
+      _cancellers[atom] = _store.subscribe(
+          atom,
+          () => setState(() {
+                _valueCache.remove(atom);
+              }));
     }
 
-    return _store.read(atom);
-  }
-
-  void _onChange() {
-    setState(() {});
+    return _valueCache[atom] ??= _store.read(atom);
   }
 
   @override
   Widget build(BuildContext context) =>
-      widget.builder(context, _get, widget.child);
+      widget.builder(context, _watch, widget.child);
 
   @override
   void dispose() {
