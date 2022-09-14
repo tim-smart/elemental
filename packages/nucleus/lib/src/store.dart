@@ -91,8 +91,8 @@ class Store {
     HashMap<Atom, AtomMount>? mountMap,
   })  : _atomStateMap = stateMap ?? HashMap(),
         _atomMountedMap = mountMap ?? HashMap() {
-    for (final value in initialValues) {
-      _put(value.first, value.second);
+    for (final iv in initialValues) {
+      _put(iv.atom, iv.value);
     }
   }
 

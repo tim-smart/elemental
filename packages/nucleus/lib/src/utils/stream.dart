@@ -1,32 +1,34 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:nucleus/nucleus.dart';
 
-Atom<FutureValue<A>> streamAtom<A>(
+class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
+  StreamAtom(
+    AtomReader<Stream<A>> create, {
+    A? initialValue,
+  })  : stream = ReadOnlyAtom(
+          (get, onDispose) => create(get, onDispose).asBroadcastStream(),
+        ).autoDispose(),
+        super(
+          initialValue != null
+              ? FutureValue.data(initialValue)
+              : FutureValue.loading(),
+          (x) {},
+        );
+
+  final Atom<Stream<A>> stream;
+
+  @override
+  void create({
+    required AtomGetter get,
+    required void Function(FutureValue<A>) set,
+    required void Function(void Function()) onDispose,
+    required FutureValue<A> previous,
+  }) {
+    onDispose(get(stream).listen((data) => set(FutureValue.data(data))).cancel);
+  }
+}
+
+StreamAtom<A> streamAtom<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
 }) =>
-    managedAtom<FutureValue<A>>(
-      initialValue != null
-          ? FutureValue.data(initialValue)
-          : FutureValue.loading(),
-      (x) {
-        x.onDispose(create(x.get, x.onDispose)
-            .listen((data) => x.set(FutureValue.data(data)))
-            .cancel);
-      },
-    );
-
-Tuple2<Atom<FutureValue<A>>, Atom<Stream<A>>> streamAtomTuple<A>(
-  AtomReader<Stream<A>> create, {
-  A? initialValue,
-  bool? keepAlive,
-}) {
-  final stream = atom(create).autoDispose();
-  final value = streamAtom((get, _) => get(stream), initialValue: initialValue);
-
-  if (keepAlive == false) {
-    value.autoDispose();
-  }
-
-  return Tuple2(value, stream);
-}
+    StreamAtom(create, initialValue: initialValue);

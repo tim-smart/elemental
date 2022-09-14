@@ -1,4 +1,3 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:nucleus/nucleus.dart';
 
 typedef AtomGetter = R Function<R>(Atom<R> atom);
@@ -10,7 +9,11 @@ typedef AtomReader<Value> = Value Function(
   void Function(void Function()) onDispose,
 );
 
-typedef AtomInitialValue = Tuple2<Atom, Object?>;
+class AtomInitialValue<A> {
+  const AtomInitialValue(this.atom, this.value);
+  final Atom<A> atom;
+  final A value;
+}
 
 abstract class Atom<R> {
   bool _touchedKeepAlive = false;
@@ -54,7 +57,7 @@ abstract class Atom<R> {
     return this;
   }
 
-  AtomInitialValue withInitialValue(R value) => Tuple2(this, value);
+  AtomInitialValue withInitialValue(R value) => AtomInitialValue(this, value);
 
   @override
   operator ==(Object? other) => other.hashCode == hashCode;

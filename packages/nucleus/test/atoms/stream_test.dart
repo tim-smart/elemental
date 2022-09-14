@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
-final delayed123 = streamAtomTuple((get, _) async* {
+final delayed123 = streamAtom((get, _) async* {
   await Future.microtask(() {});
   yield 1;
   await Future.microtask(() {});
@@ -18,13 +18,13 @@ void main() {
       final store = Store();
       final results = <FutureValue<int>>[];
 
-      expect(store.read(delayed123.first), FutureValue.loading());
+      expect(store.read(delayed123), FutureValue.loading());
 
-      final cancel = store.subscribe(delayed123.first, () {
-        results.add(store.read(delayed123.first));
+      final cancel = store.subscribe(delayed123, () {
+        results.add(store.read(delayed123));
       });
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await store.read(delayed123.stream).last;
       cancel();
 
       expect(

@@ -1,4 +1,3 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:nucleus/nucleus.dart';
 
 abstract class FutureValue<A> {
@@ -137,36 +136,36 @@ class FutureLoading<A> extends FutureValue<A> {
   String toString() => "FutureValue<$A>.loading()";
 }
 
-Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
-    managedAtom(FutureLoading(), (x) async {
-      bool disposed = false;
-      x.onDispose(() => disposed = true);
+class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
+  FutureAtom(AtomReader<Future<A>> create)
+      : future = ReadOnlyAtom(create).autoDispose(),
+        super(FutureValue.loading(), (x) {});
 
-      final previous = x.previousValue;
-      if (previous is FutureData<T>) {
-        x.set(FutureValue.loading(previous.data));
-      }
+  final Atom<Future<A>> future;
 
-      try {
-        final result = await create(x.get, x.onDispose);
-        if (disposed) return;
-        x.set(FutureValue.data(result));
-      } catch (err, stack) {
-        if (disposed) return;
-        x.set(FutureValue.error(err, stack));
-      }
-    });
+  @override
+  void create({
+    required AtomGetter get,
+    required void Function(FutureValue<A> p1) set,
+    required void Function(void Function() p1) onDispose,
+    required FutureValue<A> previous,
+  }) async {
+    bool disposed = false;
+    onDispose(() => disposed = true);
 
-Tuple2<Atom<FutureValue<A>>, Atom<Future<A>>> futureAtomTuple<A>(
-  AtomReader<Future<A>> create, {
-  bool? keepAlive,
-}) {
-  final future = atom(create).autoDispose();
-  final value = futureAtom<A>((get, _) => get(future));
+    if (previous is FutureData<A>) {
+      set(FutureValue.loading(previous.data));
+    }
 
-  if (keepAlive == false) {
-    value.autoDispose();
+    try {
+      final result = await get(future);
+      if (disposed) return;
+      set(FutureValue.data(result));
+    } catch (err, stack) {
+      if (disposed) return;
+      set(FutureValue.error(err, stack));
+    }
   }
-
-  return Tuple2(value, future);
 }
+
+FutureAtom<T> futureAtom<T>(AtomReader<Future<T>> create) => FutureAtom(create);
