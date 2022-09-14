@@ -1,3 +1,7 @@
+## 0.0.18
+
+- Remove fast immutable collections
+
 ## 0.0.17+2
 
 - Update README
