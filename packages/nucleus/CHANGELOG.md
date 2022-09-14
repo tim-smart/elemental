@@ -1,3 +1,7 @@
+## 0.0.15
+
+- `autoDispose` atoms from `select`
+
 ## 0.0.14
 
 - Remove depreciated api's
