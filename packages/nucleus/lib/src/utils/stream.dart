@@ -9,9 +9,9 @@ Atom<FutureValue<A>> streamAtom<A>(
       initialValue != null
           ? FutureValue.data(initialValue)
           : FutureValue.loading(),
-      (ctx) {
-        ctx.onDispose(create(ctx.get)
-            .listen((data) => ctx.set(FutureValue.data(data)))
+      (x) {
+        x.onDispose(create(x.get, x.onDispose)
+            .listen((data) => x.set(FutureValue.data(data)))
             .cancel);
       },
     );
@@ -22,7 +22,7 @@ Tuple2<Atom<FutureValue<A>>, Atom<Stream<A>>> streamAtomTuple<A>(
   bool? keepAlive,
 }) {
   final stream = atom(create).autoDispose();
-  final value = streamAtom((get) => get(stream), initialValue: initialValue);
+  final value = streamAtom((get, _) => get(stream), initialValue: initialValue);
 
   if (keepAlive == false) {
     value.autoDispose();

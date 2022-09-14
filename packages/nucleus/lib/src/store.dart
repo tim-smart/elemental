@@ -218,14 +218,14 @@ class Store {
     }
 
     // Needs recomputation
+    currentState?.onDispose();
+
     final usedDeps = HashSet<Atom>();
+    final disposers = <void Function()>[];
     final getter = _buildGetter(atom, usedDeps);
-    final value = atom.read(getter);
+    final value = atom.read(getter, disposers.add);
 
     if (atom is ManagedAtom) {
-      currentState?.onDispose();
-
-      final disposers = <void Function()>[];
       atom.create(
         get: getter,
         set: _buildSetter(atom, usedDeps, disposers),

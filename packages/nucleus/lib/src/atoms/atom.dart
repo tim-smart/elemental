@@ -2,8 +2,14 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:nucleus/nucleus.dart';
 
 typedef AtomGetter = R Function<R>(Atom<R> atom);
+typedef AtomOnDispose = void Function(void Function());
 typedef AtomSetter = void Function<W>(WritableAtom<dynamic, W> atom, W value);
-typedef AtomReader<R> = R Function(AtomGetter get);
+
+typedef AtomReader<Value> = Value Function(
+  AtomGetter get,
+  void Function(void Function()) onDispose,
+);
+
 typedef AtomInitialValue = Tuple2<Atom, Object?>;
 
 abstract class Atom<R> {
@@ -31,10 +37,10 @@ abstract class Atom<R> {
     };
   }
 
-  R read(AtomGetter getter);
+  R read(AtomGetter getter, AtomOnDispose onDispose);
 
   Atom<B> select<B>(B Function(R a) f) =>
-      ReadOnlyAtom((get) => f(get(this))).autoDispose();
+      ReadOnlyAtom((get, onDispose) => f(get(this))).autoDispose();
 
   Atom<R> autoDispose() {
     _touchedKeepAlive = true;

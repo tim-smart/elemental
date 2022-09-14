@@ -28,7 +28,7 @@ WritableAtom<A, A> stateAtomWithStorage<A>(
 }) {
   final valueAtom = stateAtom<A?>(null);
 
-  return proxyAtom((get) {
+  return proxyAtom((get, _) {
     final value = get(valueAtom);
     if (value != null) {
       return value;
@@ -55,7 +55,7 @@ Atom<R> atomWithStorage<R, A>(
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
 }) =>
-    atom((get) {
+    atom((get, _) {
       final s = get(storage);
 
       void write(A value) => s.set(key, toJson(value));

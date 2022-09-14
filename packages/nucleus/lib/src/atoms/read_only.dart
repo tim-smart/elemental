@@ -6,7 +6,8 @@ class ReadOnlyAtom<Value> extends Atom<Value> {
   final AtomReader<Value> _reader;
 
   @override
-  Value read(AtomGetter getter) => _reader(getter);
+  Value read(AtomGetter getter, AtomOnDispose onDispose) =>
+      _reader(getter, onDispose);
 }
 
 // Function API

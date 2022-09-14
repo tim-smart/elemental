@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 final counter = stateAtom(0);
 final counterAutoDispose = stateAtom(0).autoDispose();
-final multiplied = atom((get) => get(counter) * 2);
+final multiplied = atom((get, _) => get(counter) * 2);
 
 void main() {
   group('Store', () {

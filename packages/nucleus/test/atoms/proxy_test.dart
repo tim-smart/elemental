@@ -6,7 +6,7 @@ void main() {
     test('writes to the parent', () {
       final count = stateAtom(0);
       final proxy = proxyAtom(
-        (get) => get(count) * 10,
+        (get, _) => get(count) * 10,
         (get, set, int value) => set(count, value),
       );
 
@@ -20,7 +20,7 @@ void main() {
     test('can proxy writes', () {
       final count = stateAtom(0);
       final proxy = proxyAtom(
-        (get) => get(count),
+        (get, _) => get(count),
         (get, set, int i) => set(count, i * 10),
       );
 
@@ -34,7 +34,7 @@ void main() {
     test('can get parent in writer', () {
       final count = stateAtom(0);
       final proxy = proxyAtom(
-        (get) => get(count),
+        (get, _) => get(count),
         (get, set, void _) => set(count, get(count) + 1),
       );
 

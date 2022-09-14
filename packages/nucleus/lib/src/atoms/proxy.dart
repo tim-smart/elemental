@@ -13,7 +13,8 @@ class ProxyAtom<R, W> extends WritableAtom<R, W> {
   final ProxyAtomWriter<W> _writer;
 
   @override
-  R read(AtomGetter getter) => _reader(getter);
+  R read(AtomGetter getter, AtomOnDispose onDispose) =>
+      _reader(getter, onDispose);
 
   @override
   void write(Store store, AtomSetter set, W value) {

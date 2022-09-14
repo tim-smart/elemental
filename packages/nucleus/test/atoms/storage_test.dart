@@ -5,7 +5,7 @@ void main() {
   group('atomWithStorage', () {
     test('it reads and writes to the storage', () {
       final storage = MemoryNucleusStorage();
-      final storageAtom = atom((_) => storage);
+      final storageAtom = atom((get, _) => storage);
 
       final counter = stateAtomWithStorage(
         0,
@@ -30,7 +30,7 @@ void main() {
   group('atomWithStorage', () {
     test('it reads and writes to the storage', () async {
       final storage = MemoryNucleusStorage();
-      final storageAtom = atom((_) => storage);
+      final storageAtom = atom((get, _) => storage);
 
       final counter = atomWithStorage<int, int>(
         (get, read, write) {

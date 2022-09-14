@@ -6,7 +6,7 @@ class StateAtom<Value> extends WritableAtom<Value, Value> {
   final Value initialValue;
 
   @override
-  Value read(AtomGetter getter) => getter(this);
+  Value read(AtomGetter getter, AtomOnDispose onDispose) => getter(this);
 
   @override
   void write(Store store, AtomSetter set, Value value) {

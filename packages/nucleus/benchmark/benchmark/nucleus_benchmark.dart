@@ -2,7 +2,7 @@ import 'package:benchmark/benchmark.dart';
 import 'package:nucleus/nucleus.dart';
 
 final nucleus = atomFamily((int i) => stateAtom(i));
-final nested = atom((_) => List.generate(
+final nested = atom((get, onDispose) => List.generate(
       100000,
       (i) => stateAtom(i),
     ));

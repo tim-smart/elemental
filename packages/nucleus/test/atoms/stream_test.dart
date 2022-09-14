@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
-final delayed123 = streamAtomTuple((_) async* {
+final delayed123 = streamAtomTuple((get, _) async* {
   await Future.microtask(() {});
   yield 1;
   await Future.microtask(() {});

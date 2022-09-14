@@ -148,7 +148,7 @@ Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
       }
 
       try {
-        final result = await create(x.get);
+        final result = await create(x.get, x.onDispose);
         if (disposed) return;
         x.set(FutureValue.data(result));
       } catch (err, stack) {
@@ -162,7 +162,7 @@ Tuple2<Atom<FutureValue<A>>, Atom<Future<A>>> futureAtomTuple<A>(
   bool? keepAlive,
 }) {
   final future = atom(create).autoDispose();
-  final value = futureAtom<A>((get) => get(future));
+  final value = futureAtom<A>((get, _) => get(future));
 
   if (keepAlive == false) {
     value.autoDispose();

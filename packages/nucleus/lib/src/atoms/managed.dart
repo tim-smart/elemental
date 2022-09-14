@@ -26,7 +26,7 @@ class ManagedAtom<Value> extends Atom<Value> {
   final ManagedAtomCreate<Value> _create;
 
   @override
-  Value read(AtomGetter getter) => getter(this);
+  Value read(AtomGetter getter, AtomOnDispose onDispose) => getter(this);
 
   void create({
     required AtomGetter get,
