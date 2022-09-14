@@ -33,7 +33,8 @@ abstract class Atom<R> {
 
   R read(AtomGetter getter);
 
-  Atom<B> select<B>(B Function(R a) f) => ReadOnlyAtom((get) => f(get(this)));
+  Atom<B> select<B>(B Function(R a) f) =>
+      ReadOnlyAtom((get) => f(get(this))).autoDispose();
 
   Atom<R> autoDispose() {
     _touchedKeepAlive = true;
