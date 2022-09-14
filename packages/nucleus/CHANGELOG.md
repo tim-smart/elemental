@@ -1,3 +1,7 @@
+## 0.0.12
+
+- Fix proxy atom type issues
+
 ## 0.0.11
 
 - Add `readOnlyAtomWithStorage`
