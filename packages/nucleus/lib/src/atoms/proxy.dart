@@ -11,6 +11,15 @@ class ProxyAtom<R, W, PW> extends Atom<R, W> {
 
   @override
   R read(AtomGetter getter) => _reader(getter);
+
+  void write(Store store, W value) {
+    if (writer != null) {
+      final parentValue = writer!(value, store.read);
+      return store.put(parent, parentValue);
+    }
+
+    store.put(parent, value);
+  }
 }
 
 Atom<R, W> proxyAtom<R, W>(

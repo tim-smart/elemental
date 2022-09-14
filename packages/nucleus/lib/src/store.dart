@@ -109,10 +109,7 @@ class Store {
 
   void put<Value>(Atom<dynamic, Value> atom, Value value) {
     if (atom is ProxyAtom<dynamic, Value, dynamic>) {
-      final parent = atom.parent;
-      final parentValue =
-          atom.writer != null ? atom.writer!(value, read) : value;
-      return put(parent, parentValue);
+      return atom.write(this, value);
     }
 
     if (atom is! PrimitiveAtom<Value>) {
