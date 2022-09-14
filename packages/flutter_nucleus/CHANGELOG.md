@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Improve `AtomBuilder` - can now listen to multiple atoms
+
 ## 0.0.3
 
 - Add `AtomBuilder`
