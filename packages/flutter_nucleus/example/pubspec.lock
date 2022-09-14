@@ -89,7 +89,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.5"
+    version: "0.0.6"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -129,7 +129,7 @@ packages:
       name: nucleus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.11"
+    version: "0.0.13"
   path:
     dependency: transitive
     description:
@@ -184,13 +184,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.9"
-  value_notifier_ext:
-    dependency: transitive
-    description:
-      name: value_notifier_ext
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.4"
   vector_math:
     dependency: transitive
     description:

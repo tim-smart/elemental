@@ -29,13 +29,12 @@ class _AtomBuilderState extends State<AtomBuilder> {
   A _watch<A>(Atom<A> atom) {
     if (!_cancellers.containsKey(atom)) {
       _cancellers[atom] = _store.subscribe(
-          atom,
-          () => setState(() {
-                _valueCache.remove(atom);
-              }));
+        atom,
+        () => setState(() => _valueCache.remove(atom)),
+      );
     }
 
-    return _valueCache[atom] ??= _store.read(atom);
+    return (_valueCache[atom] ??= _store.read(atom)) as A;
   }
 
   @override
@@ -48,6 +47,7 @@ class _AtomBuilderState extends State<AtomBuilder> {
       cancel();
     }
     _cancellers.clear();
+    _valueCache.clear();
 
     super.dispose();
   }

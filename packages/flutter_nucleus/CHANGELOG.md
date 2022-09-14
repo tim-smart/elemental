@@ -1,3 +1,8 @@
+## 0.0.6
+
+- Remove `AtomNotifier`
+- Update `AtomBuilder` and `useAtom` API
+
 ## 0.0.5
 
 - Update for latest nucleus API
