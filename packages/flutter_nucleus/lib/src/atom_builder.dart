@@ -3,8 +3,6 @@ import 'dart:collection';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
-typedef AtomBuilderGet = AtomNotifier<A> Function<A>(Atom<A, dynamic> atom);
-
 class AtomBuilder extends StatefulWidget {
   const AtomBuilder(
     this.builder, {
@@ -14,7 +12,7 @@ class AtomBuilder extends StatefulWidget {
 
   final Widget Function(
     BuildContext context,
-    AtomBuilderGet get,
+    AtomGetter get,
     Widget? child,
   ) builder;
   final Widget? child;
@@ -25,17 +23,14 @@ class AtomBuilder extends StatefulWidget {
 
 class _AtomBuilderState extends State<AtomBuilder> {
   late final _store = AtomScope.of(context);
-  final _notifiers = HashMap<Atom, AtomNotifier>();
+  final _cancellers = HashMap<Atom, void Function()>();
 
-  AtomNotifier<A> _get<A>(Atom<A, dynamic> atom) {
-    if (_notifiers.containsKey(atom)) {
-      return _notifiers[atom] as AtomNotifier<A>;
+  A _get<A>(Atom<A> atom) {
+    if (!_cancellers.containsKey(atom)) {
+      _cancellers[atom] = _store.subscribe(atom, _onChange);
     }
 
-    final notifier = AtomNotifier(_store, atom);
-    notifier.addListener(_onChange);
-
-    return notifier;
+    return _store.read(atom);
   }
 
   void _onChange() {
@@ -48,10 +43,10 @@ class _AtomBuilderState extends State<AtomBuilder> {
 
   @override
   void dispose() {
-    for (final notifier in _notifiers.values) {
-      notifier.dispose();
+    for (final cancel in _cancellers.values) {
+      cancel();
     }
-    _notifiers.clear();
+    _cancellers.clear();
 
     super.dispose();
   }
