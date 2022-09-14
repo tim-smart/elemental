@@ -1,7 +1,7 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:nucleus/nucleus.dart';
 
-Atom<FutureValue<A>> streamAtom<A>(
+Atom<FutureValue<A>, void> streamAtom<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
 }) =>
@@ -16,7 +16,7 @@ Atom<FutureValue<A>> streamAtom<A>(
       },
     );
 
-Tuple2<Atom<FutureValue<A>>, Atom<Stream<A>>> streamAtomTuple<A>(
+Tuple2<Atom<FutureValue<A>, void>, Atom<Stream<A>, void>> streamAtomTuple<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
   bool? keepAlive,

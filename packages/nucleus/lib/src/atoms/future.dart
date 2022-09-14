@@ -103,7 +103,7 @@ class FutureLoading<A> extends FutureValue<A> {
   String toString() => "FutureValue<$A>.loading()";
 }
 
-Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
+Atom<FutureValue<T>, void> futureAtom<T>(AtomReader<Future<T>> create) =>
     managedAtom(FutureLoading(), (ctx) async {
       bool disposed = false;
       ctx.onDispose(() => disposed = true);
@@ -123,7 +123,7 @@ Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
       }
     });
 
-Tuple2<Atom<FutureValue<A>>, Atom<Future<A>>> futureAtomTuple<A>(
+Tuple2<Atom<FutureValue<A>, void>, Atom<Future<A>, void>> futureAtomTuple<A>(
   AtomReader<Future<A>> create, {
   bool? keepAlive,
 }) {

@@ -1,6 +1,6 @@
 import 'package:nucleus/nucleus.dart';
 
-class PrimitiveAtom<Value> extends Atom<Value> {
+class PrimitiveAtom<Value> extends Atom<Value, Value> {
   PrimitiveAtom(this.initialValue);
 
   final Value initialValue;
@@ -11,4 +11,5 @@ class PrimitiveAtom<Value> extends Atom<Value> {
 
 // Function API
 
-Atom<Value> atom<Value>(Value initialValue) => PrimitiveAtom(initialValue);
+Atom<Value, Value> atom<Value>(Value initialValue) =>
+    PrimitiveAtom(initialValue);

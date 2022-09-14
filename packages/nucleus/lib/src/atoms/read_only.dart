@@ -1,6 +1,6 @@
 import 'package:nucleus/nucleus.dart';
 
-class ReadOnlyAtom<Value> extends Atom<Value> {
+class ReadOnlyAtom<Value> extends Atom<Value, void> {
   ReadOnlyAtom(this._reader);
 
   final AtomReader<Value> _reader;
@@ -11,5 +11,5 @@ class ReadOnlyAtom<Value> extends Atom<Value> {
 
 // Function API
 
-Atom<Value> readOnlyAtom<Value>(AtomReader<Value> create) =>
+Atom<Value, void> readOnlyAtom<Value>(AtomReader<Value> create) =>
     ReadOnlyAtom(create);

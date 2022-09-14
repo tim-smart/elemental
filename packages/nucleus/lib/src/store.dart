@@ -101,13 +101,20 @@ class Store {
   final _atomsScheduledForRemoval = <Atom>[];
 
   // === Public api
-  Value read<Value>(Atom<Value> atom) {
+  Value read<Value>(Atom<Value, dynamic> atom) {
     final value = _read(atom).value as Value;
     _maybeScheduleAtomRemoval(atom);
     return value;
   }
 
-  void put<Value>(Atom<Value> atom, Value value) {
+  void put<Value>(Atom<dynamic, Value> atom, Value value) {
+    if (atom is ProxyAtom<dynamic, Value, dynamic>) {
+      final parent = atom.parent;
+      final parentValue =
+          atom.writer != null ? atom.writer!(value, read) : value;
+      return put(parent, parentValue);
+    }
+
     if (atom is! PrimitiveAtom<Value>) {
       throw ArgumentError.value(
         atom,
@@ -288,7 +295,7 @@ class Store {
       };
 
   void Function(Value value) _buildSetter<Value>(
-    Atom<Value> atom,
+    Atom<dynamic, Value> atom,
     HashSet<Atom> dependencies,
     List<void Function()> disposers,
   ) {

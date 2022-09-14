@@ -1,19 +1,19 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:nucleus/nucleus.dart';
 
-typedef AtomGetter = A Function<A>(Atom<A> atom);
-typedef AtomReader<Value> = Value Function(AtomGetter get);
+typedef AtomGetter = R Function<R>(Atom<R, dynamic> atom);
+typedef AtomReader<R> = R Function(AtomGetter get);
 typedef AtomInitialValue = Tuple2<Atom, Object?>;
 
-abstract class Atom<Value> {
+abstract class Atom<R, W> {
   bool _touchedKeepAlive = false;
   bool _shouldKeepAlive = true;
   bool get shouldKeepAlive => _shouldKeepAlive;
 
   int? _hashCodeOverride;
 
-  static Atom<Value> Function(Arg arg) family<Value, Arg>(
-    Atom<Value> Function(Arg arg) create,
+  static Atom<R, W> Function(Arg arg) family<R, W, Arg>(
+    Atom<R, W> Function(Arg arg) create,
   ) {
     final familyHashCode = {}.hashCode;
 
@@ -30,24 +30,24 @@ abstract class Atom<Value> {
     };
   }
 
-  Value read(AtomGetter getter);
+  R read(AtomGetter getter);
 
-  Atom<B> select<B>(B Function(Value a) f) =>
+  Atom<B, void> select<B>(B Function(R a) f) =>
       ReadOnlyAtom((get) => f(get(this)));
 
-  Atom<Value> autoDispose() {
+  Atom<R, W> autoDispose() {
     _touchedKeepAlive = true;
     _shouldKeepAlive = false;
     return this;
   }
 
-  Atom<Value> keepAlive() {
+  Atom<R, W> keepAlive() {
     _touchedKeepAlive = true;
     _shouldKeepAlive = true;
     return this;
   }
 
-  AtomInitialValue withInitialValue(Value value) => Tuple2(this, value);
+  AtomInitialValue withInitialValue(R value) => Tuple2(this, value);
 
   @override
   operator ==(Object? other) => other.hashCode == hashCode;
@@ -62,7 +62,7 @@ abstract class Atom<Value> {
 ///
 /// Automatically calls `.autoDipose()` on the child atoms, so to prevent state
 /// from being removed, explicitly call `.keepAlive()` on the created atom.
-Atom<Value> Function(Arg arg) atomFamily<Value, Arg>(
-  Atom<Value> Function(Arg arg) create,
+Atom<R, W> Function(Arg arg) atomFamily<R, W, Arg>(
+  Atom<R, W> Function(Arg arg) create,
 ) =>
     Atom.family(create);
