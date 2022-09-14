@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
-final counterAtom = stateAtom(0);
-final multiplied = atom((get, _) => get(counterAtom) * 10);
+final counter = stateAtom(0);
+final multiplied = atom((get, _) => get(counter) * 10);
 final messenger = atom((get, _) => GlobalKey<ScaffoldMessengerState>());
 
 void main() {
@@ -35,10 +35,10 @@ class MyHomePage extends HookWidget {
   Widget build(BuildContext context) {
     // Or you can use the flutter_hook helpers to watch an atom.
     // [useAtom] returns and listens to atom value changes.
-    final counter = useAtom(counterAtom);
+    final count = useAtom(counter);
 
     // Create a callback function for updating an atom's value.
-    final updateCounter = context.updateAtom(counterAtom);
+    final updateCount = context.updateAtom(counter);
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -47,17 +47,14 @@ class MyHomePage extends HookWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text('You have pushed the button this many times:'),
-            Text(
-              '$counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            Text('$count', style: Theme.of(context).textTheme.headline4),
             const Text('Multiplied:'),
             const MultipliedText(),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => updateCounter((count) => count + 1),
+        onPressed: () => updateCount((count) => count + 1),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
