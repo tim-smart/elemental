@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Add `SharedPrefsStorage`
+
 ## 0.0.7
 
 - Improve `setAtom` and `updateAtom`
