@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Improve `setAtom` and `updateAtom`
+
 ## 0.0.6
 
 - Remove `AtomNotifier`
