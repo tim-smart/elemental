@@ -5,11 +5,11 @@ void main() {
   group('atomWithStorage', () {
     test('it reads and writes to the storage', () {
       final storage = MemoryNucleusStorage();
-      final storageAtom = readOnlyAtom((_) => storage);
+      final storageAtom = atom((_) => storage);
 
-      final counter = atomWithStorage(
-        'counter',
+      final counter = stateAtomWithStorage(
         0,
+        key: 'counter',
         storage: storageAtom,
         fromJson: (i) => i,
         toJson: (i) => i,
@@ -27,19 +27,19 @@ void main() {
     });
   });
 
-  group('readOnlyAtomWithStorage', () {
+  group('atomWithStorage', () {
     test('it reads and writes to the storage', () async {
       final storage = MemoryNucleusStorage();
-      final storageAtom = readOnlyAtom((_) => storage);
+      final storageAtom = atom((_) => storage);
 
-      final counter = readOnlyAtomWithStorage<int, int>(
-        'counter',
+      final counter = atomWithStorage<int, int>(
         (get, read, write) {
           Future.microtask(() {
             write(1);
           });
           return read() ?? 0;
         },
+        key: 'counter',
         storage: storageAtom,
         fromJson: (i) => i,
         toJson: (i) => i,

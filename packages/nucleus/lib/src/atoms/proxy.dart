@@ -1,36 +1,25 @@
 import 'package:nucleus/nucleus.dart';
 
-typedef ProxyAtomWriter<W, PW> = PW Function(W nextValue, AtomGetter get);
+typedef ProxyAtomWriter<W> = void Function(
+    AtomGetter get, AtomSetter set, W value);
 
-class ProxyAtom<R, W, PW> extends Atom<R, W> {
-  ProxyAtom(this.parent, this._reader, [this.writer]);
+class ProxyAtom<R, W> extends WritableAtom<R, W> {
+  ProxyAtom(this._reader, this._writer);
 
-  final Atom<dynamic, PW> parent;
   final AtomReader<R> _reader;
-  final ProxyAtomWriter<W, PW>? writer;
+  final ProxyAtomWriter<W> _writer;
 
   @override
   R read(AtomGetter getter) => _reader(getter);
 
-  void write(Store store, W value) {
-    if (writer != null) {
-      final parentValue = writer!(value, store.read);
-      return store.put(parent, parentValue);
-    }
-
-    store.put(parent, value);
+  @override
+  void write(Store store, AtomSetter set, W value) {
+    _writer(store.read, store.put, value);
   }
 }
 
-Atom<R, W> proxyAtom<R, W>(
-  Atom<dynamic, W> atom,
+WritableAtom<R, W> proxyAtom<R, W>(
   AtomReader<R> create,
+  ProxyAtomWriter<W> writer,
 ) =>
-    ProxyAtom(atom, create);
-
-Atom<R, W> proxyAtomWithWriter<R, W, PW>(
-  Atom<dynamic, PW> atom,
-  AtomReader<R> create,
-  ProxyAtomWriter<W, PW> writer,
-) =>
-    ProxyAtom(atom, create, writer);
+    ProxyAtom(create, writer);

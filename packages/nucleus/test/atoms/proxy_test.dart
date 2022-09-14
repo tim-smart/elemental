@@ -4,8 +4,11 @@ import 'package:test/test.dart';
 void main() {
   group('ProxyAtom', () {
     test('writes to the parent', () {
-      final count = atom(0);
-      final proxy = proxyAtom(count, (get) => get(count) * 10);
+      final count = stateAtom(0);
+      final proxy = proxyAtom(
+        (get) => get(count) * 10,
+        (get, set, int value) => set(count, value),
+      );
 
       final store = Store();
 
@@ -15,11 +18,10 @@ void main() {
     });
 
     test('can proxy writes', () {
-      final count = atom(0);
-      final proxy = proxyAtomWithWriter(
-        count,
+      final count = stateAtom(0);
+      final proxy = proxyAtom(
         (get) => get(count),
-        (int value, get) => value * 10,
+        (get, set, int i) => set(count, i * 10),
       );
 
       final store = Store();
@@ -30,11 +32,10 @@ void main() {
     });
 
     test('can get parent in writer', () {
-      final count = atom(0);
-      final proxy = proxyAtomWithWriter(
-        count,
+      final count = stateAtom(0);
+      final proxy = proxyAtom(
         (get) => get(count),
-        (void _, get) => get(count) + 1,
+        (get, set, void _) => set(count, get(count) + 1),
       );
 
       final store = Store();

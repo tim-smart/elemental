@@ -3,9 +3,9 @@ import 'dart:collection';
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
-final counter = atom(0);
-final counterAutoDispose = atom(0).autoDispose();
-final multiplied = readOnlyAtom((get) => get(counter) * 2);
+final counter = stateAtom(0);
+final counterAutoDispose = stateAtom(0).autoDispose();
+final multiplied = atom((get) => get(counter) * 2);
 
 void main() {
   group('Store', () {
@@ -81,7 +81,7 @@ void main() {
     test('onDispose is called on recalculation', () async {
       final store = Store();
 
-      final count = atom(0);
+      final count = stateAtom(0);
 
       var disposed = false;
       final dependency = managedAtom(0, (x) {

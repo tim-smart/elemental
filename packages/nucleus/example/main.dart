@@ -1,6 +1,6 @@
 import 'package:nucleus/nucleus.dart';
 
-final count = atom(0);
+final count = stateAtom(0);
 
 void main(List<String> args) async {
   final store = Store();

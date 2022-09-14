@@ -101,26 +101,10 @@ class Store {
   final _atomsScheduledForRemoval = <Atom>[];
 
   // === Public api
-  Value read<Value>(Atom<Value, dynamic> atom) {
-    final value = _read(atom).value as Value;
-    _maybeScheduleAtomRemoval(atom);
-    return value;
-  }
+  Value read<Value>(Atom<Value> atom) => _read(atom).value as Value;
 
-  void put<Value>(Atom<dynamic, Value> atom, Value value) {
-    if (atom is ProxyAtom<dynamic, Value, dynamic>) {
-      return atom.write(this, value);
-    }
-
-    if (atom is! PrimitiveAtom<Value>) {
-      throw ArgumentError.value(
-        atom,
-        "atom",
-        "You can only write to a PrimitiveAtom",
-      );
-    }
-
-    _put(atom, value);
+  void put<Value>(WritableAtom<dynamic, Value> atom, Value value) {
+    atom.write(this, _setValue, value);
     _flushPending();
   }
 
@@ -145,9 +129,14 @@ class Store {
   }
 
   // === Internal api
+  void _setValue<W>(WritableAtom<dynamic, W> atom, W value) {
+    _put(atom, value);
+  }
+
   void _setState(Atom atom, AtomState state, AtomState? previousState) {
     _atomStateMap[atom] = state;
     _pendingWrites.putIfAbsent(atom, () => previousState);
+    _maybeScheduleAtomRemoval(atom);
   }
 
   AtomMount _ensureMounted(Atom atom) {
@@ -282,7 +271,7 @@ class Store {
           return state.value as Value;
         }
 
-        if (dep is PrimitiveAtom<Value>) {
+        if (dep is StateAtom<Value>) {
           return dep.initialValue;
         } else if (dep is ManagedAtom<Value>) {
           return dep.initialValue;
@@ -292,7 +281,7 @@ class Store {
       };
 
   void Function(Value value) _buildSetter<Value>(
-    Atom<dynamic, Value> atom,
+    Atom<Value> atom,
     HashSet<Atom> dependencies,
     List<void Function()> disposers,
   ) {

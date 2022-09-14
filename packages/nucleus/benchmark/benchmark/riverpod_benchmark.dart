@@ -9,14 +9,23 @@ final nested = Provider((ref) => List.generate(
 
 void main() {
   group('riverpod', () {
-    benchmark('1000k', () {
+    benchmark('100k', () {
       final container = ProviderContainer();
-      for (var i = 0; i < 1000000; i++) {
+      for (var i = 0; i < 100000; i++) {
         final state = container.read(riverpod(i));
         container.read(riverpod(i).notifier).state = state + 1;
         container.read(riverpod(i));
       }
-    }, iterations: 3);
+    }, iterations: 1);
+
+    benchmark('10k', () {
+      final container = ProviderContainer();
+      for (var i = 0; i < 10000; i++) {
+        final state = container.read(riverpod(i));
+        container.read(riverpod(i).notifier).state = state + 1;
+        container.read(riverpod(i));
+      }
+    }, iterations: 1);
 
     benchmark('nesting', () {
       final container = ProviderContainer();

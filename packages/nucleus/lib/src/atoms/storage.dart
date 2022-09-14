@@ -19,16 +19,16 @@ class MemoryNucleusStorage implements NucleusStorage {
   }
 }
 
-Atom<A, A> atomWithStorage<A>(
-  String key,
+WritableAtom<A, A> stateAtomWithStorage<A>(
   A initialValue, {
-  required Atom<NucleusStorage, dynamic> storage,
+  required String key,
+  required Atom<NucleusStorage> storage,
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
 }) {
-  final valueAtom = atom<A?>(null);
+  final valueAtom = stateAtom<A?>(null);
 
-  return proxyAtomWithWriter(valueAtom, (get) {
+  return proxyAtom((get) {
     final value = get(valueAtom);
     if (value != null) {
       return value;
@@ -36,9 +36,9 @@ Atom<A, A> atomWithStorage<A>(
 
     final storedValue = get(storage).get(key);
     return storedValue != null ? fromJson(storedValue) : initialValue;
-  }, (value, get) {
+  }, (get, set, value) {
     get(storage).set(key, toJson(value));
-    return value;
+    set(valueAtom, value);
   });
 }
 
@@ -48,14 +48,14 @@ typedef AtomWithStorageCreate<R, A> = R Function(
   void Function(A value) write,
 );
 
-Atom<R, void> readOnlyAtomWithStorage<R, A>(
-  String key,
+Atom<R> atomWithStorage<R, A>(
   AtomWithStorageCreate<R, A> create, {
-  required Atom<NucleusStorage, dynamic> storage,
+  required String key,
+  required Atom<NucleusStorage> storage,
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
 }) =>
-    readOnlyAtom((get) {
+    atom((get) {
       final s = get(storage);
 
       void write(A value) => s.set(key, toJson(value));
