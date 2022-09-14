@@ -6,7 +6,7 @@ typedef AtomReader<Value> = Value Function(AtomGetter get);
 typedef AtomInitialValue = Tuple2<Atom, Object?>;
 
 abstract class Atom<Value> {
-  bool _calledKeepAlive = false;
+  bool _touchedKeepAlive = false;
   bool _shouldKeepAlive = true;
   bool get shouldKeepAlive => _shouldKeepAlive;
 
@@ -15,15 +15,14 @@ abstract class Atom<Value> {
   static Atom<Value> Function(Arg arg) family<Value, Arg>(
     Atom<Value> Function(Arg arg) create,
   ) {
-    final familyAtom = {};
-    final familyHashCode = familyAtom.hashCode;
+    final familyHashCode = {}.hashCode;
 
     return (arg) {
       final atom = create(arg);
       atom._hashCodeOverride = familyHashCode ^ arg.hashCode;
 
       // Auto dispose by default
-      if (atom.shouldKeepAlive && !atom._calledKeepAlive) {
+      if (!atom._touchedKeepAlive) {
         atom.autoDispose();
       }
 
@@ -37,13 +36,14 @@ abstract class Atom<Value> {
       ReadOnlyAtom((get) => f(get(this)));
 
   Atom<Value> autoDispose() {
+    _touchedKeepAlive = true;
     _shouldKeepAlive = false;
     return this;
   }
 
   Atom<Value> keepAlive() {
+    _touchedKeepAlive = true;
     _shouldKeepAlive = true;
-    _calledKeepAlive = true;
     return this;
   }
 
@@ -58,6 +58,10 @@ abstract class Atom<Value> {
 
 // Family creator
 
+/// Create an atom factory indexed by the [Arg] type.
+///
+/// Automatically calls `.autoDipose()` on the child atoms, so to prevent state
+/// from being removed, explicitly call `.keepAlive()` on the created atom.
 Atom<Value> Function(Arg arg) atomFamily<Value, Arg>(
   Atom<Value> Function(Arg arg) create,
 ) =>

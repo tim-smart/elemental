@@ -94,5 +94,20 @@ void main() {
       store.put(count, 1);
       expect(disposed, true);
     });
+
+    test('throws an error if set is called after disposal', () async {
+      final atom = managedAtom(0, (x) {
+        x.onDispose(() async {
+          await Future.microtask(() {});
+          expect(() => x.set(1), throwsUnsupportedError);
+        });
+      }).autoDispose();
+
+      final store = Store();
+
+      store.read(atom);
+
+      await Future.microtask(() {});
+    });
   });
 }

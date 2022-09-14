@@ -284,23 +284,34 @@ class Store {
           return dep.initialValue;
         }
 
-        throw UnsupportedError("Atom has no state");
+        throw UnsupportedError("has no state");
       };
 
   void Function(Value value) _buildSetter<Value>(
     Atom<Value> atom,
     HashSet<Atom> dependencies,
     List<void Function()> disposers,
-  ) =>
-      (value) {
-        _put(
-          atom,
-          value,
-          dependencies: dependencies,
-          disposers: disposers,
-        );
-        _flushPending();
-      };
+  ) {
+    var disposed = false;
+
+    disposers.add(() {
+      disposed = true;
+    });
+
+    return (value) {
+      if (disposed) {
+        throw UnsupportedError("can not write to a disposed atom");
+      }
+
+      _put(
+        atom,
+        value,
+        dependencies: dependencies,
+        disposers: disposers,
+      );
+      _flushPending();
+    };
+  }
 
   AtomState _put(
     Atom atom,
