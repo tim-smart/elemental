@@ -1,6 +1,7 @@
 import 'package:benchmark/benchmark.dart';
 import 'package:riverpod/riverpod.dart';
 
+final value = Provider((ref) => 0);
 final riverpod = StateProvider.family((ref, int i) => i);
 final nested = Provider((ref) => List.generate(
       100000,
@@ -9,7 +10,14 @@ final nested = Provider((ref) => List.generate(
 
 void main() {
   group('riverpod', () {
-    benchmark('100k', () {
+    benchmark('read 1000k', () {
+      final container = ProviderContainer();
+      for (var i = 0; i < 1000000; i++) {
+        container.read(value);
+      }
+    }, iterations: 1);
+
+    benchmark('state 100k', () {
       final container = ProviderContainer();
       for (var i = 0; i < 100000; i++) {
         final state = container.read(riverpod(i));
@@ -18,7 +26,7 @@ void main() {
       }
     }, iterations: 1);
 
-    benchmark('10k', () {
+    benchmark('state 10k', () {
       final container = ProviderContainer();
       for (var i = 0; i < 10000; i++) {
         final state = container.read(riverpod(i));

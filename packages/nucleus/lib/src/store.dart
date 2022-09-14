@@ -25,6 +25,10 @@ class AtomState {
     }
   }
 
+  bool hasNoDependenciesExcept(Atom atom) =>
+      dependencies.isEmpty ||
+      (dependencies.length == 1 && dependencies.containsKey(atom));
+
   @override
   String toString() =>
       'AtomState(value: $value, revision: $revision, valid: $valid)';
@@ -189,6 +193,11 @@ class Store {
     final currentState = _atomStateMap[atom];
 
     if (currentState != null) {
+      // We might not need to check dependencies
+      if (currentState.hasNoDependenciesExcept(atom)) {
+        return currentState;
+      }
+
       // Maybe update dependencies.
       // Increments the dependency revision on change.
       for (final dep in currentState.dependencies.keys) {
@@ -233,16 +242,18 @@ class Store {
         previous: currentState?.value ?? value,
       );
 
-      return _atomStateMap[atom] ??
-          _put(
-            atom,
-            value,
-            dependencies: usedDeps,
-            disposers: disposers,
-          );
+      final initialState = _atomStateMap[atom];
+      if (initialState != null) {
+        return initialState;
+      }
     }
 
-    return _put(atom, value, dependencies: usedDeps);
+    return _put(
+      atom,
+      value,
+      dependencies: usedDeps,
+      disposers: disposers,
+    );
   }
 
   HashMap<Atom, int> _createDependencies(
