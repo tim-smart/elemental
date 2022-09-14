@@ -41,3 +41,29 @@ Atom<A, A> atomWithStorage<A>(
     return value;
   });
 }
+
+typedef AtomWithStorageCreate<R, A> = R Function(
+  AtomGetter get,
+  A? Function() read,
+  void Function(A value) write,
+);
+
+Atom<R, void> readOnlyAtomWithStorage<R, A>(
+  String key,
+  AtomWithStorageCreate<R, A> create, {
+  required Atom<NucleusStorage, dynamic> storage,
+  required A Function(dynamic json) fromJson,
+  required dynamic Function(A a) toJson,
+}) =>
+    readOnlyAtom((get) {
+      final s = get(storage);
+
+      void write(A value) => s.set(key, toJson(value));
+
+      A? read() {
+        final value = s.get(key);
+        return value != null ? fromJson(value) : null;
+      }
+
+      return create(get, read, write);
+    });

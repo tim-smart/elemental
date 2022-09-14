@@ -1,3 +1,7 @@
+## 0.0.11
+
+- Add `readOnlyAtomWithStorage`
+
 ## 0.0.10
 
 - Add `ProxyAtom`

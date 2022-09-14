@@ -26,4 +26,32 @@ void main() {
       expect(newStore.read(counter), 1);
     });
   });
+
+  group('readOnlyAtomWithStorage', () {
+    test('it reads and writes to the storage', () async {
+      final storage = MemoryNucleusStorage();
+      final storageAtom = readOnlyAtom((_) => storage);
+
+      final counter = readOnlyAtomWithStorage<int, int>(
+        'counter',
+        (get, read, write) {
+          Future.microtask(() {
+            write(1);
+          });
+          return read() ?? 0;
+        },
+        storage: storageAtom,
+        fromJson: (i) => i,
+        toJson: (i) => i,
+      );
+
+      final store = Store();
+      expect(store.read(counter), 0);
+
+      await Future.microtask(() {});
+
+      final newStore = Store();
+      expect(newStore.read(counter), 1);
+    });
+  });
 }
