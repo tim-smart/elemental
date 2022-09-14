@@ -1,3 +1,7 @@
+## 0.0.9
+
+- Update deps
+
 ## 0.0.8
 
 - Add `SharedPrefsStorage`
