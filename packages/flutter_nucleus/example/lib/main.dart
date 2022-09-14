@@ -37,6 +37,9 @@ class MyHomePage extends HookWidget {
     // [useAtom] returns and listens to atom value changes.
     final counter = useAtom(counterAtom);
 
+    // Create a callback function for updating an atom's value.
+    final updateCounter = context.updateAtom(counterAtom);
+
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
@@ -54,7 +57,7 @@ class MyHomePage extends HookWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.updateAtom(counterAtom, (int a) => a + 1),
+        onPressed: () => updateCounter((count) => count + 1),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),

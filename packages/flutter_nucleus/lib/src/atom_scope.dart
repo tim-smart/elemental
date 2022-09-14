@@ -27,11 +27,13 @@ class AtomScope extends InheritedWidget {
 extension NucleusBuildContextExt on BuildContext {
   A getAtom<A>(Atom<A> atom) => AtomScope.of(this).read(atom);
 
-  void setAtom<A>(WritableAtom<dynamic, A> atom, A value) =>
-      AtomScope.of(this).put(atom, value);
-
-  void updateAtom<R, W>(WritableAtom<R, W> atom, W Function(R value) f) {
+  void Function(A value) setAtom<A>(WritableAtom<dynamic, A> atom) {
     final store = AtomScope.of(this);
-    return store.put(atom, f(store.read(atom)));
+    return (value) => store.put(atom, value);
+  }
+
+  void Function(W Function(R value)) updateAtom<R, W>(WritableAtom<R, W> atom) {
+    final store = AtomScope.of(this);
+    return (f) => store.put(atom, f(store.read(atom)));
   }
 }
