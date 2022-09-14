@@ -1,3 +1,7 @@
+## 0.0.13
+
+- Refactor api surface
+
 ## 0.0.12
 
 - Fix proxy atom type issues
