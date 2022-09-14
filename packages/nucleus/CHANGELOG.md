@@ -1,3 +1,8 @@
+## 0.0.14
+
+- Remove depreciated api's
+- Add `whenOrElse` to `FutureValue`
+
 ## 0.0.13
 
 - Refactor api surface

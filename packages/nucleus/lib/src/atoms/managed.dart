@@ -47,7 +47,6 @@ class ManagedAtom<Value> extends Atom<Value> {
 
 Atom<Value> managedAtom<Value>(
   Value initialValue,
-  ManagedAtomCreate<Value> create, {
-  bool? keepAlive,
-}) =>
+  ManagedAtomCreate<Value> create,
+) =>
     ManagedAtom(initialValue, create);

@@ -1,7 +1,10 @@
 import 'package:nucleus/nucleus.dart';
 
 typedef ProxyAtomWriter<W> = void Function(
-    AtomGetter get, AtomSetter set, W value);
+  AtomGetter get,
+  AtomSetter set,
+  W value,
+);
 
 class ProxyAtom<R, W> extends WritableAtom<R, W> {
   ProxyAtom(this._reader, this._writer);

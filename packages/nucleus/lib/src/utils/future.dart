@@ -16,6 +16,13 @@ abstract class FutureValue<A> {
     required B Function(dynamic error, StackTrace stackTrace) error,
     required B Function(A? previousData) loading,
   });
+
+  B whenOrElse<B>({
+    B Function(A a)? data,
+    B Function(dynamic error, StackTrace stackTrace)? error,
+    B Function(A? previousData)? loading,
+    required B Function() orElse,
+  });
 }
 
 class FutureData<A> extends FutureValue<A> {
@@ -33,6 +40,15 @@ class FutureData<A> extends FutureValue<A> {
     required B Function(A? previousData) loading,
   }) =>
       data(this.data);
+
+  @override
+  B whenOrElse<B>({
+    B Function(A a)? data,
+    B Function(dynamic error, StackTrace stackTrace)? error,
+    B Function(A? previousData)? loading,
+    required B Function() orElse,
+  }) =>
+      data?.call(this.data) ?? orElse();
 
   @override
   operator ==(Object? other) => other is FutureData<A> && other.data == data;
@@ -60,6 +76,15 @@ class FutureError<A> extends FutureValue<A> {
     required B Function(A? previousData) loading,
   }) =>
       error(this.error, stackTrace);
+
+  @override
+  B whenOrElse<B>({
+    B Function(A a)? data,
+    B Function(dynamic error, StackTrace stackTrace)? error,
+    B Function(A? previousData)? loading,
+    required B Function() orElse,
+  }) =>
+      error?.call(this.error, stackTrace) ?? orElse();
 
   @override
   operator ==(Object? other) =>
@@ -93,6 +118,15 @@ class FutureLoading<A> extends FutureValue<A> {
       loading(previousData);
 
   @override
+  B whenOrElse<B>({
+    B Function(A a)? data,
+    B Function(dynamic error, StackTrace stackTrace)? error,
+    B Function(A? previousData)? loading,
+    required B Function() orElse,
+  }) =>
+      loading?.call(previousData) ?? orElse();
+
+  @override
   operator ==(Object? other) =>
       other is FutureLoading<A> && other.previousData == previousData;
 
@@ -104,22 +138,22 @@ class FutureLoading<A> extends FutureValue<A> {
 }
 
 Atom<FutureValue<T>> futureAtom<T>(AtomReader<Future<T>> create) =>
-    managedAtom(FutureLoading(), (ctx) async {
+    managedAtom(FutureLoading(), (x) async {
       bool disposed = false;
-      ctx.onDispose(() => disposed = true);
+      x.onDispose(() => disposed = true);
 
-      final previous = ctx.previousValue;
+      final previous = x.previousValue;
       if (previous is FutureData<T>) {
-        ctx.set(FutureValue.loading(previous.data));
+        x.set(FutureValue.loading(previous.data));
       }
 
       try {
-        final result = await create(ctx.get);
+        final result = await create(x.get);
         if (disposed) return;
-        ctx.set(FutureValue.data(result));
+        x.set(FutureValue.data(result));
       } catch (err, stack) {
         if (disposed) return;
-        ctx.set(FutureValue.error(err, stack));
+        x.set(FutureValue.error(err, stack));
       }
     });
 
