@@ -73,3 +73,17 @@ class MultipliedText extends StatelessWidget {
             style: Theme.of(context).textTheme.headline4,
           ));
 }
+
+class CounterButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final updateCount = context.updateAtom(counter);
+
+    return ElevatedButton(
+      onPressed: () {
+        updateCount((count) => count + 1);
+      },
+      child: const Text("Increment"),
+    );
+  }
+}

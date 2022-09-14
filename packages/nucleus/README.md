@@ -30,6 +30,20 @@ class CounterText extends StatelessWidget {
     });
   }
 }
+
+class CounterButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final updateCount = context.updateAtom(counter);
+
+    return ElevatedButton(
+      onPressed: () {
+        updateCount((count) => count + 1);
+      },
+      child: const Text("Increment"),
+    );
+  }
+}
 ```
 
 Or if you are using `flutter_hooks`:
