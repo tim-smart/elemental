@@ -1,3 +1,7 @@
+## 0.0.17
+
+- performance improvements
+
 ## 0.0.16
 
 - Add `onDispose` to read only atoms
