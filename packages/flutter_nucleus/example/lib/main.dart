@@ -16,18 +16,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Use an [AtomBuilder] to rebuild on atom changes.
-    return AtomBuilder<GlobalKey<ScaffoldMessengerState>>(
-      messenger,
-      (context, value, child) => MaterialApp(
-        scaffoldMessengerKey: value,
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: child,
-      ),
-      child: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+    return AtomBuilder((context, get, child) => MaterialApp(
+          scaffoldMessengerKey: get(messenger).value,
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: const MyHomePage(title: 'Flutter Demo Home Page'),
+        ));
   }
 }
 
@@ -54,10 +50,7 @@ class MyHomePage extends HookWidget {
               style: Theme.of(context).textTheme.headline4,
             ),
             const Text('Multiplied:'),
-            AtomBuilder(multiplied, (context, value, child) {
-              return Text('$value',
-                  style: Theme.of(context).textTheme.headline4);
-            })
+            const MultipliedText(),
           ],
         ),
       ),
@@ -68,4 +61,16 @@ class MyHomePage extends HookWidget {
       ),
     );
   }
+}
+
+// Use an [AtomBuilder] to fetch the multiplied value
+class MultipliedText extends StatelessWidget {
+  const MultipliedText({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) =>
+      AtomBuilder((context, get, child) => Text(
+            '${get(multiplied).value}',
+            style: Theme.of(context).textTheme.headline4,
+          ));
 }
