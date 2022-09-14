@@ -1,3 +1,7 @@
+## 0.0.16
+
+- Add `onDispose` to read only atoms
+
 ## 0.0.15
 
 - `autoDispose` atoms from `select`
