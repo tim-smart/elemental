@@ -1,3 +1,7 @@
+## 0.0.9
+
+- Prevent `set` from being called after disposal
+
 ## 0.0.8
 
 - Add `select` to `Atom`
