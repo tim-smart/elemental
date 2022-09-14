@@ -1,2 +1,8 @@
-A sample command-line application with an entrypoint in `bin/`, library code
-in `lib/`, and example unit test in `test/`.
+# nucleus benchmarks
+
+To run them:
+
+```
+dart pub get
+dart run benchmark
+```
