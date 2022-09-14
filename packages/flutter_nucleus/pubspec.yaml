@@ -1,6 +1,6 @@
 name: flutter_nucleus
 description: Use the atomic state management package nucleus with Flutter.
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/tim-smart/nucleus
 
 environment:
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_hooks: ">=0.18.0 <1.0.0"
-  nucleus: ^0.0.8
+  nucleus: ^0.0.11
   value_notifier_ext: ^0.0.4
 
 dev_dependencies:

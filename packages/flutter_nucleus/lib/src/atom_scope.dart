@@ -8,8 +8,8 @@ class AtomScope extends InheritedWidget {
   AtomScope({
     super.key,
     required super.child,
-    Store? store,
-  }) : store = store ?? Store();
+    List<AtomInitialValue> initialValues = const [],
+  }) : store = Store(initialValues: initialValues);
 
   final Store store;
 
@@ -25,5 +25,5 @@ class AtomScope extends InheritedWidget {
 }
 
 extension NucleusBuildContextExt on BuildContext {
-  A readAtom<A>(Atom<A> atom) => AtomScope.of(this).read(atom);
+  A readAtom<A>(Atom<A, dynamic> atom) => AtomScope.of(this).read(atom);
 }

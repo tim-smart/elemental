@@ -28,7 +28,7 @@ Atom<A, A> atomWithStorage<A>(
 }) {
   final valueAtom = atom<A?>(null);
 
-  return ProxyAtom(valueAtom, (get) {
+  return proxyAtomWithWriter(valueAtom, (get) {
     final value = get(valueAtom);
     if (value != null) {
       return value;

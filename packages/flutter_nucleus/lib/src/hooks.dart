@@ -8,7 +8,7 @@ class AtomNotifierWithValue<A> {
   final A value;
 }
 
-AtomNotifier<A> useAtomNotifier<A>(Atom<A> atom) {
+AtomNotifier<A> useAtomNotifier<A>(Atom<A, dynamic> atom) {
   final context = useContext();
   final notifier = useMemoized(
     () => AtomNotifier.from(context, atom),
@@ -18,18 +18,18 @@ AtomNotifier<A> useAtomNotifier<A>(Atom<A> atom) {
   return notifier;
 }
 
-AtomNotifier<A> useAtom<A>(Atom<A> atom) {
+AtomNotifier<A> useAtom<A>(Atom<A, dynamic> atom) {
   final notifier = useAtomNotifier(atom);
   useListenable(notifier);
   return notifier;
 }
 
-A useAtomValue<A>(Atom<A> atom) {
+A useAtomValue<A>(Atom<A, dynamic> atom) {
   final notifier = useAtomNotifier(atom);
   return useValueListenable(notifier);
 }
 
-void Function(A value) useSetAtom<A>(Atom<A> atom) {
+void Function(A value) useSetAtom<A>(Atom<dynamic, A> atom) {
   final notifier = useAtomNotifier(atom);
   void setValue(A value) {
     notifier.value = value;

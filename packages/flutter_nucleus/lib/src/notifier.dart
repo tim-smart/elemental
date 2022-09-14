@@ -1,15 +1,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
-class AtomNotifier<A> extends LazyChangeNotifier implements ValueNotifier<A> {
+class AtomNotifier<R> extends LazyChangeNotifier implements ValueNotifier<R> {
   AtomNotifier(this._store, this._atom);
 
-  factory AtomNotifier.from(BuildContext context, Atom<A> atom) =>
+  factory AtomNotifier.from(BuildContext context, Atom<R, dynamic> atom) =>
       AtomNotifier(AtomScope.of(context), atom);
 
   late void Function() _unsubscribe;
   final Store _store;
-  final Atom<A> _atom;
+  final Atom<R, dynamic> _atom;
 
   @override
   void resume() {
@@ -26,10 +26,10 @@ class AtomNotifier<A> extends LazyChangeNotifier implements ValueNotifier<A> {
     notifyListeners();
   }
 
-  A? _value;
+  R? _value;
 
   @override
-  A get value {
+  R get value {
     if (_value == null) {
       _value = _store.read(_atom);
       return _value!;
@@ -39,7 +39,7 @@ class AtomNotifier<A> extends LazyChangeNotifier implements ValueNotifier<A> {
   }
 
   @override
-  set value(A next) {
+  set value(dynamic next) {
     _store.put(_atom, next);
   }
 }

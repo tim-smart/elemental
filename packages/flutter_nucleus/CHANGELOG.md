@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Update for latest nucleus API
+
 ## 0.0.4
 
 - Improve `AtomBuilder` - can now listen to multiple atoms

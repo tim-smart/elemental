@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
-typedef AtomBuilderGet = AtomNotifier<A> Function<A>(Atom<A> atom);
+typedef AtomBuilderGet = AtomNotifier<A> Function<A>(Atom<A, dynamic> atom);
 
 class AtomBuilder extends StatefulWidget {
   const AtomBuilder(
@@ -27,7 +27,7 @@ class _AtomBuilderState extends State<AtomBuilder> {
   late final _store = AtomScope.of(context);
   final _notifiers = HashMap<Atom, AtomNotifier>();
 
-  AtomNotifier<A> _get<A>(Atom<A> atom) {
+  AtomNotifier<A> _get<A>(Atom<A, dynamic> atom) {
     if (_notifiers.containsKey(atom)) {
       return _notifiers[atom] as AtomNotifier<A>;
     }
