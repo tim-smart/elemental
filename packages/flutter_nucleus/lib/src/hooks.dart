@@ -18,7 +18,7 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
   void Function()? _cancel;
 
   void _setup(BuildContext context) {
-    final store = AtomScope.of(context);
+    final store = AtomScope.storeOf(context);
     _value = store.read(hook.atom);
     _cancel = store.subscribe(
       hook.atom,

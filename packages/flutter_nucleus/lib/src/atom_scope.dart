@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
 class AtomScope extends InheritedWidget {
-  // ignore: unnecessary_late
-  static late final defaultStore = Store();
+  static final defaultStore = Store();
 
   AtomScope({
     super.key,
@@ -17,23 +16,29 @@ class AtomScope extends InheritedWidget {
   bool updateShouldNotify(covariant AtomScope oldWidget) =>
       oldWidget.store != store;
 
-  static Store of(BuildContext context) {
-    final AtomScope? result =
-        context.dependOnInheritedWidgetOfExactType<AtomScope>();
-    return result?.store ?? defaultStore;
+  static Store storeOf(
+    BuildContext context, {
+    bool listen = true,
+  }) {
+    final scope = listen
+        ? context.dependOnInheritedWidgetOfExactType<AtomScope>()
+        : (context.getElementForInheritedWidgetOfExactType<AtomScope>()?.widget
+            as AtomScope?);
+
+    return scope?.store ?? defaultStore;
   }
 }
 
 extension NucleusBuildContextExt on BuildContext {
-  A getAtom<A>(Atom<A> atom) => AtomScope.of(this).read(atom);
+  A getAtom<A>(Atom<A> atom) => AtomScope.storeOf(this).read(atom);
 
   void Function(A value) setAtom<A>(WritableAtom<dynamic, A> atom) {
-    final store = AtomScope.of(this);
+    final store = AtomScope.storeOf(this);
     return (value) => store.put(atom, value);
   }
 
   void Function(W Function(R value)) updateAtom<R, W>(WritableAtom<R, W> atom) {
-    final store = AtomScope.of(this);
+    final store = AtomScope.storeOf(this);
     return (f) => store.put(atom, f(store.read(atom)));
   }
 }

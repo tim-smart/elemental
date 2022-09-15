@@ -22,7 +22,7 @@ class AtomBuilder extends StatefulWidget {
 }
 
 class _AtomBuilderState extends State<AtomBuilder> {
-  late final _store = AtomScope.of(context);
+  late final _store = AtomScope.storeOf(context);
   final _cancellers = HashMap<Atom, void Function()>();
   final _valueCache = HashMap<Atom, Object?>();
 
