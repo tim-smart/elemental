@@ -2,10 +2,24 @@ import 'package:nucleus/nucleus.dart';
 
 class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
   FutureAtom(AtomReader<Future<A>> create)
-      : future = ReadOnlyAtom(create)..autoDispose(),
-        super(FutureValue.loading, (x) {});
+      : future = ReadOnlyAtom(create),
+        super(FutureValue.loading, (x) {}) {
+    keepAlive();
+  }
 
   final Atom<Future<A>> future;
+
+  @override
+  void keepAlive() {
+    future.keepAlive();
+    super.keepAlive();
+  }
+
+  @override
+  void autoDispose() {
+    future.autoDispose();
+    super.autoDispose();
+  }
 
   @override
   void create({
@@ -169,5 +183,5 @@ class FutureLoading<A> extends FutureValue<A> {
   int get hashCode => Object.hash(runtimeType, previousData);
 
   @override
-  String toString() => "FutureValue<$A>.loading()";
+  String toString() => "FutureValue<$A>.loading(data: $previousData)";
 }

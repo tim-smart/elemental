@@ -29,5 +29,43 @@ void main() {
       expect(await c.stream.first, FutureValue.data(123));
       cancel();
     });
+
+    test('loading state has previous data on refresh', () async {
+      final store = Store();
+
+      final count = stateAtom(0);
+      final a = futureAtom((get, onDispose) async {
+        get(count);
+        await Future.microtask(() {});
+        return 123;
+      });
+
+      expect(store.read(a), FutureValue.loading());
+      await store.read(a.future);
+      expect(store.read(a), FutureValue.data(123));
+
+      store.put(count, 1);
+
+      expect(store.read(a), FutureValue.loading(123));
+      await store.read(a.future);
+      expect(store.read(a), FutureValue.data(123));
+    });
+
+    test('autoDispose works', () async {
+      final store = Store();
+
+      final a = futureAtom((get, onDispose) async {
+        await Future.microtask(() {});
+        return 123;
+      })
+        ..autoDispose();
+
+      expect(store.read(a), FutureValue.loading());
+      await store.read(a.future);
+      expect(store.read(a), FutureValue.data(123));
+
+      await Future.microtask(() {});
+      expect(store.read(a), FutureValue.loading());
+    });
   });
 }

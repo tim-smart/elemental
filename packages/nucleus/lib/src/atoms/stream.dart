@@ -12,9 +12,23 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
               ? FutureValue.data(initialValue)
               : FutureValue.loading(),
           (x) {},
-        );
+        ) {
+    keepAlive();
+  }
 
   final Atom<Stream<A>> stream;
+
+  @override
+  void keepAlive() {
+    stream.keepAlive();
+    super.keepAlive();
+  }
+
+  @override
+  void autoDispose() {
+    stream.autoDispose();
+    super.autoDispose();
+  }
 
   @override
   void create({
