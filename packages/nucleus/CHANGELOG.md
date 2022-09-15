@@ -1,3 +1,7 @@
+## 0.0.19
+
+- Fix keepAlive helpers for stream and future atoms
+
 ## 0.0.18
 
 - Remove fast immutable collections

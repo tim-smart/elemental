@@ -1,6 +1,6 @@
 name: nucleus
 description: An atomic state management utility.
-version: 0.0.18
+version: 0.0.19
 homepage: https://github.com/tim-smart/nucleus
 
 environment:

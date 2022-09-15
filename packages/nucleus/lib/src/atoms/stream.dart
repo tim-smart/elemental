@@ -17,6 +17,11 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
   final Atom<Stream<A>> stream;
 
   @override
+  StreamAtom<A> keepAlive() => super.keepAlive() as StreamAtom<A>;
+  @override
+  StreamAtom<A> autoDispose() => super.autoDispose() as StreamAtom<A>;
+
+  @override
   void create({
     required AtomGetter get,
     required void Function(FutureValue<A>) set,

@@ -144,6 +144,11 @@ class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
   final Atom<Future<A>> future;
 
   @override
+  FutureAtom<A> keepAlive() => super.keepAlive() as FutureAtom<A>;
+  @override
+  FutureAtom<A> autoDispose() => super.autoDispose() as FutureAtom<A>;
+
+  @override
   void create({
     required AtomGetter get,
     required void Function(FutureValue<A> p1) set,
