@@ -4,7 +4,7 @@ import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
 final counter = stateAtom(0);
-final counterAutoDispose = stateAtom(0).autoDispose();
+final counterAutoDispose = stateAtom(0)..autoDispose();
 final multiplied = atom((get, _) => get(counter) * 2);
 
 void main() {
@@ -69,7 +69,7 @@ void main() {
 
       var disposed = false;
       final atom = managedAtom(0, (ctx) => ctx.onDispose(() => disposed = true))
-          .autoDispose();
+        ..autoDispose();
 
       store.read(atom);
 
@@ -101,7 +101,8 @@ void main() {
           await Future.microtask(() {});
           expect(() => x.set(1), throwsUnsupportedError);
         });
-      }).autoDispose();
+      })
+        ..autoDispose();
 
       final store = Store();
 

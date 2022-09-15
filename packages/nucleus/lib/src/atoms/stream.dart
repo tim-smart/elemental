@@ -6,7 +6,7 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
     A? initialValue,
   })  : stream = ReadOnlyAtom(
           (get, onDispose) => create(get, onDispose).asBroadcastStream(),
-        ).autoDispose(),
+        )..autoDispose(),
         super(
           initialValue != null
               ? FutureValue.data(initialValue)
@@ -15,11 +15,6 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
         );
 
   final Atom<Stream<A>> stream;
-
-  @override
-  StreamAtom<A> keepAlive() => super.keepAlive() as StreamAtom<A>;
-  @override
-  StreamAtom<A> autoDispose() => super.autoDispose() as StreamAtom<A>;
 
   @override
   void create({

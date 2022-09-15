@@ -43,18 +43,16 @@ abstract class Atom<R> {
   R read(AtomGetter getter, AtomOnDispose onDispose);
 
   Atom<B> select<B>(B Function(R a) f) =>
-      ReadOnlyAtom((get, onDispose) => f(get(this))).autoDispose();
+      ReadOnlyAtom((get, onDispose) => f(get(this)))..autoDispose();
 
-  Atom<R> autoDispose() {
+  void autoDispose() {
     _touchedKeepAlive = true;
     _shouldKeepAlive = false;
-    return this;
   }
 
-  Atom<R> keepAlive() {
+  void keepAlive() {
     _touchedKeepAlive = true;
     _shouldKeepAlive = true;
-    return this;
   }
 
   AtomInitialValue withInitialValue(R value) => AtomInitialValue(this, value);
@@ -67,12 +65,6 @@ abstract class Atom<R> {
 }
 
 abstract class WritableAtom<R, W> extends Atom<R> {
-  @override
-  WritableAtom<R, W> keepAlive() => super.keepAlive() as WritableAtom<R, W>;
-
-  @override
-  WritableAtom<R, W> autoDispose() => super.autoDispose() as WritableAtom<R, W>;
-
   void write(Store store, AtomSetter set, W value);
 }
 

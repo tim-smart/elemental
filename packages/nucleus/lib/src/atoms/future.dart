@@ -1,5 +1,41 @@
 import 'package:nucleus/nucleus.dart';
 
+class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
+  FutureAtom(AtomReader<Future<A>> create)
+      : future = ReadOnlyAtom(create)..autoDispose(),
+        super(FutureValue.loading(), (x) {});
+
+  final Atom<Future<A>> future;
+
+  @override
+  void create({
+    required AtomGetter get,
+    required void Function(FutureValue<A>) set,
+    required void Function(void Function()) onDispose,
+    required FutureValue<A> previous,
+  }) async {
+    bool disposed = false;
+    onDispose(() => disposed = true);
+
+    if (previous is FutureData<A>) {
+      set(FutureValue.loading(previous.data));
+    }
+
+    try {
+      final result = await get(future);
+      if (disposed) return;
+      set(FutureValue.data(result));
+    } catch (err, stack) {
+      if (disposed) return;
+      set(FutureValue.error(err, stack));
+    }
+  }
+}
+
+FutureAtom<T> futureAtom<T>(AtomReader<Future<T>> create) => FutureAtom(create);
+
+// ==== FutureValue
+
 abstract class FutureValue<A> {
   const FutureValue();
 
@@ -135,42 +171,3 @@ class FutureLoading<A> extends FutureValue<A> {
   @override
   String toString() => "FutureValue<$A>.loading()";
 }
-
-class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
-  FutureAtom(AtomReader<Future<A>> create)
-      : future = ReadOnlyAtom(create).autoDispose(),
-        super(FutureValue.loading(), (x) {});
-
-  final Atom<Future<A>> future;
-
-  @override
-  FutureAtom<A> keepAlive() => super.keepAlive() as FutureAtom<A>;
-  @override
-  FutureAtom<A> autoDispose() => super.autoDispose() as FutureAtom<A>;
-
-  @override
-  void create({
-    required AtomGetter get,
-    required void Function(FutureValue<A> p1) set,
-    required void Function(void Function() p1) onDispose,
-    required FutureValue<A> previous,
-  }) async {
-    bool disposed = false;
-    onDispose(() => disposed = true);
-
-    if (previous is FutureData<A>) {
-      set(FutureValue.loading(previous.data));
-    }
-
-    try {
-      final result = await get(future);
-      if (disposed) return;
-      set(FutureValue.data(result));
-    } catch (err, stack) {
-      if (disposed) return;
-      set(FutureValue.error(err, stack));
-    }
-  }
-}
-
-FutureAtom<T> futureAtom<T>(AtomReader<Future<T>> create) => FutureAtom(create);
