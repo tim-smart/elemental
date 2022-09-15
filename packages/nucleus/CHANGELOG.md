@@ -1,3 +1,7 @@
+## 0.0.22
+
+- Add `atomWithRefresh` utility
+
 ## 0.0.21
 
 - Assume autoDispose if onDispose is used
