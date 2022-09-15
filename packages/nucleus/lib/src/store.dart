@@ -237,14 +237,13 @@ class Store {
     final usedDeps = HashSet<Atom>();
     final disposers = <void Function()>[];
     final getter = _buildGetter(atom, usedDeps);
-    final value = atom.read(getter, disposers.add);
 
     if (atom is ManagedAtom) {
       atom.create(
         get: getter,
         set: _buildSetter(atom, usedDeps, disposers),
         onDispose: disposers.add,
-        previous: currentState?.value ?? value,
+        previousValue: currentState?.value,
       );
 
       final initialState = _atomStateMap[atom];
@@ -252,6 +251,8 @@ class Store {
         return initialState;
       }
     }
+
+    final value = atom.read(getter, disposers.add);
 
     return _put(
       atom,

@@ -10,7 +10,7 @@ class ManagedAtomContext<T> {
     required this.previousValue,
   });
 
-  final T previousValue;
+  final T? previousValue;
   final AtomGetter get;
   final void Function(T value) set;
   final void Function(void Function()) onDispose;
@@ -33,13 +33,13 @@ class ManagedAtom<Value> extends Atom<Value> {
     required AtomGetter get,
     required void Function(Value) set,
     required void Function(void Function()) onDispose,
-    required Value previous,
+    required Value? previousValue,
   }) {
     _create(ManagedAtomContext(
       get: get,
       set: set,
       onDispose: onDispose,
-      previousValue: previous,
+      previousValue: previousValue,
     ));
   }
 }

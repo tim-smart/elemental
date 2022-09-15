@@ -12,13 +12,13 @@ class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
     required AtomGetter get,
     required void Function(FutureValue<A>) set,
     required void Function(void Function()) onDispose,
-    required FutureValue<A> previous,
+    required FutureValue<A>? previousValue,
   }) async {
     bool disposed = false;
     onDispose(() => disposed = true);
 
-    if (previous is FutureData<A>) {
-      set(FutureValue.loading(previous.data));
+    if (previousValue is FutureData<A>) {
+      set(FutureValue.loading(previousValue.data));
     }
 
     try {

@@ -21,7 +21,7 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
     required AtomGetter get,
     required void Function(FutureValue<A>) set,
     required void Function(void Function()) onDispose,
-    required FutureValue<A> previous,
+    required FutureValue<A>? previousValue,
   }) {
     onDispose(get(stream).listen((data) => set(FutureValue.data(data))).cancel);
   }
