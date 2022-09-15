@@ -11,6 +11,7 @@ dev_dependencies:
 
 dependencies:
   benchmark: ^0.3.0
+  creator_core: ^0.2.0
   nucleus: any
   riverpod: ^1.0.3+1
 

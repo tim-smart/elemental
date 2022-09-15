@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.6.0"
+  creator_core:
+    dependency: "direct main"
+    description:
+      name: creator_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   crypto:
     dependency: transitive
     description:
@@ -71,13 +78,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
-  fast_immutable_collections:
-    dependency: transitive
-    description:
-      name: fast_immutable_collections
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "7.4.1"
   file:
     dependency: transitive
     description:
@@ -175,7 +175,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.16"
+    version: "0.0.25"
   package_config:
     dependency: transitive
     description:
