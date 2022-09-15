@@ -1,3 +1,7 @@
+## 0.0.10
+
+- Refactor `AtomScope.storeOf`
+
 ## 0.0.9
 
 - Update deps
