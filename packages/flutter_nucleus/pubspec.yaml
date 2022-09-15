@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_hooks: ">=0.18.0 <1.0.0"
-  nucleus: ^0.0.18
+  nucleus: ^0.0.20
   shared_preferences: ^2.0.15
 
 dev_dependencies:
