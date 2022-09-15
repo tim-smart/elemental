@@ -8,7 +8,7 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
           (get, onDispose) => create(get, onDispose).asBroadcastStream(),
         )..autoDispose(),
         super(
-          initialValue != null
+          () => initialValue != null
               ? FutureValue.data(initialValue)
               : FutureValue.loading(),
           (x) {},

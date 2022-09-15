@@ -3,7 +3,7 @@ import 'package:nucleus/nucleus.dart';
 class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
   FutureAtom(AtomReader<Future<A>> create)
       : future = ReadOnlyAtom(create)..autoDispose(),
-        super(FutureValue.loading(), (x) {});
+        super(FutureValue.loading, (x) {});
 
   final Atom<Future<A>> future;
 

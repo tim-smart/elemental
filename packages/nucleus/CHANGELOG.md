@@ -1,3 +1,7 @@
+## 0.0.23
+
+- Make `ManagedAtom` initialValue lazy
+
 ## 0.0.22
 
 - Add `atomWithRefresh` utility

@@ -18,11 +18,12 @@ class ManagedAtomContext<T> {
 
 class ManagedAtom<Value> extends Atom<Value> {
   ManagedAtom(
-    this.initialValue,
+    this._lazyInitialValue,
     this._create,
   );
 
-  final Value initialValue;
+  final Value Function() _lazyInitialValue;
+  Value get initialValue => _lazyInitialValue();
   final ManagedAtomCreate<Value> _create;
 
   @override
@@ -46,7 +47,7 @@ class ManagedAtom<Value> extends Atom<Value> {
 // Function API
 
 Atom<Value> managedAtom<Value>(
-  Value initialValue,
+  Value Function() initialValue,
   ManagedAtomCreate<Value> create,
 ) =>
     ManagedAtom(initialValue, create);

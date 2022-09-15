@@ -68,8 +68,10 @@ void main() {
       final store = Store();
 
       var disposed = false;
-      final atom = managedAtom(0, (ctx) => ctx.onDispose(() => disposed = true))
-        ..autoDispose();
+      final atom = managedAtom(
+        () => 0,
+        (ctx) => ctx.onDispose(() => disposed = true),
+      )..autoDispose();
 
       store.read(atom);
 
@@ -97,7 +99,7 @@ void main() {
       final count = stateAtom(0);
 
       var disposed = false;
-      final dependency = managedAtom(0, (x) {
+      final dependency = managedAtom(() => 0, (x) {
         x.get(count);
         x.onDispose(() => disposed = true);
       });
@@ -109,7 +111,7 @@ void main() {
     });
 
     test('throws an error if set is called after disposal', () async {
-      final atom = managedAtom(0, (x) {
+      final atom = managedAtom(() => 0, (x) {
         x.onDispose(() async {
           await Future.microtask(() {});
           expect(() => x.set(1), throwsUnsupportedError);
