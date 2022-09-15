@@ -1,3 +1,7 @@
+## 0.0.26
+
+- Remove `ManagedAtom`, and make `ReadOnlyAtom` more flexible.
+
 ## 0.0.25
 
 - Fix keepAlive with future and stream atoms

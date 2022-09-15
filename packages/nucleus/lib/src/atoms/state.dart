@@ -9,9 +9,7 @@ class StateAtom<Value> extends WritableAtom<Value, Value> {
   Value read(_) => _(this);
 
   @override
-  void write(Store store, AtomSetter set, Value value) {
-    set(this, value);
-  }
+  void write(Store store, AtomSetter set, Value value) => set(this, value);
 }
 
 // Function API
