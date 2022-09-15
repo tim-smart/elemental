@@ -66,9 +66,9 @@ class AtomInitialValue<A> {
 abstract class AtomContext<A> {
   Value call<Value>(Atom<Value> atom);
   void set<Value>(WritableAtom<dynamic, Value> atom, Value value);
-  void setSelf(dynamic value);
+  void setSelf(A value);
   void onDispose(void Function() fn);
-  Object? get previousValue;
+  A? get previousValue;
 }
 
 class AtomContextProxy<A> extends AtomContext<A> {

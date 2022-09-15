@@ -1,45 +1,25 @@
 import 'package:nucleus/nucleus.dart';
 
-class FutureAtom<A> extends Atom<FutureValue<A>> {
-  FutureAtom(AtomReader<Future<A>> create) : future = ReadOnlyAtom(create) {
-    keepAlive();
-  }
+AtomWithParent<FutureValue<A>, Atom<Future<A>>> futureAtom<A>(
+  AtomReader<Future<A>> create,
+) =>
+    AtomWithParent(ReadOnlyAtom(create), (_, future) {
+      bool disposed = false;
+      _.onDispose(() => disposed = true);
 
-  final Atom<Future<A>> future;
+      _(future).then((value) {
+        if (disposed) return;
+        _.setSelf(FutureValue.data(value));
+      }, onError: (err, stack) {
+        if (disposed) return;
+        _.setSelf(FutureValue.error(err, stack));
+      });
 
-  @override
-  void keepAlive() {
-    future.keepAlive();
-    super.keepAlive();
-  }
-
-  @override
-  void autoDispose() {
-    future.autoDispose();
-    super.autoDispose();
-  }
-
-  @override
-  FutureValue<A> read(AtomContext<FutureValue<A>> _) {
-    bool disposed = false;
-    _.onDispose(() => disposed = true);
-
-    _(future).then((value) {
-      if (disposed) return;
-      _.setSelf(FutureValue.data(value));
-    }, onError: (err, stack) {
-      if (disposed) return;
-      _.setSelf(FutureValue.error(err, stack));
+      final prev = _.previousValue;
+      return prev is FutureData<A>
+          ? FutureValue.loading(prev.data)
+          : FutureValue.loading();
     });
-
-    final prev = _.previousValue;
-    return prev is FutureData<A>
-        ? FutureValue.loading(prev.data)
-        : FutureValue.loading();
-  }
-}
-
-FutureAtom<T> futureAtom<T>(AtomReader<Future<T>> create) => FutureAtom(create);
 
 // ==== FutureValue
 

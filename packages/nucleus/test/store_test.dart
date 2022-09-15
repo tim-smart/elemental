@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:nucleus/nucleus.dart';
@@ -68,9 +69,8 @@ void main() {
       final store = Store();
 
       var disposed = false;
-      final a = atom(
-        (ctx) => ctx.onDispose(() => disposed = true),
-      )..autoDispose();
+      final a = atom((get) => get.onDispose(() => disposed = true))
+        ..autoDispose();
 
       store.read(a);
 
@@ -98,32 +98,33 @@ void main() {
       final count = stateAtom(0);
 
       var disposed = false;
-      final dependency = atom((x) {
-        x(count);
-        x.onDispose(() => disposed = true);
+      final dependency = atom((get) {
+        get(count);
+        get.onDispose(() => disposed = true);
       });
 
-      store.mount(dependency);
-      expect(disposed, false);
-      store.put(count, 1);
-      expect(disposed, true);
+      store.use(dependency, () {
+        expect(disposed, false);
+        store.put(count, 1);
+        expect(disposed, true);
+      });
     });
 
     test('throws an error if set is called after disposal', () async {
+      final c = Completer.sync();
+
       final a = atom((x) {
         x.onDispose(() async {
           await Future.microtask(() {});
           expect(() => x.setSelf(1), throwsUnsupportedError);
+          c.complete();
         });
         return 0;
-      })
-        ..autoDispose();
+      });
 
       final store = Store();
-
       store.read(a);
-
-      await Future.microtask(() {});
+      await c.future;
     });
   });
 }

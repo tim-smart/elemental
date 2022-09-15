@@ -317,10 +317,10 @@ class Store {
   void _runScheduledTasks() {
     _schedulerFuture = null;
 
-    for (final atomKey in _atomsScheduledForRemoval) {
-      if (_atomMountedMap.containsKey(atomKey)) continue;
-      _atomStateMap[atomKey]?.context.dispose();
-      _atomStateMap.remove(atomKey);
+    for (final atom in _atomsScheduledForRemoval) {
+      if (_atomMountedMap.containsKey(atom)) continue;
+      _atomStateMap[atom]?.context.dispose();
+      _atomStateMap.remove(atom);
     }
     _atomsScheduledForRemoval.clear();
   }

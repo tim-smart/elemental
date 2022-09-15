@@ -34,7 +34,7 @@ void main() {
         results.add(store.read(delayed123));
       });
 
-      await store.read(delayed123.stream).last;
+      await store.read(delayed123.parent).last;
       cancel();
 
       expect(
@@ -51,9 +51,9 @@ void main() {
       final store = Store();
 
       expect(store.read(delayed123), FutureValue.loading());
-      await store.read(delayed123.stream).first;
+      await store.read(delayed123.parent).first;
       expect(store.read(delayed123), FutureValue.data(1));
-      await store.read(delayed123.stream).last;
+      await store.read(delayed123.parent).last;
       expect(store.read(delayed123), FutureValue.data(3));
     });
 
