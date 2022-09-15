@@ -1,3 +1,7 @@
+## 0.0.25
+
+- Fix keepAlive with future and stream atoms
+
 ## 0.0.24
 
 - Don't use `initialValue` from `ManagedAtom` if state already set
