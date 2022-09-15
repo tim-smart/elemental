@@ -1,3 +1,7 @@
+## 0.0.20
+
+- keepAlive helpers now return void
+
 ## 0.0.19
 
 - Fix keepAlive helpers for stream and future atoms
