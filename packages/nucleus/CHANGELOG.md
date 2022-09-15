@@ -1,3 +1,7 @@
+## 0.0.24
+
+- Don't use `initialValue` from `ManagedAtom` if state already set
+
 ## 0.0.23
 
 - Make `ManagedAtom` initialValue lazy
