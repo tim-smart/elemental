@@ -1,3 +1,7 @@
+## 0.0.21
+
+- Assume autoDispose if onDispose is used
+
 ## 0.0.20
 
 - keepAlive helpers now return void
