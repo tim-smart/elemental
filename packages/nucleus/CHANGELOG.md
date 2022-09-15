@@ -1,3 +1,7 @@
+## 0.0.27
+
+- Add `atomWithParent`, and use it for future and stream atoms
+
 ## 0.0.26
 
 - Remove `ManagedAtom`, and make `ReadOnlyAtom` more flexible.
