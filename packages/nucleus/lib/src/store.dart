@@ -4,87 +4,6 @@ import 'package:collection/collection.dart';
 
 import './atoms.dart';
 
-class AtomState {
-  AtomState({
-    required this.value,
-    required this.revision,
-    required this.valid,
-    required this.dependencies,
-    required this.keepAliveOverride,
-    List<void Function()>? disposers,
-  }) : disposers = disposers ?? [];
-
-  final Object? value;
-  final int revision;
-  final bool valid;
-  final HashMap<Atom, int> dependencies;
-  final List<void Function()> disposers;
-
-  final bool? keepAliveOverride;
-  late final keepAlive = keepAliveOverride ?? disposers.isEmpty;
-
-  void onDispose() {
-    for (final fn in disposers) {
-      fn();
-    }
-  }
-
-  bool hasNoDependenciesExcept(Atom atom) =>
-      dependencies.isEmpty ||
-      (dependencies.length == 1 && dependencies.containsKey(atom));
-
-  @override
-  String toString() =>
-      'AtomState(value: $value, revision: $revision, valid: $valid)';
-
-  AtomState copyWith({
-    Object? value,
-    int? revision,
-    bool? valid,
-    HashMap<Atom, int>? dependencies,
-  }) =>
-      AtomState(
-        value: value ?? this.value,
-        revision: revision ?? this.revision,
-        valid: valid ?? this.valid,
-        dependencies: dependencies ?? this.dependencies,
-        disposers: disposers,
-        keepAliveOverride: keepAliveOverride,
-      );
-
-  static const _dependencyEquality = MapEquality<Atom, int>();
-
-  @override
-  operator ==(Object? other) =>
-      other is AtomState &&
-      other.value == value &&
-      other.revision == revision &&
-      other.valid == valid &&
-      _dependencyEquality.equals(other.dependencies, dependencies);
-
-  @override
-  int get hashCode => Object.hash(
-        runtimeType,
-        value,
-        revision,
-        valid,
-        _dependencyEquality.hash(dependencies),
-      );
-}
-
-class AtomMount {
-  AtomMount(this.atom);
-
-  final Atom atom;
-  final listeners = <void Function()>[];
-  final dependants = HashSet<Atom>();
-
-  bool get isUnmountable =>
-      listeners.isEmpty &&
-      (dependants.isEmpty ||
-          (dependants.length == 1 && dependants.contains(atom)));
-}
-
 class Store {
   Store({
     List<AtomInitialValue> initialValues = const [],
@@ -136,6 +55,10 @@ class Store {
       _maybeUnmount(mount);
     }
   }
+
+  void Function() mount(Atom atom) => subscribe(atom, () {
+        _read(atom);
+      });
 
   // === Internal api
   void _setValue<W>(WritableAtom<dynamic, W> atom, W value) {
@@ -234,32 +157,16 @@ class Store {
     // Needs recomputation
     currentState?.onDispose();
 
-    final usedDeps = HashSet<Atom>();
-    final disposers = <void Function()>[];
-    final getter = _buildGetter(atom, usedDeps);
+    final ctx = _ReadContext(this, atom, currentState?.value);
+    final value = atom.$read(ctx);
 
-    if (atom is ManagedAtom) {
-      atom.create(
-        get: getter,
-        set: _buildSetter(atom, usedDeps, disposers),
-        onDispose: disposers.add,
-        previousValue: currentState?.value,
-      );
-
-      final initialState = _atomStateMap[atom];
-      if (initialState != null) {
-        return initialState;
-      }
-    }
-
-    final value = atom.read(getter, disposers.add);
-
-    return _put(
-      atom,
-      value,
-      dependencies: usedDeps,
-      disposers: disposers,
-    );
+    return ctx.calledSetSelf
+        ? _atomStateMap[atom]!
+        : _put(
+            atom,
+            value,
+            context: ctx,
+          );
   }
 
   HashMap<Atom, int> _createDependencies(
@@ -280,54 +187,10 @@ class Store {
     return merged;
   }
 
-  AtomGetter _buildGetter(Atom parent, Set<Atom> usedDeps) => <Value>(dep) {
-        usedDeps.add(dep);
-        final state = dep == parent ? _atomStateMap[dep] : _read(dep);
-
-        if (state != null) {
-          return state.value as Value;
-        }
-
-        if (dep is StateAtom<Value>) {
-          return dep.initialValue;
-        } else if (dep is ManagedAtom<Value>) {
-          return dep.initialValue;
-        }
-
-        throw UnsupportedError("has no state");
-      };
-
-  void Function(Value value) _buildSetter<Value>(
-    Atom<Value> atom,
-    HashSet<Atom> dependencies,
-    List<void Function()> disposers,
-  ) {
-    var disposed = false;
-
-    disposers.add(() {
-      disposed = true;
-    });
-
-    return (value) {
-      if (disposed) {
-        throw UnsupportedError("can not write to a disposed atom");
-      }
-
-      _put(
-        atom,
-        value,
-        dependencies: dependencies,
-        disposers: disposers,
-      );
-      _flushPending();
-    };
-  }
-
   AtomState _put(
     Atom atom,
     Object? value, {
-    HashSet<Atom>? dependencies,
-    List<void Function()>? disposers,
+    _ReadContext? context,
   }) {
     final currentState = _atomStateMap[atom];
 
@@ -337,7 +200,7 @@ class Store {
 
     final deps = _createDependencies(
       currentState?.dependencies ?? HashMap(),
-      dependencies,
+      context?.deps,
     );
 
     if (deps.containsKey(atom)) {
@@ -349,7 +212,7 @@ class Store {
       revision: revision,
       valid: true,
       dependencies: deps,
-      disposers: disposers,
+      disposers: context?.disposers,
       keepAliveOverride: atom.keepAliveOverride,
     );
 
@@ -399,11 +262,6 @@ class Store {
 
         if (previousState?.valid == false && currentState?.valid == true) {
           continue;
-        }
-
-        // Eagerly refresh managed atoms
-        if (atom is ManagedAtom) {
-          _read(atom);
         }
 
         final mount = _atomMountedMap[atom];
@@ -477,5 +335,134 @@ class Store {
 
     _atomsScheduledForRemoval.add(atom);
     _schedulerFuture ??= Future.microtask(_runScheduledTasks);
+  }
+}
+
+class AtomState {
+  AtomState({
+    required this.value,
+    required this.revision,
+    required this.valid,
+    required this.dependencies,
+    required this.keepAliveOverride,
+    List<void Function()>? disposers,
+  }) : disposers = disposers ?? [];
+
+  final Object? value;
+  final int revision;
+  final bool valid;
+  final HashMap<Atom, int> dependencies;
+  final List<void Function()> disposers;
+
+  final bool? keepAliveOverride;
+  late final keepAlive = keepAliveOverride ?? disposers.isEmpty;
+
+  void onDispose() {
+    for (final fn in disposers) {
+      fn();
+    }
+  }
+
+  bool hasNoDependenciesExcept(Atom atom) =>
+      dependencies.isEmpty ||
+      (dependencies.length == 1 && dependencies.containsKey(atom));
+
+  @override
+  String toString() =>
+      'AtomState(value: $value, revision: $revision, valid: $valid)';
+
+  AtomState copyWith({
+    Object? value,
+    int? revision,
+    bool? valid,
+    HashMap<Atom, int>? dependencies,
+  }) =>
+      AtomState(
+        value: value ?? this.value,
+        revision: revision ?? this.revision,
+        valid: valid ?? this.valid,
+        dependencies: dependencies ?? this.dependencies,
+        disposers: disposers,
+        keepAliveOverride: keepAliveOverride,
+      );
+
+  static const _dependencyEquality = MapEquality<Atom, int>();
+
+  @override
+  operator ==(Object? other) =>
+      other is AtomState &&
+      other.value == value &&
+      other.revision == revision &&
+      other.valid == valid &&
+      _dependencyEquality.equals(other.dependencies, dependencies);
+
+  @override
+  int get hashCode => Object.hash(
+        runtimeType,
+        value,
+        revision,
+        valid,
+        _dependencyEquality.hash(dependencies),
+      );
+}
+
+class AtomMount {
+  AtomMount(this.atom);
+
+  final Atom atom;
+  final listeners = <void Function()>[];
+  final dependants = HashSet<Atom>();
+
+  bool get isUnmountable =>
+      listeners.isEmpty &&
+      (dependants.isEmpty ||
+          (dependants.length == 1 && dependants.contains(atom)));
+}
+
+class _ReadContext implements AtomContextBase {
+  _ReadContext(this.store, this.atom, this.previousValue);
+
+  final Store store;
+  final Atom atom;
+  final deps = HashSet<Atom>();
+  final disposers = <void Function()>[];
+  var calledSetSelf = false;
+
+  @override
+  final Object? previousValue;
+
+  @override
+  void onDispose(void Function() fn) => disposers.add(fn);
+
+  @override
+  Value call<Value>(Atom<Value> dep) {
+    deps.add(dep);
+
+    final state = dep == atom ? store._atomStateMap[dep] : store._read(dep);
+
+    if (state != null) {
+      return state.value as Value;
+    }
+
+    if (dep is StateAtom<Value>) {
+      return dep.initialValue;
+    }
+
+    throw UnsupportedError("has no state");
+  }
+
+  @override
+  void set<Value>(WritableAtom<dynamic, Value> atom, Value value) =>
+      store.put(atom, value);
+
+  @override
+  void setSelf(Object? value) {
+    calledSetSelf = true;
+    store._put(
+      atom,
+      value,
+      context: this,
+    );
+    store._flushPending();
   }
 }

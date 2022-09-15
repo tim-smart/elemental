@@ -6,7 +6,7 @@ void main() {
     test('rebuilds the value on write', () {
       var rebuilds = 0;
 
-      final count = atomWithRefresh((get, onDispose) {
+      final count = atomWithRefresh((get) {
         rebuilds++;
         return 0;
       });

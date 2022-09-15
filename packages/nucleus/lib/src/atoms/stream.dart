@@ -1,22 +1,16 @@
 import 'package:nucleus/nucleus.dart';
 
-class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
+class StreamAtom<A> extends Atom<FutureValue<A>> {
   StreamAtom(
     AtomReader<Stream<A>> create, {
-    A? initialValue,
-  })  : stream = ReadOnlyAtom(
-          (get, onDispose) => create(get, onDispose).asBroadcastStream(),
-        )..autoDispose(),
-        super(
-          () => initialValue != null
-              ? FutureValue.data(initialValue)
-              : FutureValue.loading(),
-          (x) {},
-        ) {
+    this.initialValue,
+  }) : stream = ReadOnlyAtom((get) => create(get).asBroadcastStream())
+          ..autoDispose() {
     keepAlive();
   }
 
   final Atom<Stream<A>> stream;
+  final A? initialValue;
 
   @override
   void keepAlive() {
@@ -31,13 +25,13 @@ class StreamAtom<A> extends ManagedAtom<FutureValue<A>> {
   }
 
   @override
-  void create({
-    required AtomGetter get,
-    required void Function(FutureValue<A>) set,
-    required void Function(void Function()) onDispose,
-    required FutureValue<A>? previousValue,
-  }) {
-    onDispose(get(stream).listen((data) => set(FutureValue.data(data))).cancel);
+  FutureValue<A> read(_) {
+    _.onDispose(
+        _(stream).listen((data) => _.setSelf(FutureValue.data(data))).cancel);
+
+    return initialValue != null
+        ? FutureValue.data(initialValue!)
+        : FutureValue.loading();
   }
 }
 

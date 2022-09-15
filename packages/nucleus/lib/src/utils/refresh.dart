@@ -4,8 +4,8 @@ import 'package:nucleus/nucleus.dart';
 WritableAtom<A, Null> atomWithRefresh<A>(AtomReader<A> create) {
   final refresher = stateAtom({})..autoDispose();
 
-  return ProxyAtom((get, onDispose) {
+  return ProxyAtom((get) {
     get(refresher);
-    return create(get, onDispose);
+    return create(get);
   }, (get, set, _) => set(refresher, {}));
 }

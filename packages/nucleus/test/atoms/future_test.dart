@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
-final delayed123 = futureAtom((get, _) async {
+final delayed123 = futureAtom((get) async {
   await Future.microtask(() {});
   return 123;
 });
@@ -34,7 +34,7 @@ void main() {
       final store = Store();
 
       final count = stateAtom(0);
-      final a = futureAtom((get, onDispose) async {
+      final a = futureAtom((get) async {
         get(count);
         await Future.microtask(() {});
         return 123;
@@ -54,7 +54,7 @@ void main() {
     test('autoDispose works', () async {
       final store = Store();
 
-      final a = futureAtom((get, onDispose) async {
+      final a = futureAtom((get) async {
         await Future.microtask(() {});
         return 123;
       })

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
-final delayed123 = streamAtom((get, _) async* {
+final delayed123 = streamAtom((get) async* {
   await Future.microtask(() {});
   yield 1;
   await Future.microtask(() {});
@@ -12,7 +12,7 @@ final delayed123 = streamAtom((get, _) async* {
   yield 3;
 });
 
-final delayed123Dispose = streamAtom((get, _) async* {
+final delayed123Dispose = streamAtom((get) async* {
   await Future.microtask(() {});
   yield 1;
   await Future.microtask(() {});

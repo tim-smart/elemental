@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 final counter = stateAtom(0);
 final counterAutoDispose = stateAtom(0)..autoDispose();
-final multiplied = atom((get, _) => get(counter) * 2);
+final multiplied = atom((get) => get(counter) * 2);
 
 void main() {
   group('Store', () {
@@ -68,12 +68,11 @@ void main() {
       final store = Store();
 
       var disposed = false;
-      final atom = managedAtom(
-        () => 0,
+      final a = atom(
         (ctx) => ctx.onDispose(() => disposed = true),
       )..autoDispose();
 
-      store.read(atom);
+      store.read(a);
 
       expect(disposed, false);
       await Future.microtask(() {});
@@ -84,7 +83,7 @@ void main() {
       final store = Store();
 
       var disposed = false;
-      final a = atom((get, onDispose) => onDispose(() => disposed = true));
+      final a = atom((get) => get.onDispose(() => disposed = true));
 
       store.read(a);
 
@@ -99,29 +98,30 @@ void main() {
       final count = stateAtom(0);
 
       var disposed = false;
-      final dependency = managedAtom(() => 0, (x) {
-        x.get(count);
+      final dependency = atom((x) {
+        x(count);
         x.onDispose(() => disposed = true);
       });
 
-      store.read(dependency);
+      store.mount(dependency);
       expect(disposed, false);
       store.put(count, 1);
       expect(disposed, true);
     });
 
     test('throws an error if set is called after disposal', () async {
-      final atom = managedAtom(() => 0, (x) {
+      final a = atom((x) {
         x.onDispose(() async {
           await Future.microtask(() {});
-          expect(() => x.set(1), throwsUnsupportedError);
+          expect(() => x.setSelf(1), throwsUnsupportedError);
         });
+        return 0;
       })
         ..autoDispose();
 
       final store = Store();
 
-      store.read(atom);
+      store.read(a);
 
       await Future.microtask(() {});
     });

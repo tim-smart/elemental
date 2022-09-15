@@ -1,9 +1,7 @@
 import 'package:nucleus/nucleus.dart';
 
-class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
-  FutureAtom(AtomReader<Future<A>> create)
-      : future = ReadOnlyAtom(create),
-        super(FutureValue.loading, (x) {}) {
+class FutureAtom<A> extends Atom<FutureValue<A>> {
+  FutureAtom(AtomReader<Future<A>> create) : future = ReadOnlyAtom(create) {
     keepAlive();
   }
 
@@ -22,27 +20,22 @@ class FutureAtom<A> extends ManagedAtom<FutureValue<A>> {
   }
 
   @override
-  void create({
-    required AtomGetter get,
-    required void Function(FutureValue<A>) set,
-    required void Function(void Function()) onDispose,
-    required FutureValue<A>? previousValue,
-  }) async {
+  FutureValue<A> read(AtomContext<FutureValue<A>> _) {
     bool disposed = false;
-    onDispose(() => disposed = true);
+    _.onDispose(() => disposed = true);
 
-    if (previousValue is FutureData<A>) {
-      set(FutureValue.loading(previousValue.data));
-    }
+    _(future).then((value) {
+      if (disposed) return;
+      _.setSelf(FutureValue.data(value));
+    }, onError: (err, stack) {
+      if (disposed) return;
+      _.setSelf(FutureValue.error(err, stack));
+    });
 
-    try {
-      final result = await get(future);
-      if (disposed) return;
-      set(FutureValue.data(result));
-    } catch (err, stack) {
-      if (disposed) return;
-      set(FutureValue.error(err, stack));
-    }
+    final prev = _.previousValue;
+    return prev is FutureData<A>
+        ? FutureValue.loading(prev.data)
+        : FutureValue.loading();
   }
 }
 

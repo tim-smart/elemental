@@ -3,7 +3,7 @@ import 'package:nucleus/nucleus.dart';
 
 final value = stateAtom(0);
 final nucleus = atomFamily((int i) => stateAtom(i));
-final nested = atom((get, onDispose) => List.generate(
+final nested = atom((get) => List.generate(
       100000,
       (i) => stateAtom(i),
     ));
