@@ -1,6 +1,7 @@
 import 'package:nucleus/nucleus.dart';
 
-WritableAtom<A, void> atomWithRefresh<A>(AtomReader<A> create) {
+// ignore: prefer_void_to_null
+WritableAtom<A, Null> atomWithRefresh<A>(AtomReader<A> create) {
   final refresher = stateAtom({})..autoDispose();
 
   return ProxyAtom((get, onDispose) {
