@@ -47,7 +47,7 @@ class ManagedAtom<Value> extends Atom<Value> {
 // Function API
 
 Atom<Value> managedAtom<Value>(
-  Value Function() initialValue,
+  Value Function() lazyInitialValue,
   ManagedAtomCreate<Value> create,
 ) =>
-    ManagedAtom(initialValue, create);
+    ManagedAtom(lazyInitialValue, create);
