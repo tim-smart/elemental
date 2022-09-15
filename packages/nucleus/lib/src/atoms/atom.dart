@@ -1,47 +1,5 @@
 import 'package:nucleus/nucleus.dart';
 
-typedef AtomGetter = R Function<R>(Atom<R> atom);
-typedef AtomOnDispose = void Function(void Function());
-typedef AtomSetter = void Function<W>(WritableAtom<dynamic, W> atom, W value);
-
-typedef AtomReader<Value> = Value Function(AtomContext<Value> get);
-
-class AtomInitialValue<A> {
-  const AtomInitialValue(this.atom, this.value);
-  final Atom<A> atom;
-  final A value;
-}
-
-abstract class AtomContextBase {
-  Value call<Value>(Atom<Value> atom);
-  void set<Value>(WritableAtom<dynamic, Value> atom, Value value);
-  void setSelf(dynamic value);
-  void onDispose(void Function() fn);
-  Object? get previousValue;
-}
-
-class AtomContext<A> extends AtomContextBase {
-  AtomContext(this._base);
-
-  final AtomContextBase _base;
-
-  @override
-  Value call<Value>(Atom<Value> atom) => _base.call(atom);
-
-  @override
-  void set<Value>(WritableAtom<dynamic, Value> atom, Value value) =>
-      _base.set(atom, value);
-
-  @override
-  void setSelf(covariant A value) => _base.setSelf(value);
-
-  @override
-  late final A? previousValue = _base.previousValue as A?;
-
-  @override
-  void onDispose(void Function() fn) => _base.onDispose(fn);
-}
-
 abstract class Atom<R> {
   bool _touchedKeepAlive = false;
   bool _shouldKeepAlive = true;
@@ -67,7 +25,8 @@ abstract class Atom<R> {
     };
   }
 
-  R $read(AtomContextBase _) => read(AtomContext(_));
+  /// Used by the store
+  R $read(AtomContext<dynamic> _) => read(AtomContextProxy(_));
   R read(AtomContext<R> _);
 
   Atom<B> select<B>(B Function(R a) f) =>
@@ -90,6 +49,48 @@ abstract class Atom<R> {
 
   @override
   int get hashCode => _hashCodeOverride ?? super.hashCode;
+}
+
+typedef AtomGetter = R Function<R>(Atom<R> atom);
+typedef AtomOnDispose = void Function(void Function());
+typedef AtomSetter = void Function<W>(WritableAtom<dynamic, W> atom, W value);
+
+typedef AtomReader<Value> = Value Function(AtomContext<Value> get);
+
+class AtomInitialValue<A> {
+  const AtomInitialValue(this.atom, this.value);
+  final Atom<A> atom;
+  final A value;
+}
+
+abstract class AtomContext<A> {
+  Value call<Value>(Atom<Value> atom);
+  void set<Value>(WritableAtom<dynamic, Value> atom, Value value);
+  void setSelf(dynamic value);
+  void onDispose(void Function() fn);
+  Object? get previousValue;
+}
+
+class AtomContextProxy<A> extends AtomContext<A> {
+  AtomContextProxy(this._base);
+
+  final AtomContext<dynamic> _base;
+
+  @override
+  Value call<Value>(Atom<Value> atom) => _base.call(atom);
+
+  @override
+  void set<Value>(WritableAtom<dynamic, Value> atom, Value value) =>
+      _base.set(atom, value);
+
+  @override
+  void setSelf(covariant A value) => _base.setSelf(value);
+
+  @override
+  late final A? previousValue = _base.previousValue as A?;
+
+  @override
+  void onDispose(void Function() fn) => _base.onDispose(fn);
 }
 
 abstract class WritableAtom<R, W> extends Atom<R> {

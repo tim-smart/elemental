@@ -47,12 +47,12 @@ class Store {
   }
 
   Future<R> use<R>(Atom atom, FutureOr<R> Function() f) async {
-    final mount = _ensureMounted(atom);
+    final unmount = mount(atom);
 
     try {
       return await f();
     } finally {
-      _maybeUnmount(mount);
+      unmount();
     }
   }
 
@@ -155,9 +155,9 @@ class Store {
     }
 
     // Needs recomputation
-    currentState?.onDispose();
+    currentState?.context.dispose();
 
-    final ctx = _ReadContext(this, atom, currentState?.value);
+    final ctx = ReadContext(this, atom, currentState?.value);
     final value = atom.$read(ctx);
 
     return ctx.calledSetSelf
@@ -190,7 +190,7 @@ class Store {
   AtomState _put(
     Atom atom,
     Object? value, {
-    _ReadContext? context,
+    ReadContext? context,
   }) {
     final currentState = _atomStateMap[atom];
 
@@ -212,8 +212,9 @@ class Store {
       revision: revision,
       valid: true,
       dependencies: deps,
-      disposers: context?.disposers,
       keepAliveOverride: atom.keepAliveOverride,
+      context:
+          context ?? currentState?.context ?? ReadContext(this, atom, null),
     );
 
     if (currentState == nextState) {
@@ -237,6 +238,7 @@ class Store {
 
       final state = _atomStateMap[dep];
       if (state != null) {
+        state.context.dispose();
         _setState(dep, state.copyWith(valid: false), state);
       }
 
@@ -317,7 +319,7 @@ class Store {
 
     for (final atomKey in _atomsScheduledForRemoval) {
       if (_atomMountedMap.containsKey(atomKey)) continue;
-      _atomStateMap[atomKey]?.onDispose();
+      _atomStateMap[atomKey]?.context.dispose();
       _atomStateMap.remove(atomKey);
     }
     _atomsScheduledForRemoval.clear();
@@ -345,23 +347,17 @@ class AtomState {
     required this.valid,
     required this.dependencies,
     required this.keepAliveOverride,
-    List<void Function()>? disposers,
-  }) : disposers = disposers ?? [];
+    required this.context,
+  });
 
   final Object? value;
   final int revision;
   final bool valid;
   final HashMap<Atom, int> dependencies;
-  final List<void Function()> disposers;
+  ReadContext context;
 
   final bool? keepAliveOverride;
-  late final keepAlive = keepAliveOverride ?? disposers.isEmpty;
-
-  void onDispose() {
-    for (final fn in disposers) {
-      fn();
-    }
-  }
+  late final keepAlive = keepAliveOverride ?? context.disposers.isEmpty;
 
   bool hasNoDependenciesExcept(Atom atom) =>
       dependencies.isEmpty ||
@@ -376,14 +372,15 @@ class AtomState {
     int? revision,
     bool? valid,
     HashMap<Atom, int>? dependencies,
+    ReadContext? context,
   }) =>
       AtomState(
         value: value ?? this.value,
         revision: revision ?? this.revision,
         valid: valid ?? this.valid,
         dependencies: dependencies ?? this.dependencies,
-        disposers: disposers,
         keepAliveOverride: keepAliveOverride,
+        context: context ?? this.context,
       );
 
   static const _dependencyEquality = MapEquality<Atom, int>();
@@ -419,13 +416,14 @@ class AtomMount {
           (dependants.length == 1 && dependants.contains(atom)));
 }
 
-class _ReadContext implements AtomContextBase {
-  _ReadContext(this.store, this.atom, this.previousValue);
+class ReadContext implements AtomContext<dynamic> {
+  ReadContext(this.store, this.atom, this.previousValue);
 
   final Store store;
   final Atom atom;
   final deps = HashSet<Atom>();
   final disposers = <void Function()>[];
+  var _disposed = false;
   var calledSetSelf = false;
 
   @override
@@ -433,6 +431,16 @@ class _ReadContext implements AtomContextBase {
 
   @override
   void onDispose(void Function() fn) => disposers.add(fn);
+
+  void dispose() {
+    _disposed = true;
+    if (disposers.isEmpty) return;
+
+    for (final fn in disposers) {
+      fn();
+    }
+    disposers.clear();
+  }
 
   @override
   Value call<Value>(Atom<Value> dep) {
@@ -458,6 +466,11 @@ class _ReadContext implements AtomContextBase {
   @override
   void setSelf(Object? value) {
     calledSetSelf = true;
+
+    if (_disposed) {
+      throw UnsupportedError('can not set a disposed atom');
+    }
+
     store._put(
       atom,
       value,
