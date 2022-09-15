@@ -78,6 +78,19 @@ void main() {
       expect(disposed, true);
     });
 
+    test('autoDispose is set if onDispose is used', () async {
+      final store = Store();
+
+      var disposed = false;
+      final a = atom((get, onDispose) => onDispose(() => disposed = true));
+
+      store.read(a);
+
+      expect(disposed, false);
+      await Future.microtask(() {});
+      expect(disposed, true);
+    });
+
     test('onDispose is called on recalculation', () async {
       final store = Store();
 

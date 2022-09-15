@@ -18,7 +18,7 @@ class AtomInitialValue<A> {
 abstract class Atom<R> {
   bool _touchedKeepAlive = false;
   bool _shouldKeepAlive = true;
-  bool get shouldKeepAlive => _shouldKeepAlive;
+  bool? get keepAliveOverride => _touchedKeepAlive ? _shouldKeepAlive : null;
 
   int? _hashCodeOverride;
 

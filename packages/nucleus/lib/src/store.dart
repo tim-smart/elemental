@@ -10,6 +10,7 @@ class AtomState {
     required this.revision,
     required this.valid,
     required this.dependencies,
+    required this.keepAliveOverride,
     List<void Function()>? disposers,
   }) : disposers = disposers ?? [];
 
@@ -18,6 +19,9 @@ class AtomState {
   final bool valid;
   final HashMap<Atom, int> dependencies;
   final List<void Function()> disposers;
+
+  final bool? keepAliveOverride;
+  late final keepAlive = keepAliveOverride ?? disposers.isEmpty;
 
   void onDispose() {
     for (final fn in disposers) {
@@ -45,6 +49,7 @@ class AtomState {
         valid: valid ?? this.valid,
         dependencies: dependencies ?? this.dependencies,
         disposers: disposers,
+        keepAliveOverride: keepAliveOverride,
       );
 
   static const _dependencyEquality = MapEquality<Atom, int>();
@@ -140,7 +145,7 @@ class Store {
   void _setState(Atom atom, AtomState state, AtomState? previousState) {
     _atomStateMap[atom] = state;
     _pendingWrites.putIfAbsent(atom, () => previousState);
-    _maybeScheduleAtomRemoval(atom);
+    _maybeScheduleAtomRemoval(atom, state);
   }
 
   AtomMount _ensureMounted(Atom atom) {
@@ -175,7 +180,7 @@ class Store {
       return;
     }
 
-    _maybeScheduleAtomRemoval(atom, true);
+    _maybeScheduleAtomRemoval(atom, state, true);
 
     // dependants
     for (final dep in state.dependencies.keys) {
@@ -344,6 +349,7 @@ class Store {
       valid: true,
       dependencies: deps,
       disposers: disposers,
+      keepAliveOverride: atom.keepAliveOverride,
     );
 
     if (currentState == nextState) {
@@ -458,8 +464,12 @@ class Store {
     _atomsScheduledForRemoval.clear();
   }
 
-  void _maybeScheduleAtomRemoval(Atom atom, [bool skipMountCheck = false]) {
-    if (atom.shouldKeepAlive ||
+  void _maybeScheduleAtomRemoval(
+    Atom atom,
+    AtomState state, [
+    bool skipMountCheck = false,
+  ]) {
+    if (state.keepAlive ||
         (!skipMountCheck && _atomMountedMap.containsKey(atom))) {
       return;
     }
