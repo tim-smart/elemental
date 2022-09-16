@@ -1,7 +1,7 @@
 import 'internal.dart';
 
-class ReadLifetime<A> {
-  ReadLifetime(LifetimeDepsFn<A> builder) {
+class ReadLifetime {
+  ReadLifetime(LifetimeDepsFn builder) {
     create = builder(disposers.add, _assertNotDisposed);
   }
 
@@ -9,7 +9,7 @@ class ReadLifetime<A> {
   var calledSetSelf = false;
   var disposed = false;
 
-  late final ValueBuilder<A> create;
+  late final ValueBuilder create;
 
   void _assertNotDisposed(String method) {
     if (disposed) {

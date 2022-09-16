@@ -9,7 +9,7 @@ class AtomRegistry {
   final scheduler = Scheduler();
   final nodes = HashMap<Atom, Node>();
 
-  A get<A>(Atom<A> atom) => _ensureNode(atom).value;
+  A get<A>(Atom<A> atom) => _ensureNode(atom).value as A;
 
   void set<R, W>(WritableAtom<R, W> atom, W value) {
     final node = _ensureNode(atom);
@@ -86,7 +86,7 @@ class AtomRegistry {
             T getAndRegister<T>(Atom<T> atom) {
               final node = _ensureNode(atom);
               addParent(node);
-              return node.value;
+              return node.value as T;
             }
 
             return () => atom.$read(

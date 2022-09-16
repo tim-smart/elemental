@@ -91,13 +91,11 @@ class AtomContextProxy<T> implements AtomContext<T> {
 
   @override
   A call<A>(Atom<A> atom) {
-    _assert("get");
     return _get(atom);
   }
 
   @override
   A get<A>(Atom<A> atom) {
-    _assert("get");
     return _get(atom);
   }
 

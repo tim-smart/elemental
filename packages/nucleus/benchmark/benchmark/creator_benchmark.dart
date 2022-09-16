@@ -43,7 +43,7 @@ void main() {
       for (var i = 0; i < 10000; i++) {
         final state = ref.read(value);
         ref.set(value, state + 1);
-        ref.read(value);
+        ref.read(depThree);
       }
     }, iterations: 1);
 

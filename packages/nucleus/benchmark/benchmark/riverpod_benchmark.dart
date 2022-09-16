@@ -43,9 +43,8 @@ void main() {
 
     benchmark('deps state 10k', () {
       final container = ProviderContainer();
-      final notifier = container.read(depZero.notifier);
       for (var i = 0; i < 10000; i++) {
-        notifier.state++;
+        container.read(depZero.notifier).update((i) => i + 1);
         container.read(depThree);
       }
     }, iterations: 1);
