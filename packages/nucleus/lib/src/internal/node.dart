@@ -3,7 +3,6 @@ import 'internal.dart';
 enum NodeState {
   uninitialized,
   stale,
-  building,
   valid,
   removed,
 }
@@ -34,10 +33,8 @@ class Node {
         _state == NodeState.uninitialized ? null : _value,
       ));
 
-      _state = NodeState.building;
-
       final value = _lifetime!.create();
-      if (_state == NodeState.building) {
+      if (_state != NodeState.valid) {
         setValue(value);
       }
     }
@@ -64,7 +61,7 @@ class Node {
   void setValue(Object? value) {
     assert(_state != NodeState.removed);
 
-    if (_state == NodeState.uninitialized || _state == NodeState.building) {
+    if (_state == NodeState.uninitialized) {
       _state = NodeState.valid;
       _value = value;
       notifyListeners();
@@ -82,8 +79,8 @@ class Node {
   }
 
   void invalidate(Node parent) {
-    assert(_state == NodeState.valid || _state == NodeState.building,
-        _state.toString());
+    assert(_state == NodeState.valid, _state.toString());
+
     dispose(parent);
     invalidateChildren();
   }
@@ -93,6 +90,7 @@ class Node {
 
     if (children.isEmpty) return;
     for (final node in children) {
+      if (node._state == NodeState.stale) continue;
       node.invalidate(this);
     }
 
