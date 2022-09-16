@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
+final counterKeepAlive = stateAtom(0)..keepAlive();
 final counter = stateAtom(0);
-final counterAutoDispose = stateAtom(0)..autoDispose();
 final multiplied = atom((get) => get(counter) * 2);
 
 void main() {
@@ -23,31 +24,11 @@ void main() {
     test('initialValues are set', () {
       final store = Store(initialValues: [counter.withInitialValue(5)]);
 
-      store.use(multiplied, () {
-        expect(store.read(counter), 5);
-        expect(store.read(multiplied), 10);
-      });
+      expect(store.read(counter), 5);
+      expect(store.read(multiplied), 10);
     });
 
     test('it unmounts atoms if autoDispose() was called', () async {
-      final stateMap = HashMap<Atom, AtomState>();
-      final mountMap = HashMap<Atom, AtomMount>();
-      final store = Store(stateMap: stateMap, mountMap: mountMap);
-
-      await store.use(counterAutoDispose, () {
-        expect(store.read(counterAutoDispose), 0);
-        expect(mountMap.containsKey(counterAutoDispose), true);
-      });
-
-      expect(mountMap.containsKey(counterAutoDispose), false);
-
-      // State is removed next frame
-      expect(stateMap[counterAutoDispose] != null, true);
-      await Future.microtask(() {});
-      expect(stateMap[counterAutoDispose] != null, false);
-    });
-
-    test('state is kept between mounts if autoDispose is not called', () async {
       final stateMap = HashMap<Atom, AtomState>();
       final mountMap = HashMap<Atom, AtomMount>();
       final store = Store(stateMap: stateMap, mountMap: mountMap);
@@ -59,18 +40,34 @@ void main() {
 
       expect(mountMap.containsKey(counter), false);
 
+      // State is removed next frame
       expect(stateMap[counter] != null, true);
       await Future.microtask(() {});
-      expect(stateMap[counter] != null, true);
+      expect(stateMap[counter] != null, false);
+    });
+
+    test('state is kept between mounts if keepAlive is called', () async {
+      final stateMap = HashMap<Atom, AtomState>();
+      final mountMap = HashMap<Atom, AtomMount>();
+      final store = Store(stateMap: stateMap, mountMap: mountMap);
+
+      await store.use(counterKeepAlive, () {
+        expect(store.read(counterKeepAlive), 0);
+        expect(mountMap.containsKey(counterKeepAlive), true);
+      });
+
+      expect(mountMap.containsKey(counterKeepAlive), false);
+
+      expect(stateMap[counterKeepAlive] != null, true);
+      await Future.microtask(() {});
+      expect(stateMap[counterKeepAlive] != null, true);
     });
 
     test('onDispose is called on disposal', () async {
       final store = Store();
 
       var disposed = false;
-      final a = atom(
-        (ctx) => ctx.onDispose(() => disposed = true),
-      )..autoDispose();
+      final a = atom((get) => get.onDispose(() => disposed = true));
 
       store.read(a);
 
@@ -98,32 +95,33 @@ void main() {
       final count = stateAtom(0);
 
       var disposed = false;
-      final dependency = atom((x) {
-        x(count);
-        x.onDispose(() => disposed = true);
+      final dependency = atom((get) {
+        get(count);
+        get.onDispose(() => disposed = true);
       });
 
-      store.mount(dependency);
-      expect(disposed, false);
-      store.put(count, 1);
-      expect(disposed, true);
+      store.use(dependency, () {
+        expect(disposed, false);
+        store.put(count, 1);
+        expect(disposed, true);
+      });
     });
 
     test('throws an error if set is called after disposal', () async {
+      final c = Completer.sync();
+
       final a = atom((x) {
         x.onDispose(() async {
           await Future.microtask(() {});
           expect(() => x.setSelf(1), throwsUnsupportedError);
+          c.complete();
         });
         return 0;
-      })
-        ..autoDispose();
+      });
 
       final store = Store();
-
       store.read(a);
-
-      await Future.microtask(() {});
+      await c.future;
     });
   });
 }

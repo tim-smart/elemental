@@ -3,8 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
 final counter = stateAtom(0);
-final multiplied = atom((get, _) => get(counter) * 10);
-final messenger = atom((get, _) => GlobalKey<ScaffoldMessengerState>());
+final multiplied = atom((get) => get(counter) * 10);
+final messenger = atom((get) => GlobalKey<ScaffoldMessengerState>());
 
 void main() {
   runApp(const MyApp());

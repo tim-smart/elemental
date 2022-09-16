@@ -1,3 +1,19 @@
+## 0.0.29
+
+- Use `AtomContext` for `atomWithStorage`
+
+## 0.0.28
+
+- Remove `autoDispose`, and make it default
+
+## 0.0.27
+
+- Add `atomWithParent`, and use it for future and stream atoms
+
+## 0.0.26
+
+- Remove `ManagedAtom`, and make `ReadOnlyAtom` more flexible.
+
 ## 0.0.25
 
 - Fix keepAlive with future and stream atoms

@@ -1,3 +1,16 @@
+## 0.0.13
+
+- Add didChangeDependencies to AtomBuilder
+
+## 0.0.12
+
+- Add `listen` parameter to watch and useAtom
+
+## 0.0.11
+
+- Add `subscribeAtom` to `BuildContext`
+- Add `mountAtom` to `BuildContext`
+
 ## 0.0.10
 
 - Refactor `AtomScope.storeOf`

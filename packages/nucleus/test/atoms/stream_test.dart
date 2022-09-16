@@ -12,7 +12,7 @@ final delayed123 = streamAtom((get) async* {
   yield 3;
 });
 
-final delayed123Dispose = streamAtom((get) async* {
+final delayed123KeepAlive = streamAtom((get) async* {
   await Future.microtask(() {});
   yield 1;
   await Future.microtask(() {});
@@ -20,7 +20,7 @@ final delayed123Dispose = streamAtom((get) async* {
   await Future.microtask(() {});
   yield 3;
 })
-  ..autoDispose();
+  ..keepAlive();
 
 void main() {
   group('streamAtomTuple', () {
@@ -34,7 +34,7 @@ void main() {
         results.add(store.read(delayed123));
       });
 
-      await store.read(delayed123.stream).last;
+      await store.read(delayed123.parent).last;
       cancel();
 
       expect(
@@ -47,22 +47,20 @@ void main() {
       );
     });
 
-    test('keepAlive by default', () async {
+    test('auto dispose by default', () async {
       final store = Store();
 
       expect(store.read(delayed123), FutureValue.loading());
-      await store.read(delayed123.stream).first;
-      expect(store.read(delayed123), FutureValue.data(1));
-      await store.read(delayed123.stream).last;
-      expect(store.read(delayed123), FutureValue.data(3));
+      await store.read(delayed123.parent).first;
+      expect(store.read(delayed123), FutureValue.loading());
     });
 
-    test('autoDispose works', () async {
+    test('keepAlive works', () async {
       final store = Store();
 
-      expect(store.read(delayed123Dispose), FutureValue.loading());
-      await Future.microtask(() {});
-      expect(store.read(delayed123Dispose), FutureValue.loading());
+      expect(store.read(delayed123KeepAlive), FutureValue.loading());
+      await store.read(delayed123.parent).first;
+      expect(store.read(delayed123KeepAlive), FutureValue.data(1));
     });
   });
 }
