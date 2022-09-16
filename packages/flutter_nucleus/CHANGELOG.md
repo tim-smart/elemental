@@ -1,3 +1,7 @@
+## 0.0.12
+
+- Add `listen` parameter to watch and useAtom
+
 ## 0.0.11
 
 - Add `subscribeAtom` to `BuildContext`
