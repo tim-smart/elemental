@@ -1,9 +1,7 @@
 import 'package:nucleus/nucleus.dart';
 
 class AtomWithParent<A, Parent extends Atom> extends Atom<A> {
-  AtomWithParent(this.parent, this._reader) {
-    keepAlive();
-  }
+  AtomWithParent(this.parent, this._reader);
 
   final Parent parent;
   final A Function(AtomContext<A>, Parent parent) _reader;
@@ -12,12 +10,6 @@ class AtomWithParent<A, Parent extends Atom> extends Atom<A> {
   void keepAlive() {
     parent.keepAlive();
     super.keepAlive();
-  }
-
-  @override
-  void autoDispose() {
-    parent.autoDispose();
-    super.autoDispose();
   }
 
   @override

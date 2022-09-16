@@ -57,8 +57,7 @@ void main() {
       final a = futureAtom((get) async {
         await Future.microtask(() {});
         return 123;
-      })
-        ..autoDispose();
+      });
 
       expect(store.read(a), FutureValue.loading());
       await store.read(a.parent);

@@ -1,12 +1,6 @@
 import 'package:nucleus/nucleus.dart';
 
 abstract class Atom<R> {
-  bool _touchedKeepAlive = false;
-  bool _shouldKeepAlive = true;
-  bool? get keepAliveOverride => _touchedKeepAlive ? _shouldKeepAlive : null;
-
-  int? _hashCodeOverride;
-
   static A Function(Arg arg) family<A extends Atom, Arg>(
     A Function(Arg arg) create,
   ) {
@@ -15,30 +9,22 @@ abstract class Atom<R> {
     return (arg) {
       final atom = create(arg);
       atom._hashCodeOverride = familyHashCode ^ arg.hashCode;
-
-      // Auto dispose by default
-      if (!atom._touchedKeepAlive) {
-        atom.autoDispose();
-      }
-
       return atom;
     };
   }
+
+  bool _shouldKeepAlive = false;
+  bool get shouldKeepAlive => _shouldKeepAlive;
+
+  int? _hashCodeOverride;
 
   /// Used by the store
   R $read(AtomContext<dynamic> _) => read(AtomContextProxy(_));
   R read(AtomContext<R> _);
 
-  Atom<B> select<B>(B Function(R a) f) =>
-      ReadOnlyAtom((get) => f(get(this)))..autoDispose();
-
-  void autoDispose() {
-    _touchedKeepAlive = true;
-    _shouldKeepAlive = false;
-  }
+  Atom<B> select<B>(B Function(R a) f) => ReadOnlyAtom((get) => f(get(this)));
 
   void keepAlive() {
-    _touchedKeepAlive = true;
     _shouldKeepAlive = true;
   }
 

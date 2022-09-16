@@ -212,7 +212,6 @@ class Store {
       revision: revision,
       valid: true,
       dependencies: deps,
-      keepAliveOverride: atom.keepAliveOverride,
       context:
           context ?? currentState?.context ?? ReadContext(this, atom, null),
     );
@@ -330,7 +329,7 @@ class Store {
     AtomState state, [
     bool skipMountCheck = false,
   ]) {
-    if (state.keepAlive ||
+    if (atom.shouldKeepAlive ||
         (!skipMountCheck && _atomMountedMap.containsKey(atom))) {
       return;
     }
@@ -346,7 +345,6 @@ class AtomState {
     required this.revision,
     required this.valid,
     required this.dependencies,
-    required this.keepAliveOverride,
     required this.context,
   });
 
@@ -355,9 +353,6 @@ class AtomState {
   final bool valid;
   final HashMap<Atom, int> dependencies;
   ReadContext context;
-
-  final bool? keepAliveOverride;
-  late final keepAlive = keepAliveOverride ?? context.disposers.isEmpty;
 
   bool hasNoDependenciesExcept(Atom atom) =>
       dependencies.isEmpty ||
@@ -379,7 +374,6 @@ class AtomState {
         revision: revision ?? this.revision,
         valid: valid ?? this.valid,
         dependencies: dependencies ?? this.dependencies,
-        keepAliveOverride: keepAliveOverride,
         context: context ?? this.context,
       );
 
