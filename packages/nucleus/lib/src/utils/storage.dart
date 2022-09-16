@@ -43,7 +43,7 @@ WritableAtom<A, A> stateAtomWithStorage<A>(
 }
 
 typedef AtomWithStorageCreate<R, A> = R Function(
-  AtomGetter get,
+  AtomContext<R> get,
   A? Function() read,
   void Function(A value) write,
 );

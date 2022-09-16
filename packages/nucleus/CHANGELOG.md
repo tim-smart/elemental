@@ -1,3 +1,7 @@
+## 0.0.29
+
+- Use `AtomContext` for `atomWithStorage`
+
 ## 0.0.28
 
 - Remove `autoDispose`, and make it default
