@@ -1,3 +1,7 @@
+## 0.0.28
+
+- Remove `autoDispose`, and make it default
+
 ## 0.0.27
 
 - Add `atomWithParent`, and use it for future and stream atoms
