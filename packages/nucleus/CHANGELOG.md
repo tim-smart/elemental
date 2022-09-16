@@ -1,3 +1,7 @@
+## 0.1.0
+
+- Replace `Store` with `Registry`
+
 ## 0.0.29
 
 - Use `AtomContext` for `atomWithStorage`
