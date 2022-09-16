@@ -121,7 +121,7 @@ class Node {
   }
 
   void remove() {
-    assert(children.isEmpty);
+    assert(canBeRemoved);
     assert(_state != NodeState.removed);
 
     dispose();
