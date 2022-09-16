@@ -26,7 +26,7 @@ class Store {
   var _pendingWrites = HashMap<Atom, AtomState?>();
 
   Future<void>? _schedulerFuture;
-  final _atomsScheduledForRemoval = <Atom>[];
+  final _atomsScheduledForRemoval = HashSet<Atom>();
 
   // === Public api
   Value read<Value>(Atom<Value> atom) => _read(atom).value as Value;
@@ -67,7 +67,7 @@ class Store {
 
   void _setState(Atom atom, AtomState state, AtomState? previousState) {
     _atomStateMap[atom] = state;
-    _pendingWrites.putIfAbsent(atom, () => previousState);
+    _pendingWrites[atom] ??= previousState;
     _maybeScheduleAtomRemoval(atom, state);
   }
 
@@ -250,29 +250,22 @@ class Store {
     while (_pendingWrites.isNotEmpty) {
       final pending = _pendingWrites;
       _pendingWrites = HashMap();
-
-      for (final e in pending.entries) {
-        final atom = e.key;
-        final previousState = e.value;
-        final currentState = _atomStateMap[atom];
-
-        if (currentState != null &&
-            currentState.value != previousState?.value) {
-          _mountDependencies(atom, currentState, previousState?.dependencies);
-        }
-
-        if (previousState?.valid == false && currentState?.valid == true) {
-          continue;
-        }
-
-        final mount = _atomMountedMap[atom];
-        if (mount != null) {
-          for (final fn in mount.listeners) {
-            fn();
-          }
-        }
-      }
+      pending.forEach(_flushPendingWrite);
     }
+  }
+
+  void _flushPendingWrite(Atom atom, dynamic previousState) {
+    final currentState = _atomStateMap[atom];
+
+    if (currentState != null && currentState.value != previousState?.value) {
+      _mountDependencies(atom, currentState, previousState?.dependencies);
+    }
+
+    if (previousState?.valid == false && currentState?.valid == true) {
+      return;
+    }
+
+    _atomMountedMap[atom]?.notifyListeners();
   }
 
   void _mountDependencies(
@@ -403,6 +396,12 @@ class AtomMount {
   final Atom atom;
   final listeners = <void Function()>[];
   final dependants = HashSet<Atom>();
+
+  void notifyListeners() {
+    for (final fn in listeners) {
+      fn();
+    }
+  }
 
   bool get isUnmountable =>
       listeners.isEmpty &&

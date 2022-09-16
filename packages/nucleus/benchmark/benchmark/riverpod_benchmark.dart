@@ -8,6 +8,11 @@ final nested = Provider((ref) => List.generate(
       (i) => StateProvider.autoDispose((_) => i),
     ));
 
+final depZero = StateProvider((ref) => 0);
+final depOne = Provider((ref) => ref.watch(value) * 10);
+final depTwo = Provider((ref) => ref.watch(depOne) * 10);
+final depThree = Provider((ref) => ref.watch(depTwo) * 10);
+
 void main() {
   group('riverpod', () {
     benchmark('read 1000k', () {
@@ -20,8 +25,9 @@ void main() {
     benchmark('state 100k', () {
       final container = ProviderContainer();
       for (var i = 0; i < 100000; i++) {
-        final state = container.read(riverpod(i));
-        container.read(riverpod(i).notifier).state = state + 1;
+        final notifier = container.read(riverpod(i).notifier);
+        container.read(riverpod(i));
+        notifier.state++;
         container.read(riverpod(i));
       }
     }, iterations: 1);
@@ -32,6 +38,15 @@ void main() {
         final state = container.read(riverpod(i));
         container.read(riverpod(i).notifier).state = state + 1;
         container.read(riverpod(i));
+      }
+    }, iterations: 1);
+
+    benchmark('deps state 10k', () {
+      final container = ProviderContainer();
+      final notifier = container.read(depZero.notifier);
+      for (var i = 0; i < 10000; i++) {
+        notifier.state++;
+        container.read(depThree);
       }
     }, iterations: 1);
 

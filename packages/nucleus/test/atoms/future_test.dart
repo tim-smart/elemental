@@ -40,15 +40,17 @@ void main() {
         return 123;
       });
 
-      expect(store.read(a), FutureValue.loading());
-      await store.read(a.parent);
-      expect(store.read(a), FutureValue.data(123));
+      await store.use(a, () async {
+        expect(store.read(a), FutureValue.loading());
+        await store.read(a.parent);
+        expect(store.read(a), FutureValue.data(123));
 
-      store.put(count, 1);
+        store.put(count, 1);
 
-      expect(store.read(a), FutureValue.loading(123));
-      await store.read(a.parent);
-      expect(store.read(a), FutureValue.data(123));
+        expect(store.read(a), FutureValue.loading(123));
+        await store.read(a.parent);
+        expect(store.read(a), FutureValue.data(123));
+      });
     });
 
     test('autoDispose works', () async {

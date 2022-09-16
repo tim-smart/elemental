@@ -57,7 +57,7 @@ abstract class Atom<R> {
   operator ==(Object? other) => other.hashCode == hashCode;
 
   @override
-  int get hashCode => _hashCodeOverride ?? super.hashCode;
+  late final hashCode = _hashCodeOverride ?? super.hashCode;
 }
 
 /// Represents an atom value retrieval function
