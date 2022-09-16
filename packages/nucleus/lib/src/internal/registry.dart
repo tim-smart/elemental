@@ -56,15 +56,12 @@ class AtomRegistry {
 
   // Internal
 
-  Node _ensureNode(Atom atom) {
-    final node = nodes.putIfAbsent(atom, () => Node(_createNodeDepsFn(atom)));
-
-    if (!atom.shouldKeepAlive) {
-      scheduler.runPostFrame(() => _maybeRemoveNode(atom));
-    }
-
-    return node;
-  }
+  Node _ensureNode(Atom atom) => nodes.putIfAbsent(atom, () {
+        if (!atom.shouldKeepAlive) {
+          scheduler.runPostFrame(() => _maybeRemoveNode(atom));
+        }
+        return Node(_createNodeDepsFn(atom));
+      });
 
   void _maybeRemoveNode(Atom atom) {
     final node = nodes[atom];
