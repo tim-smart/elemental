@@ -57,12 +57,7 @@ class AtomRegistry {
   // Internal
 
   Node _ensureNode(Atom atom) {
-    var node = nodes[atom];
-
-    if (node == null) {
-      node = Node(_createNodeDepsFn(atom));
-      nodes[atom] = node;
-    }
+    final node = nodes.putIfAbsent(atom, () => Node(_createNodeDepsFn(atom)));
 
     if (!atom.shouldKeepAlive) {
       scheduler.runPostFrame(() => _maybeRemoveNode(atom));

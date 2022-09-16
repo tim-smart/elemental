@@ -18,7 +18,7 @@ class ReadLifetime {
   }
 
   void dispose() {
-    if (disposed) return;
+    assert(!disposed);
     disposed = true;
 
     if (disposers.isEmpty) return;
