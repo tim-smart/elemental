@@ -1,9 +1,10 @@
 import 'package:nucleus/nucleus.dart';
+import 'package:nucleus/src/internal/internal.dart';
 
 /// Represents the `writer` argument to [proxyAtom]
 typedef ProxyAtomWriter<W> = void Function(
-  AtomGetter get,
-  AtomSetter set,
+  GetAtom get,
+  SetAtom set,
   W value,
 );
 
@@ -15,11 +16,16 @@ class ProxyAtom<R, W> extends WritableAtom<R, W> {
   final ProxyAtomWriter<W> _writer;
 
   @override
-  R read(_) => _reader(_);
+  R read(ctx) => _reader(ctx);
+
+  // @override
+  // void write(AtomRegistry store, AtomSetter set, W value) =>
+  //     _writer(store.get, store.set, value);
 
   @override
-  void write(Store store, AtomSetter set, W value) =>
-      _writer(store.read, store.put, value);
+  void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value) {
+    _writer(get, set, value);
+  }
 }
 
 /// Creates an [WritableAtom] that can be used to implement custom write logic.

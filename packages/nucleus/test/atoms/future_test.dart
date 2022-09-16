@@ -9,21 +9,23 @@ final delayed123 = futureAtom((get) async {
 });
 
 void main() {
-  group('futureAtomTuple', () {
+  group('futureAtom', () {
     test('returns a FutureValue', () async {
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(delayed123), FutureValue.loading());
-      await store.read(delayed123.parent);
-      expect(store.read(delayed123), FutureValue.data(123));
+      await store.use(delayed123, () async {
+        expect(store.get(delayed123), FutureValue.loading());
+        await store.get(delayed123.parent);
+        expect(store.get(delayed123), FutureValue.data(123));
+      });
     });
 
     test('works with subscribe', () async {
-      final store = Store();
+      final store = AtomRegistry();
       final c = StreamController<FutureValue<int>>();
 
       final cancel = store.subscribe(delayed123, () {
-        c.add(store.read(delayed123));
+        c.add(store.get(delayed123));
       });
 
       expect(await c.stream.first, FutureValue.data(123));
@@ -31,7 +33,7 @@ void main() {
     });
 
     test('loading state has previous data on refresh', () async {
-      final store = Store();
+      final store = AtomRegistry();
 
       final count = stateAtom(0);
       final a = futureAtom((get) async {
@@ -41,32 +43,34 @@ void main() {
       });
 
       await store.use(a, () async {
-        expect(store.read(a), FutureValue.loading());
-        await store.read(a.parent);
-        expect(store.read(a), FutureValue.data(123));
+        expect(store.get(a), FutureValue.loading());
+        await store.get(a.parent);
+        expect(store.get(a), FutureValue.data(123));
 
-        store.put(count, 1);
+        store.set(count, 1);
 
-        expect(store.read(a), FutureValue.loading(123));
-        await store.read(a.parent);
-        expect(store.read(a), FutureValue.data(123));
+        expect(store.get(a), FutureValue.loading(123));
+        await store.get(a.parent);
+        expect(store.get(a), FutureValue.data(123));
       });
     });
 
     test('autoDispose works', () async {
-      final store = Store();
+      final store = AtomRegistry();
 
       final a = futureAtom((get) async {
         await Future.microtask(() {});
         return 123;
       });
 
-      expect(store.read(a), FutureValue.loading());
-      await store.read(a.parent);
-      expect(store.read(a), FutureValue.data(123));
+      await store.use(a, () async {
+        expect(store.get(a), FutureValue.loading());
+        await store.get(a.parent);
+        expect(store.get(a), FutureValue.data(123));
+      });
 
       await Future.microtask(() {});
-      expect(store.read(a), FutureValue.loading());
+      expect(store.get(a), FutureValue.loading());
     });
   });
 }

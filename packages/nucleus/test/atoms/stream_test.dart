@@ -25,16 +25,16 @@ final delayed123KeepAlive = streamAtom((get) async* {
 void main() {
   group('streamAtomTuple', () {
     test('returns a FutureValue', () async {
-      final store = Store();
+      final store = AtomRegistry();
       final results = <FutureValue<int>>[];
 
-      expect(store.read(delayed123), FutureValue.loading());
+      expect(store.get(delayed123), FutureValue.loading());
 
       final cancel = store.subscribe(delayed123, () {
-        results.add(store.read(delayed123));
+        results.add(store.get(delayed123));
       });
 
-      await store.read(delayed123.parent).last;
+      await store.get(delayed123.parent).last;
       cancel();
 
       expect(
@@ -48,19 +48,19 @@ void main() {
     });
 
     test('auto dispose by default', () async {
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(delayed123), FutureValue.loading());
-      await store.read(delayed123.parent).first;
-      expect(store.read(delayed123), FutureValue.loading());
+      expect(store.get(delayed123), FutureValue.loading());
+      await store.get(delayed123.parent).first;
+      expect(store.get(delayed123), FutureValue.loading());
     });
 
     test('keepAlive works', () async {
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(delayed123KeepAlive), FutureValue.loading());
-      await store.read(delayed123.parent).first;
-      expect(store.read(delayed123KeepAlive), FutureValue.data(1));
+      expect(store.get(delayed123KeepAlive), FutureValue.loading());
+      await store.get(delayed123.parent).first;
+      expect(store.get(delayed123KeepAlive), FutureValue.data(1));
     });
   });
 }

@@ -15,7 +15,7 @@ class AtomWithParent<A, Parent extends Atom> extends Atom<A> {
   }
 
   @override
-  A read(AtomContext<A> _) => _reader(_, parent);
+  A read(AtomContext<A> ctx) => _reader(ctx, parent);
 }
 
 /// Create an [Atom] that is linked to a parent [Atom].

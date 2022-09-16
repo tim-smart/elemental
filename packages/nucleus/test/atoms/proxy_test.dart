@@ -10,11 +10,11 @@ void main() {
         (get, set, int value) => set(count, value),
       );
 
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(proxy), 0);
-      store.put(proxy, 1);
-      expect(store.read(proxy), 10);
+      expect(store.get(proxy), 0);
+      store.set(proxy, 1);
+      expect(store.get(proxy), 10);
     });
 
     test('can proxy writes', () {
@@ -24,11 +24,11 @@ void main() {
         (get, set, int i) => set(count, i * 10),
       );
 
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(proxy), 0);
-      store.put(proxy, 1);
-      expect(store.read(proxy), 10);
+      expect(store.get(proxy), 0);
+      store.set(proxy, 1);
+      expect(store.get(proxy), 10);
     });
 
     test('can get parent in writer', () {
@@ -38,11 +38,11 @@ void main() {
         (get, set, void _) => set(count, get(count) + 1),
       );
 
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(proxy), 0);
-      store.put(proxy, null);
-      expect(store.read(proxy), 1);
+      expect(store.get(proxy), 0);
+      store.set(proxy, null);
+      expect(store.get(proxy), 1);
     });
   });
 }

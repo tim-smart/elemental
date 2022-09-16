@@ -7,7 +7,7 @@ class ReadOnlyAtom<Value> extends Atom<Value> {
   final AtomReader<Value> _reader;
 
   @override
-  Value read(_) => _reader(_);
+  Value read(ctx) => _reader(ctx);
 }
 
 /// Create a read only atom that can interact with other atom's to create

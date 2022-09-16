@@ -2,9 +2,9 @@ import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('atomWithStorage', () {
+  group('stateAtomWithStorage', () {
     test('it reads and writes to the storage', () {
-      final storage = MemoryNucleusStorage();
+      final NucleusStorage storage = MemoryNucleusStorage();
       final storageAtom = atom((get) => storage);
 
       final counter = stateAtomWithStorage(
@@ -15,15 +15,15 @@ void main() {
         toJson: (i) => i,
       );
 
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(counter), 0);
-      store.put(counter, 1);
-      expect(store.read(counter), 1);
+      expect(store.get(counter), 0);
+      store.set(counter, 1);
+      expect(store.get(counter), 1);
       expect(storage.get('counter'), 1);
 
-      final newStore = Store();
-      expect(newStore.read(counter), 1);
+      final newAtomRegistry = AtomRegistry();
+      expect(newAtomRegistry.get(counter), 1);
     });
   });
 
@@ -45,13 +45,13 @@ void main() {
         toJson: (i) => i,
       );
 
-      final store = Store();
-      expect(store.read(counter), 0);
+      final store = AtomRegistry();
+      expect(store.get(counter), 0);
 
       await Future.microtask(() {});
 
-      final newStore = Store();
-      expect(newStore.read(counter), 1);
+      final newAtomRegistry = AtomRegistry();
+      expect(newAtomRegistry.get(counter), 1);
     });
   });
 }

@@ -1,4 +1,5 @@
 import 'package:nucleus/nucleus.dart';
+import 'package:nucleus/src/internal/internal.dart';
 
 /// See [stateAtom].
 class StateAtom<Value> extends WritableAtom<Value, Value> {
@@ -8,10 +9,12 @@ class StateAtom<Value> extends WritableAtom<Value, Value> {
   final Value initialValue;
 
   @override
-  Value read(_) => _(this);
+  Value read(ctx) => initialValue;
 
   @override
-  void write(Store store, AtomSetter set, Value value) => set(this, value);
+  void write(GetAtom get, SetAtom set, SetSelf<Value> setSelf, Value value) {
+    setSelf(value);
+  }
 }
 
 /// Create a simple atom with mutable state.

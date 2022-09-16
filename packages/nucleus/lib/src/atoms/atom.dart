@@ -1,9 +1,8 @@
-import 'package:nucleus/nucleus.dart';
+import '../internal/internal.dart';
 
-/// Base class for all atom's.
-///
-/// An atom is
-abstract class Atom<R> {
+abstract class Atom<T> {
+  T read(AtomContext<T> ctx);
+
   /// Create a family factory function, for indexing similar atoms with the
   /// [Arg] type.
   ///
@@ -25,104 +24,107 @@ abstract class Atom<R> {
     };
   }
 
-  /// Determines whether the state for this [Atom] is automatically disposed.
-  ///
-  /// If `true`, then the state will never be disposed. Defaults to `false`.
-  bool get shouldKeepAlive => _shouldKeepAlive;
-  bool _shouldKeepAlive = false;
+  T $read({
+    required GetAtom get,
+    required SetAtom set,
+    required OnDispose onDispose,
+    required SetSelf<T> setSelf,
+    required T? previousValue,
+    required AssertNotDisposed assertNotDisposed,
+  }) =>
+      read(AtomContextProxy._(
+        get,
+        set,
+        onDispose,
+        setSelf,
+        previousValue,
+        assertNotDisposed,
+      ));
+
+  bool _keepAlive = false;
+  bool get shouldKeepAlive => _keepAlive;
+
+  void keepAlive() {
+    _keepAlive = true;
+  }
 
   int? _hashCodeOverride;
 
-  /// Used by the store
-  R $read(AtomContext<dynamic> _) => read(AtomContextProxy(_));
-
-  /// Used by the store
-  R read(AtomContext<R> _);
-
-  /// [select] part of the state of this atom, with the given function.
-  Atom<B> select<B>(B Function(R a) f) => ReadOnlyAtom((get) => f(get(this)));
-
-  /// Calling this on an atom will prevent its state from being automatically
-  /// removed.
-  void keepAlive() {
-    _shouldKeepAlive = true;
-  }
-
-  /// Create an [AtomInitialValue] for this atom, for use with the
-  /// `initialValues` parameter on a [Store] or [AtomScope] (from the
-  /// flutter_nucleus package).
-  AtomInitialValue withInitialValue(R value) => AtomInitialValue(this, value);
+  @override
+  late final hashCode = _hashCodeOverride ?? super.hashCode;
 
   @override
   operator ==(Object? other) => other.hashCode == hashCode;
-
-  @override
-  late final hashCode = _hashCodeOverride ?? super.hashCode;
 }
 
-/// Represents an atom value retrieval function
-typedef AtomGetter = R Function<R>(Atom<R> atom);
+abstract class WritableAtom<R, W> extends Atom<R> {
+  void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
+}
 
-/// Represents an atom value setter function
-typedef AtomSetter = void Function<W>(WritableAtom<dynamic, W> atom, W value);
+abstract class AtomContext<T> {
+  R call<R>(Atom<R> atom);
+  R get<R>(Atom<R> atom);
+  void set<R, W>(WritableAtom<R, W> atom, W value);
+  void setSelf(T value);
+  void onDispose(void Function() cb);
+  T? get previousValue;
+}
 
-/// Represents an atom creation function
-typedef AtomReader<Value> = Value Function(AtomContext<Value> get);
+class AtomContextProxy<T> implements AtomContext<T> {
+  AtomContextProxy._(
+    this._get,
+    this._set,
+    this._onDispose,
+    this._setSelf,
+    this.previousValue,
+    this._assert,
+  );
 
-/// Returned from [Atom.withInitialValue] for passing to a [Store] or
+  final GetAtom _get;
+  final SetAtom _set;
+  final OnDispose _onDispose;
+  final SetSelf<T> _setSelf;
+  final AssertNotDisposed _assert;
+
+  @override
+  final T? previousValue;
+
+  @override
+  A call<A>(Atom<A> atom) {
+    _assert("get");
+    return _get(atom);
+  }
+
+  @override
+  A get<A>(Atom<A> atom) {
+    _assert("get");
+    return _get(atom);
+  }
+
+  @override
+  void set<R, W>(WritableAtom<R, W> atom, W value) {
+    _assert("set");
+    _set(atom, value);
+  }
+
+  @override
+  void setSelf(T value) {
+    _assert("setSelf");
+    _setSelf(value);
+  }
+
+  @override
+  void onDispose(void Function() cb) => _onDispose(cb);
+}
+
+typedef AtomReader<R> = R Function(AtomContext<R> get);
+
+/// Returned from [Atom.withInitialValue] for passing to a [AtomRegistry] or
 /// [AtomScope].
 class AtomInitialValue<A> {
   const AtomInitialValue(this.atom, this.value);
   final Atom<A> atom;
   final A value;
-}
-
-/// Passed to atom creation functions for managing state.
-abstract class AtomContext<A> {
-  /// An [AtomGetter] for retrieving an atom's value.
-  Value call<Value>(Atom<Value> atom);
-
-  /// An [AtomSetter] for setting an atom's value.
-  void set<Value>(WritableAtom<dynamic, Value> atom, Value value);
-
-  /// Set the state for the current atom
-  void setSelf(A value);
-
-  /// Register a callback for when this atom is disposed.
-  void onDispose(void Function() fn);
-
-  /// If an atom is recreated, then [previousValue] will contain the
-  /// value from the previous state.
-  A? get previousValue;
-}
-
-/// Used to proxy between a `dynamic` context to a strongly typed context.
-class AtomContextProxy<A> extends AtomContext<A> {
-  AtomContextProxy(this._base);
-
-  final AtomContext<dynamic> _base;
-
-  @override
-  Value call<Value>(Atom<Value> atom) => _base.call(atom);
-
-  @override
-  void set<Value>(WritableAtom<dynamic, Value> atom, Value value) =>
-      _base.set(atom, value);
-
-  @override
-  void setSelf(covariant A value) => _base.setSelf(value);
-
-  @override
-  late final A? previousValue = _base.previousValue as A?;
-
-  @override
-  void onDispose(void Function() fn) => _base.onDispose(fn);
-}
-
-/// A base class for all writable [Atom]'s.
-abstract class WritableAtom<R, W> extends Atom<R> {
-  /// Used by the [Store].
-  void write(Store store, AtomSetter set, W value);
 }
 
 // Family creator

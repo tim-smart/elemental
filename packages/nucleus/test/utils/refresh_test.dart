@@ -11,15 +11,15 @@ void main() {
         return 0;
       });
 
-      final store = Store();
+      final store = AtomRegistry();
 
-      expect(store.read(count), 0);
+      expect(store.get(count), 0);
       expect(rebuilds, 1);
-      expect(store.read(count), 0);
+      expect(store.get(count), 0);
       expect(rebuilds, 1);
 
-      store.put(count, null);
-      expect(store.read(count), 0);
+      store.set(count, null);
+      expect(store.get(count), 0);
       expect(rebuilds, 2);
     });
   });
