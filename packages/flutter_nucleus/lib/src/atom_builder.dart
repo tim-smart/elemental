@@ -22,7 +22,7 @@ class AtomBuilder extends StatefulWidget {
 }
 
 class _AtomBuilderState extends State<AtomBuilder> {
-  late final _store = AtomScope.storeOf(context);
+  late var _store = AtomScope.storeOf(context);
   final _cancellers = HashMap<Atom, void Function()>();
   final _valueCache = HashMap<Atom, Object?>();
 
@@ -47,6 +47,22 @@ class _AtomBuilderState extends State<AtomBuilder> {
   @override
   Widget build(BuildContext context) =>
       widget.builder(context, _watch, widget.child);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final newStore = AtomScope.storeOf(context);
+    if (newStore != _store) {
+      _store = newStore;
+
+      for (final cancel in _cancellers.values) {
+        cancel();
+      }
+      _cancellers.clear();
+      _valueCache.clear();
+    }
+  }
 
   @override
   void dispose() {

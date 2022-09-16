@@ -1,3 +1,7 @@
+## 0.0.13
+
+- Add didChangeDependencies to AtomBuilder
+
 ## 0.0.12
 
 - Add `listen` parameter to watch and useAtom
