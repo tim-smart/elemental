@@ -96,7 +96,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.13"
+    version: "0.1.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -143,12 +143,12 @@ packages:
     source: hosted
     version: "1.7.0"
   nucleus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: nucleus
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.1"
+      path: "../../nucleus"
+      relative: true
+    source: path
+    version: "0.1.3"
   path:
     dependency: transitive
     description:

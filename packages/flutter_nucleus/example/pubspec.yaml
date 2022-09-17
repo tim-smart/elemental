@@ -16,6 +16,8 @@ dependencies:
 dependency_overrides:
   flutter_nucleus:
     path: ../
+  nucleus:
+    path: ../../nucleus
 
 dev_dependencies:
   flutter_test:
