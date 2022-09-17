@@ -6,6 +6,15 @@ import 'package:nucleus/nucleus.dart';
 import 'internal.dart';
 
 class AtomRegistry {
+  AtomRegistry({
+    List<AtomInitialValue> initialValues = const [],
+  }) {
+    for (final iv in initialValues) {
+      final node = _ensureNode(iv.atom);
+      node.setValue(iv.value);
+    }
+  }
+
   final scheduler = Scheduler();
   final nodes = HashMap<Atom, Node>();
 

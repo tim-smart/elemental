@@ -110,5 +110,11 @@ void main() {
 
       expect(disposed, true);
     });
+
+    test('initialValues override values', () {
+      final a = atom<int>((get) => throw UnimplementedError());
+      final r = AtomRegistry(initialValues: [a.withInitialValue(123)]);
+      expect(r.get(a), 123);
+    });
   });
 }

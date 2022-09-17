@@ -48,6 +48,8 @@ abstract class Atom<T> {
     _keepAlive = true;
   }
 
+  AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
+
   int? _hashCodeOverride;
 
   @override
