@@ -1,3 +1,7 @@
+## 0.1.3+1
+
+- More documentation
+
 ## 0.1.3
 
 - Add back `Atom.select`
