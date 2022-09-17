@@ -1,3 +1,7 @@
+## 0.1.3+2
+
+- Update package description
+
 ## 0.1.3+1
 
 - More documentation
