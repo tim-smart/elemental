@@ -57,3 +57,25 @@ class CounterText extends HookWidget {
   }
 }
 ```
+
+## A quick tour
+
+TODO
+
+### `stateAtom`
+
+### `atom`
+
+### `proxyAtom`
+
+### `atomWithParent`
+
+### `futureAtom`
+
+### `streamAtom`
+
+### `stateAtomWithStorage`
+
+### `atomWithStorage`
+
+### `atomWithRefresh`
