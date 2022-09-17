@@ -43,8 +43,8 @@ class AtomRegistry {
 
     return () {
       remove();
-      if (!atom.shouldKeepAlive && node.canBeRemoved) {
-        scheduler.runPostFrame(() => _maybeRemoveNode(atom));
+      if (node.canBeRemoved) {
+        scheduler.runPostFrame(() => _maybeRemoveNode(node));
       }
     };
   }
@@ -67,19 +67,29 @@ class AtomRegistry {
 
   Node _ensureNode(Atom atom) => nodes.putIfAbsent(atom, () {
         if (!atom.shouldKeepAlive) {
-          scheduler.runPostFrame(() => _maybeRemoveNode(atom));
+          scheduler.runPostFrame(() => _maybeRemoveAtom(atom));
         }
-        return Node(_createNodeDepsFn(atom));
+        return Node(atom, _createNodeDepsFn(atom));
       });
 
-  void _maybeRemoveNode(Atom atom) {
+  void _maybeRemoveAtom(Atom atom) {
     final node = nodes[atom];
-    if (node == null || !node.canBeRemoved) {
-      return;
-    }
+    if (node == null) return;
+    _maybeRemoveNode(node);
+  }
 
-    nodes.remove(atom);
+  void _maybeRemoveNode(Node node) {
+    if (!node.canBeRemoved) return;
+
+    final parents = node.parents;
+
+    nodes.remove(node.atom);
     node.remove();
+
+    if (parents.isEmpty) return;
+    for (final node in parents) {
+      _maybeRemoveNode(node);
+    }
   }
 
   NodeDepsFn _createNodeDepsFn(Atom atom) =>

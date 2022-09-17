@@ -1,3 +1,8 @@
+## 0.1.3
+
+- Add back `Atom.select`
+- Fix removal of parent nodes
+
 ## 0.1.2
 
 - Fix `notifyListeners` on invalidation

@@ -1,3 +1,5 @@
+import 'package:nucleus/nucleus.dart';
+
 import '../internal/internal.dart';
 
 abstract class Atom<T> {
@@ -24,6 +26,18 @@ abstract class Atom<T> {
     };
   }
 
+  Atom<A> select<A>(A Function(T value) f) =>
+      ReadOnlyAtom((get) => f(get(this)));
+
+  bool _keepAlive = false;
+  bool get shouldKeepAlive => _keepAlive;
+
+  void keepAlive() {
+    _keepAlive = true;
+  }
+
+  AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
+
   T $read({
     required GetAtom get,
     required SetAtom set,
@@ -40,15 +54,6 @@ abstract class Atom<T> {
         previousValue,
         assertNotDisposed,
       ));
-
-  bool _keepAlive = false;
-  bool get shouldKeepAlive => _keepAlive;
-
-  void keepAlive() {
-    _keepAlive = true;
-  }
-
-  AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
 
   int? _hashCodeOverride;
 

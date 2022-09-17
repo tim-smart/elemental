@@ -1,3 +1,5 @@
+import 'package:nucleus/nucleus.dart';
+
 import 'internal.dart';
 
 enum NodeState {
@@ -8,19 +10,25 @@ enum NodeState {
 }
 
 class Node {
-  Node(this._builder);
+  Node(this.atom, this._builder);
 
+  final Atom atom;
   var _state = NodeState.uninitialized;
+  NodeState get state => _state;
 
   final NodeDepsFn _builder;
 
-  final parents = <Node>[];
-  final children = <Node>[];
+  var parents = <Node>[];
+  var children = <Node>[];
   final listeners = <void Function()>[];
 
   ReadLifetime? _lifetime;
 
-  bool get canBeRemoved => listeners.isEmpty && children.isEmpty;
+  bool get canBeRemoved =>
+      !atom.shouldKeepAlive &&
+      _state != NodeState.removed &&
+      listeners.isEmpty &&
+      children.isEmpty;
 
   late Object? _value;
   Object? get value {
@@ -80,6 +88,7 @@ class Node {
 
   void invalidate(Node parent) {
     assert(_state == NodeState.valid, _state.toString());
+    _state = NodeState.stale;
 
     dispose(parent);
     invalidateChildren();
@@ -90,12 +99,14 @@ class Node {
     assert(_state == NodeState.stale || _state == NodeState.valid);
 
     if (children.isEmpty) return;
-    for (final node in children) {
+
+    final childNodes = children;
+    children = [];
+
+    for (final node in childNodes) {
       if (node._state == NodeState.stale) continue;
       node.invalidate(this);
     }
-
-    children.clear();
   }
 
   void notifyListeners() {
@@ -115,18 +126,15 @@ class Node {
         if (node == parent) continue;
         node.children.remove(this);
       }
-      parents.clear();
+      parents = [];
     }
-
-    _state = NodeState.stale;
   }
 
   void remove() {
     assert(canBeRemoved);
     assert(_state != NodeState.removed);
-
-    dispose();
     _state = NodeState.removed;
+    dispose();
   }
 
   void Function() addListener(void Function() handler) {
