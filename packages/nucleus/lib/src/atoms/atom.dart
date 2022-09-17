@@ -90,8 +90,13 @@ abstract class WritableAtom<R, W> extends Atom<R> {
 /// Passed to the [Atom.read] methof, allowing you to interact with other atoms
 /// and manage the lifecycle of your state.
 abstract class AtomContext<T> {
+  /// Get the value for the given [atom].
   R call<R>(Atom<R> atom);
+
+  /// Get the value for the given [atom].
   R get<R>(Atom<R> atom);
+
+  /// Set the value for the given [atom].
   void set<R, W>(WritableAtom<R, W> atom, W value);
   void setSelf(T value);
   void onDispose(void Function() cb);
