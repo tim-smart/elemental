@@ -76,6 +76,7 @@ class Node {
       return;
     }
 
+    final previousState = _state;
     _state = NodeState.valid;
     if (value == _value) {
       return;
@@ -83,7 +84,10 @@ class Node {
 
     _value = value;
     invalidateChildren();
-    notifyListeners();
+
+    if (previousState == NodeState.valid) {
+      notifyListeners();
+    }
   }
 
   void invalidate(Node parent) {
