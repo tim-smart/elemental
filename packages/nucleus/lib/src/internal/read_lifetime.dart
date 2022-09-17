@@ -6,7 +6,6 @@ class ReadLifetime {
   }
 
   final disposers = <void Function()>[];
-  var calledSetSelf = false;
   var disposed = false;
 
   late final ValueBuilder create;

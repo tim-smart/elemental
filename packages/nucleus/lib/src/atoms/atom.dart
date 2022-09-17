@@ -2,7 +2,14 @@ import 'package:nucleus/nucleus.dart';
 
 import '../internal/internal.dart';
 
+/// The base class for all atoms.
+///
+/// An atom is a special identifiet, that points to some state in an [AtomRegistry].
+///
+/// It also contains configuration that determines how its state is read, or
+/// written (see [WritableAtom]).
 abstract class Atom<T> {
+  /// Used by the registry to read the atoms value.
   T read(AtomContext<T> ctx);
 
   /// Create a family factory function, for indexing similar atoms with the
@@ -26,18 +33,27 @@ abstract class Atom<T> {
     };
   }
 
+  /// Create a derived atom, that ransforms an atoms value using the given
+  /// function [f].
   Atom<A> select<A>(A Function(T value) f) =>
       ReadOnlyAtom((get) => f(get(this)));
 
-  bool _keepAlive = false;
+  /// Should this atoms state be kept, even if it isnt being used?
+  ///
+  /// Defaults to `false`.
   bool get shouldKeepAlive => _keepAlive;
+  bool _keepAlive = false;
 
+  /// Prevent the state of this atom from being automatically disposed.
   void keepAlive() {
     _keepAlive = true;
   }
 
+  /// Create an initial value override, which can be given to an [AtomScope] or
+  /// [AtomRegistry].
   AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
 
+  /// Used by the registry.
   T $read({
     required GetAtom get,
     required SetAtom set,
@@ -46,7 +62,7 @@ abstract class Atom<T> {
     required T? previousValue,
     required AssertNotDisposed assertNotDisposed,
   }) =>
-      read(AtomContextProxy._(
+      read(_AtomContextProxy._(
         get,
         set,
         onDispose,
@@ -64,10 +80,15 @@ abstract class Atom<T> {
   operator ==(Object? other) => other.hashCode == hashCode;
 }
 
+/// Represents an [Atom] that can be written to.
 abstract class WritableAtom<R, W> extends Atom<R> {
+  /// When the atom recieves a write with the given [value], this method
+  /// determines the outcome.
   void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
 }
 
+/// Passed to the [Atom.read] methof, allowing you to interact with other atoms
+/// and manage the lifecycle of your state.
 abstract class AtomContext<T> {
   R call<R>(Atom<R> atom);
   R get<R>(Atom<R> atom);
@@ -77,8 +98,8 @@ abstract class AtomContext<T> {
   T? get previousValue;
 }
 
-class AtomContextProxy<T> implements AtomContext<T> {
-  AtomContextProxy._(
+class _AtomContextProxy<T> implements AtomContext<T> {
+  _AtomContextProxy._(
     this._get,
     this._set,
     this._onDispose,
