@@ -98,8 +98,17 @@ abstract class AtomContext<T> {
 
   /// Set the value for the given [atom].
   void set<R, W>(WritableAtom<R, W> atom, W value);
+
+  /// Set the value for the current atom.
   void setSelf(T value);
+
+  /// Register an [cb] function, that is called when the atom is invalidated or
+  /// disposed.
+  ///
+  /// Can be called multiple times.
   void onDispose(void Function() cb);
+
+  /// The previous value of this atom.
   T? get previousValue;
 }
 

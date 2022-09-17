@@ -1,5 +1,10 @@
 import 'package:nucleus/nucleus.dart';
 
+/// Create an [AtomWithParent] that returns a [FutureValue] representing the
+/// current state of the [Future]'s execution.
+///
+/// The `parent` property is set to the [Future] itself, so you can `await` it
+/// if required.
 AtomWithParent<FutureValue<A>, Atom<Future<A>>> futureAtom<A>(
   AtomReader<Future<A>> create,
 ) =>
@@ -21,8 +26,7 @@ AtomWithParent<FutureValue<A>, Atom<Future<A>>> futureAtom<A>(
           : FutureValue.loading();
     });
 
-// ==== FutureValue
-
+/// Represents the loading, error and data state of an async operation.
 abstract class FutureValue<A> {
   const FutureValue();
 
@@ -47,6 +51,8 @@ abstract class FutureValue<A> {
   });
 }
 
+/// Represents the case where an async operation succeeds, and has returned a
+/// some [data].
 class FutureData<A> extends FutureValue<A> {
   const FutureData(this.data);
 
@@ -82,6 +88,8 @@ class FutureData<A> extends FutureValue<A> {
   String toString() => "FutureValue<$A>.data(data: $data)";
 }
 
+/// Represents the case where an async operation fails, and has returned an
+/// [error].
 class FutureError<A> extends FutureValue<A> {
   const FutureError(this.error, this.stackTrace);
 
@@ -121,6 +129,9 @@ class FutureError<A> extends FutureValue<A> {
   String toString() => "FutureValue<$A>.error(error: $error)";
 }
 
+/// Represents the case where an async operation is waiting for a result.
+///
+/// It may contain the [previousData] from a previous operation.
 class FutureLoading<A> extends FutureValue<A> {
   const FutureLoading([this.previousData]);
 
