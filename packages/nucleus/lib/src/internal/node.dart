@@ -10,13 +10,15 @@ enum NodeState {
 }
 
 class Node {
-  Node(this.atom, this._builder);
+  Node(this.atom, NodeDepsFn builder) {
+    _builder = builder(addParent, setValue, _getValue);
+  }
 
   final Atom atom;
   var _state = NodeState.uninitialized;
   NodeState get state => _state;
 
-  final NodeDepsFn _builder;
+  late final LifetimeDepsFn _builder;
 
   var parents = <Node>[];
   var children = <Node>[];
@@ -30,16 +32,12 @@ class Node {
       listeners.isEmpty &&
       children.isEmpty;
 
-  late Object? _value;
-  Object? get value {
+  late dynamic _value;
+  dynamic get value {
     assert(_state != NodeState.removed);
 
     if (_state != NodeState.valid) {
-      _lifetime = ReadLifetime(_builder(
-        addParent,
-        setValue,
-        _state == NodeState.uninitialized ? null : _value,
-      ));
+      _lifetime = ReadLifetime(_builder);
 
       final value = _lifetime!.create();
       if (_state != NodeState.valid) {
@@ -49,6 +47,8 @@ class Node {
 
     return _value;
   }
+
+  dynamic _getValue() => _state == NodeState.uninitialized ? null : _value;
 
   void addParent(Node node) {
     assert(_state != NodeState.removed);
@@ -66,7 +66,7 @@ class Node {
     children.add(node);
   }
 
-  void setValue(Object? value) {
+  void setValue(dynamic value) {
     assert(_state != NodeState.removed);
 
     if (_state == NodeState.uninitialized) {

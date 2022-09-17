@@ -110,20 +110,20 @@ class AtomRegistry {
   }
 
   NodeDepsFn _createNodeDepsFn(Atom atom) =>
-      (addParent, setSelf, previousValue) => (onDispose, assertNotDisposed) {
-            T getAndRegister<T>(Atom<T> atom) {
-              final node = _ensureNode(atom);
-              addParent(node);
-              return node.value as T;
-            }
+      (addParent, setSelf, previousValue) {
+        T getAndRegister<T>(Atom<T> atom) {
+          final node = _ensureNode(atom);
+          addParent(node);
+          return node.value as T;
+        }
 
-            return () => atom.$read(
-                  get: getAndRegister,
-                  set: set,
-                  onDispose: onDispose,
-                  setSelf: setSelf,
-                  previousValue: previousValue,
-                  assertNotDisposed: assertNotDisposed,
-                );
-          };
+        return (onDispose, assertNotDisposed) => atom.$read(
+              get: getAndRegister,
+              set: set,
+              onDispose: onDispose,
+              setSelf: setSelf,
+              previousValue: previousValue(),
+              assertNotDisposed: assertNotDisposed,
+            );
+      };
 }

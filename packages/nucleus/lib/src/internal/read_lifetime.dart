@@ -1,14 +1,14 @@
 import 'internal.dart';
 
 class ReadLifetime {
-  ReadLifetime(LifetimeDepsFn builder) {
-    create = builder(disposers.add, _assertNotDisposed);
-  }
+  ReadLifetime(this._builder);
 
   final disposers = <void Function()>[];
   var disposed = false;
 
-  late final ValueBuilder create;
+  final LifetimeDepsFn _builder;
+
+  dynamic create() => _builder(disposers.add, _assertNotDisposed);
 
   void _assertNotDisposed(String method) {
     if (disposed) {
