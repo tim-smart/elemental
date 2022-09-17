@@ -1,3 +1,7 @@
+## 0.1.0
+
+- Updates for 0.1.x nucleus release
+
 ## 0.0.13
 
 - Add didChangeDependencies to AtomBuilder
