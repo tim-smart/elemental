@@ -1,3 +1,7 @@
+## 0.1.5
+
+- Simplify internal dep injection
+
 ## 0.1.4
 
 - Prevent duplicate change notifications
