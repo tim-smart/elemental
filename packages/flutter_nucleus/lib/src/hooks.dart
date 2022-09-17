@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart' hide Store;
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
 A useAtom<A>(
@@ -26,18 +26,18 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
   void Function()? _cancel;
 
   void _setup(BuildContext context) {
-    final store = AtomScope.storeOf(context);
-    _value = store.read(hook.atom);
+    final registry = AtomScope.registryOf(context);
+    _value = registry.get(hook.atom);
 
     if (hook.listen) {
-      _cancel = store.subscribe(
+      _cancel = registry.subscribe(
         hook.atom,
         () => setState(() {
-          _value = store.read(hook.atom);
+          _value = registry.get(hook.atom);
         }),
       );
     } else {
-      _cancel = store.mount(hook.atom);
+      _cancel = registry.mount(hook.atom);
     }
   }
 

@@ -22,7 +22,7 @@ class AtomBuilder extends StatefulWidget {
 }
 
 class _AtomBuilderState extends State<AtomBuilder> {
-  late var _store = AtomScope.storeOf(context);
+  late var _registry = AtomScope.registryOf(context);
   final _cancellers = HashMap<Atom, void Function()>();
   final _valueCache = HashMap<Atom, Object?>();
 
@@ -32,16 +32,16 @@ class _AtomBuilderState extends State<AtomBuilder> {
   }) {
     if (!_cancellers.containsKey(atom)) {
       if (listen) {
-        _cancellers[atom] = _store.subscribe(
+        _cancellers[atom] = _registry.subscribe(
           atom,
           () => setState(() => _valueCache.remove(atom)),
         );
       } else {
-        _cancellers[atom] = _store.mount(atom);
+        _cancellers[atom] = _registry.mount(atom);
       }
     }
 
-    return (_valueCache[atom] ??= _store.read(atom)) as A;
+    return (_valueCache[atom] ??= _registry.get(atom)) as A;
   }
 
   @override
@@ -52,9 +52,9 @@ class _AtomBuilderState extends State<AtomBuilder> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final newStore = AtomScope.storeOf(context);
-    if (newStore != _store) {
-      _store = newStore;
+    final newAtomRegistry = AtomScope.registryOf(context);
+    if (newAtomRegistry != _registry) {
+      _registry = newAtomRegistry;
 
       for (final cancel in _cancellers.values) {
         cancel();
