@@ -1,3 +1,7 @@
+## 0.1.1
+
+- Add back `initialValues`
+
 ## 0.1.0
 
 - Replace `Store` with `Registry`
