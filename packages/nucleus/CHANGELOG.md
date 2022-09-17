@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Fix `notifyListeners` on invalidation
+
 ## 0.1.1
 
 - Add back `initialValues`

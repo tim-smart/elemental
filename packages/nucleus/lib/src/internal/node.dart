@@ -83,6 +83,7 @@ class Node {
 
     dispose(parent);
     invalidateChildren();
+    notifyListeners();
   }
 
   void invalidateChildren() {
@@ -98,7 +99,7 @@ class Node {
   }
 
   void notifyListeners() {
-    assert(_state == NodeState.valid);
+    assert(_state == NodeState.valid || _state == NodeState.stale);
 
     if (listeners.isEmpty) return;
     for (final f in listeners) {
