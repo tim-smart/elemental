@@ -80,13 +80,13 @@ class AtomRegistry {
         get(atom);
       });
 
-  /// Get a tree of the current nodes. For debugging only.
-  Map<Node, dynamic> get nodeTree {
-    Map<Node, dynamic> getChildren(Node node) => node.children.fold(
+  /// Build a tree with the current node state. For debugging only.
+  Map<K, dynamic> buildTree<K>(K Function(Node) key) {
+    Map<K, dynamic> getChildren(Node node) => node.children.fold(
           {},
           (acc, node) => {
             ...acc,
-            node: getChildren(node),
+            key(node): getChildren(node),
           },
         );
 
@@ -94,10 +94,16 @@ class AtomRegistry {
       {},
       (acc, node) => {
         ...acc,
-        node: getChildren(node),
+        key(node): getChildren(node),
       },
     );
   }
+
+  /// Get a tree of the current nodes. For debugging only.
+  Map<Node, dynamic> get nodeTree => buildTree((n) => n);
+
+  /// Get a tree of the current atoms. For debugging only.
+  Map<Atom, dynamic> get atomTree => buildTree((n) => n.atom);
 
   // Internal
 

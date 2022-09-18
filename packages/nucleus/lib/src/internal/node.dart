@@ -27,10 +27,7 @@ class Node {
   ReadLifetime? _lifetime;
 
   bool get canBeRemoved =>
-      !atom.shouldKeepAlive &&
-      _state != NodeState.removed &&
-      listeners.isEmpty &&
-      children.isEmpty;
+      !atom.shouldKeepAlive && listeners.isEmpty && children.isEmpty;
 
   late dynamic _value;
   dynamic get value {
@@ -83,9 +80,9 @@ class Node {
     }
 
     _value = value;
-    invalidateChildren();
 
     if (previousState == NodeState.valid) {
+      invalidateChildren();
       notifyListeners();
     }
   }
@@ -94,7 +91,7 @@ class Node {
     assert(_state == NodeState.valid, _state.toString());
     _state = NodeState.stale;
 
-    dispose(parent);
+    disposeLifetime(parent);
     invalidateChildren();
     notifyListeners();
   }
@@ -122,7 +119,7 @@ class Node {
     }
   }
 
-  void dispose([Node? parent]) {
+  void disposeLifetime([Node? parent]) {
     _lifetime?.dispose();
     _lifetime = null;
 
@@ -139,11 +136,11 @@ class Node {
     assert(canBeRemoved);
     assert(_state != NodeState.removed);
 
-    if (_state != NodeState.stale) {
-      dispose();
-    }
-
     _state = NodeState.removed;
+
+    if (_lifetime != null) {
+      disposeLifetime();
+    }
   }
 
   void Function() addListener(void Function() handler) {
