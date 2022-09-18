@@ -80,6 +80,25 @@ class AtomRegistry {
         get(atom);
       });
 
+  /// Get a tree of the current nodes. For debugging only.
+  Map<Node, dynamic> get nodeTree {
+    Map<Node, dynamic> getChildren(Node node) => node.children.fold(
+          {},
+          (acc, node) => {
+            ...acc,
+            node: getChildren(node),
+          },
+        );
+
+    return nodes.values.where((n) => n.parents.isEmpty).fold(
+      {},
+      (acc, node) => {
+        ...acc,
+        node: getChildren(node),
+      },
+    );
+  }
+
   // Internal
 
   Node _ensureNode(Atom atom) => nodes.putIfAbsent(atom, () {

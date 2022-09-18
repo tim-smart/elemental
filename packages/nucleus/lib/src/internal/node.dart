@@ -124,6 +124,7 @@ class Node {
 
   void dispose([Node? parent]) {
     _lifetime?.dispose();
+    _lifetime = null;
 
     if (parents.isNotEmpty) {
       for (final node in parents) {
@@ -137,12 +138,20 @@ class Node {
   void remove() {
     assert(canBeRemoved);
     assert(_state != NodeState.removed);
+
+    if (_state != NodeState.stale) {
+      dispose();
+    }
+
     _state = NodeState.removed;
-    dispose();
   }
 
   void Function() addListener(void Function() handler) {
     listeners.add(handler);
     return () => listeners.remove(handler);
   }
+
+  @override
+  String toString() =>
+      "Node(atom: $atom, _state: $_state, canBeRemoved: $canBeRemoved, value: $value)";
 }

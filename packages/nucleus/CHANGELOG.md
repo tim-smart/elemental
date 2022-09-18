@@ -1,3 +1,8 @@
+## 0.1.7
+
+- Fix issue where ReadLifetime was disposed more than once
+- Add `name` to `Atom` for debugging
+
 ## 0.1.6
 
 - Add `subscribe` to `AtomContext`

@@ -49,6 +49,14 @@ abstract class Atom<T> {
     _keepAlive = true;
   }
 
+  /// Set a name for debugging
+  String? name;
+
+  /// Set a name for debugging
+  void setName(String name) {
+    this.name = name;
+  }
+
   /// Create an initial value override, which can be given to an [AtomScope] or
   /// [AtomRegistry].
   AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
@@ -80,6 +88,9 @@ abstract class Atom<T> {
 
   @override
   operator ==(Object? other) => other.hashCode == hashCode;
+
+  @override
+  String toString() => "$runtimeType(name: $name)";
 }
 
 /// Represents an [Atom] that can be written to.
@@ -89,7 +100,7 @@ abstract class WritableAtom<R, W> extends Atom<R> {
   void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
 }
 
-/// Passed to the [Atom.read] methof, allowing you to interact with other atoms
+/// Passed to the [Atom.read] method, allowing you to interact with other atoms
 /// and manage the lifecycle of your state.
 abstract class AtomContext<T> {
   /// Get the value for the given [atom].
