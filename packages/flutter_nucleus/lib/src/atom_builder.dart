@@ -41,7 +41,7 @@ class _AtomBuilderState extends State<AtomBuilder> {
       }
     }
 
-    return (_valueCache[atom] ??= _registry.get(atom)) as A;
+    return _valueCache.putIfAbsent(atom, () => _registry.get(atom)) as A;
   }
 
   @override

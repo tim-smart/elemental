@@ -1,3 +1,7 @@
+## 0.1.1
+
+- Fix `didChangeHook` when registry changes for `useAtom`
+
 ## 0.1.0
 
 - Updates for 0.1.x nucleus release

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
@@ -22,22 +22,23 @@ class _AtomHook<A> extends Hook<A> {
 }
 
 class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
+  late AtomRegistry _registry;
   late A _value;
   void Function()? _cancel;
 
   void _setup(BuildContext context) {
-    final registry = AtomScope.registryOf(context);
-    _value = registry.get(hook.atom);
+    _registry = AtomScope.registryOf(context, listen: false);
+    _value = _registry.get(hook.atom);
 
     if (hook.listen) {
-      _cancel = registry.subscribe(
+      _cancel = _registry.subscribe(
         hook.atom,
         () => setState(() {
-          _value = registry.get(hook.atom);
+          _value = _registry.get(hook.atom);
         }),
       );
     } else {
-      _cancel = registry.mount(hook.atom);
+      _cancel = _registry.mount(hook.atom);
     }
   }
 
@@ -45,7 +46,11 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
   void didUpdateHook(_AtomHook<A> oldHook) {
     super.didUpdateHook(oldHook);
 
-    if (hook.atom != oldHook.atom) {
+    final registry = AtomScope.registryOf(context, listen: false);
+
+    if (hook.atom != oldHook.atom ||
+        hook.listen != oldHook.listen ||
+        registry != _registry) {
       _cancel?.call();
       _cancel = null;
     }
