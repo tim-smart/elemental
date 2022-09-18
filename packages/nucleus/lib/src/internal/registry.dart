@@ -37,8 +37,8 @@ class AtomRegistry {
   /// Listen to changes of an atom's state.
   ///
   /// Call [get] to retrieve the latest value after the [handler] is called.
-  void Function() subscribe<A>(
-    Atom<A> atom,
+  void Function() subscribe(
+    Atom atom,
     void Function() handler, {
     bool fireImmediately = false,
   }) {
@@ -92,7 +92,7 @@ class AtomRegistry {
   void _maybeRemoveAtom(Atom atom) {
     final node = nodes[atom];
     if (node == null) return;
-    _maybeRemoveNode(node);
+    _maybeRemoveNode(nodes[atom]!);
   }
 
   void _maybeRemoveNode(Node node) {
@@ -122,6 +122,7 @@ class AtomRegistry {
               set: set,
               onDispose: onDispose,
               setSelf: setSelf,
+              subscribe: subscribe,
               previousValue: previousValue(),
               assertNotDisposed: assertNotDisposed,
             );

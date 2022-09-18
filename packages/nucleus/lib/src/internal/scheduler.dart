@@ -1,8 +1,6 @@
-import 'dart:collection';
-
 class Scheduler {
   // Post frame
-  final _postFrameCallbacks = <void Function()>[];
+  var _postFrameCallbacks = <void Function()>[];
   Future<void>? _postFrameFuture;
 
   void runPostFrame(void Function() f) {
@@ -13,21 +11,11 @@ class Scheduler {
   void _postFrame() {
     _postFrameFuture = null;
 
-    for (final f in _postFrameCallbacks) {
+    final callbacks = _postFrameCallbacks;
+    _postFrameCallbacks = [];
+
+    for (final f in callbacks) {
       f();
     }
-    _postFrameCallbacks.clear();
-  }
-
-  // End of frame
-  final _endOfFrameCallbacks = HashMap<Object?, void Function()>();
-  void runEndOfFrame(Object? key, void Function() f) =>
-      _endOfFrameCallbacks[key] = f;
-
-  void flushEndOfFrame() {
-    for (final f in _endOfFrameCallbacks.values) {
-      f();
-    }
-    _endOfFrameCallbacks.clear();
   }
 }

@@ -16,6 +16,11 @@ typedef SetAtom = void Function<R, W>(WritableAtom<R, W> atom, W value);
 
 typedef SetSelf<A> = void Function(A value);
 
+typedef SubscribeToAtom = void Function() Function(
+  Atom atom,
+  void Function() handler,
+);
+
 typedef LifetimeDepsFn<A> = A Function(
   OnDispose onDispose,
   AssertNotDisposed assertNotDisposed,
@@ -24,8 +29,4 @@ typedef NodeDepsFn<A> = LifetimeDepsFn<A> Function(
   AddParent addParent,
   SetSelf<A> setSelf,
   GetPreviousValue<A> getPreviousValue,
-);
-typedef RegistryDepsFn<A> = NodeDepsFn<A> Function(
-  GetAtom get,
-  SetAtom set,
 );

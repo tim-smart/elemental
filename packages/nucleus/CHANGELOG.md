@@ -1,3 +1,7 @@
+## 0.1.6
+
+- Add `subscribe` to `AtomContext`
+
 ## 0.1.5+1
 
 - Remove unused dependencies

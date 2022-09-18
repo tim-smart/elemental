@@ -59,6 +59,7 @@ abstract class Atom<T> {
     required SetAtom set,
     required OnDispose onDispose,
     required SetSelf<T> setSelf,
+    required SubscribeToAtom subscribe,
     required T? previousValue,
     required AssertNotDisposed assertNotDisposed,
   }) =>
@@ -67,6 +68,7 @@ abstract class Atom<T> {
         set,
         onDispose,
         setSelf,
+        subscribe,
         previousValue,
         assertNotDisposed,
       ));
@@ -102,6 +104,9 @@ abstract class AtomContext<T> {
   /// Set the value for the current atom.
   void setSelf(T value);
 
+  /// Subscribe to the given [atom].
+  void Function() subscribe(Atom atom, void Function() handler);
+
   /// Register an [cb] function, that is called when the atom is invalidated or
   /// disposed.
   ///
@@ -118,6 +123,7 @@ class _AtomContextProxy<T> implements AtomContext<T> {
     this._set,
     this._onDispose,
     this._setSelf,
+    this._subscribe,
     this.previousValue,
     this._assert,
   );
@@ -126,6 +132,7 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   final SetAtom _set;
   final OnDispose _onDispose;
   final SetSelf<T> _setSelf;
+  final SubscribeToAtom _subscribe;
   final AssertNotDisposed _assert;
 
   @override
@@ -152,6 +159,10 @@ class _AtomContextProxy<T> implements AtomContext<T> {
     _assert("setSelf");
     _setSelf(value);
   }
+
+  @override
+  void Function() subscribe(Atom atom, void Function() handler) =>
+      _subscribe(atom, handler);
 
   @override
   void onDispose(void Function() cb) => _onDispose(cb);
