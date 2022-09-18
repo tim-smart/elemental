@@ -116,5 +116,25 @@ void main() {
       final r = AtomRegistry(initialValues: [a.withInitialValue(123)]);
       expect(r.get(a), 123);
     });
+
+    test('dependencies are not orphaned', () async {
+      final count = stateAtom(0);
+      final multiplied = atom((get) => get(count.select((i) => i + 1)) * 2);
+
+      final r = AtomRegistry();
+
+      await r.use(multiplied, () async {
+        expect(r.get(multiplied), 2);
+
+        await Future.microtask(() {});
+
+        r.set(count, 1);
+        expect(r.get(multiplied), 4);
+      });
+
+      await Future.microtask(() {});
+
+      expect(r.nodes.isEmpty, true);
+    });
   });
 }
