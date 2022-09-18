@@ -4,7 +4,7 @@ import 'package:riverpod/riverpod.dart';
 final value = Provider((ref) => 0);
 final riverpod = StateProvider.family((ref, int i) => i);
 final nested = Provider((ref) => List.generate(
-      100000,
+      1000000,
       (i) => StateProvider.autoDispose((_) => i),
     ));
 
@@ -52,6 +52,6 @@ void main() {
     benchmark('nesting', () {
       final container = ProviderContainer();
       container.read(nested).map(container.read);
-    });
+    }, iterations: 1);
   });
 }

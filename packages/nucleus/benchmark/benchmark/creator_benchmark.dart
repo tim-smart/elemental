@@ -3,7 +3,8 @@ import 'package:creator_core/creator_core.dart';
 
 final value = Creator.value(0);
 final family = Creator.arg1((ref, int i) => i);
-final nested = Creator((ref) => List.generate(100000, (i) => Creator.value(i)));
+final nested =
+    Creator((ref) => List.generate(1000000, (i) => Creator.value(i)));
 
 final depOne = Creator((ref) => ref.watch(value) * 10);
 final depTwo = Creator((ref) => ref.watch(depOne) * 10);
@@ -50,6 +51,6 @@ void main() {
     benchmark('nesting', () {
       final store = Ref();
       store.read(nested).map(store.read);
-    });
+    }, iterations: 1);
   });
 }

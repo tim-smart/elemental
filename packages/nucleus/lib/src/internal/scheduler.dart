@@ -1,21 +1,33 @@
 class Scheduler {
-  // Post frame
-  var _postFrameCallbacks = <void Function()>[];
+  final _postFrameCallbacks = List<void Function()?>.filled(
+    32,
+    null,
+    growable: true,
+  );
+  var _postFrameCount = 0;
+
   Future<void>? _postFrameFuture;
 
   void runPostFrame(void Function() f) {
-    _postFrameCallbacks.add(f);
+    if (_postFrameCount == _postFrameCallbacks.length) {
+      _postFrameCallbacks.add(f);
+      _postFrameCount++;
+    } else {
+      _postFrameCallbacks[_postFrameCount++] = f;
+    }
+
     _postFrameFuture ??= Future.microtask(_postFrame);
   }
 
   void _postFrame() {
     _postFrameFuture = null;
 
-    final callbacks = _postFrameCallbacks;
-    _postFrameCallbacks = [];
+    final count = _postFrameCount;
+    _postFrameCount = 0;
 
-    for (final f in callbacks) {
-      f();
+    for (var i = 0; i < count; i++) {
+      _postFrameCallbacks[i]!();
+      _postFrameCallbacks[i] = null;
     }
   }
 }

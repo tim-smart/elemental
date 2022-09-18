@@ -4,7 +4,7 @@ import 'package:nucleus/nucleus.dart';
 final value = stateAtom(0)..keepAlive();
 final nucleus = atomFamily((int i) => stateAtom(i));
 final nested = atom((get) => List.generate(
-      100000,
+      1000000,
       (i) => stateAtom(i),
     ));
 
@@ -53,6 +53,6 @@ void main() {
     benchmark('nesting', () {
       final store = AtomRegistry();
       store.get(nested).map(store.get);
-    });
+    }, iterations: 1);
   });
 }

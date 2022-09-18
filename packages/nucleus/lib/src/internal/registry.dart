@@ -125,6 +125,8 @@ class AtomRegistry {
   }
 
   void _removeNode(Node node) {
+    assert(node.canBeRemoved);
+
     final parents = node.parents;
 
     nodes.remove(node.atom);

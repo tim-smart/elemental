@@ -2,6 +2,8 @@ import 'package:nucleus/nucleus.dart';
 
 import 'internal.dart';
 
+final _emptyNodes = List<Node>.empty();
+
 enum NodeState {
   uninitialized,
   stale,
@@ -21,8 +23,9 @@ class Node {
   var _state = NodeState.uninitialized;
   NodeState get state => _state;
 
-  var parents = <Node>[];
-  var children = <Node>[];
+  var parents = _emptyNodes;
+  List<Node>? previousParents;
+  var children = _emptyNodes;
   final listeners = <void Function()>[];
 
   ReadLifetime? _lifetime;
@@ -30,8 +33,8 @@ class Node {
   bool get canBeRemoved =>
       !atom.shouldKeepAlive &&
       _state != NodeState.removed &&
-      listeners.isEmpty &&
-      children.isEmpty;
+      (children == _emptyNodes || children.isEmpty) &&
+      listeners.isEmpty;
 
   late dynamic _value;
   dynamic get value {
@@ -44,6 +47,15 @@ class Node {
       if (_state != NodeState.valid) {
         setValue(value);
       }
+
+      // Removed orphaned parents
+      if (previousParents != null && previousParents!.isNotEmpty) {
+        for (final node in previousParents!) {
+          if (node.canBeRemoved) {
+            _removeNode(node);
+          }
+        }
+      }
     }
 
     return _value;
@@ -54,17 +66,19 @@ class Node {
   void addParent(Node node) {
     assert(_state != NodeState.removed);
 
-    parents.add(node);
-    node.addChild(this);
-  }
-
-  void addChild(Node node) {
-    assert(_state != NodeState.removed);
-
-    if (children.isNotEmpty && children.contains(node)) {
-      return;
+    if (parents == _emptyNodes) {
+      parents = [node];
+    } else {
+      parents.add(node);
+      previousParents?.remove(node);
     }
-    children.add(node);
+
+    // Add to parent children
+    if (node.children == _emptyNodes) {
+      node.children = [this];
+    } else if (!node.children.contains(this)) {
+      node.children.add(this);
+    }
   }
 
   void setValue(dynamic value) {
@@ -96,20 +110,24 @@ class Node {
     _state = NodeState.stale;
 
     disposeLifetime(parent);
-    invalidateChildren();
+    invalidateChildren(parent);
     notifyListeners();
   }
 
-  void invalidateChildren() {
+  void invalidateChildren([Node? parent]) {
     assert(_state == NodeState.stale || _state == NodeState.valid);
 
-    if (children.isEmpty) {
+    if (children == _emptyNodes) {
       return;
     }
 
     final childNodes = children;
     final count = childNodes.length;
     children = [];
+
+    if (parent != null && count == 1 && childNodes[0] == parent) {
+      return;
+    }
 
     for (var i = 0; i < count; i++) {
       final node = childNodes[i];
@@ -132,21 +150,32 @@ class Node {
   }
 
   void disposeLifetime([Node? parent]) {
-    _lifetime?.dispose();
-    _lifetime = null;
+    if (_lifetime != null) {
+      _lifetime!.dispose();
+      _lifetime = null;
+    }
 
-    if (parents.isNotEmpty) {
-      final count = parents.length;
-      for (var i = 0; i < count; i++) {
-        final node = parents[i];
-        if (node == parent) continue;
+    if (parents == _emptyNodes) {
+      return;
+    }
 
-        node.children.remove(this);
-        if (node.canBeRemoved) {
-          _removeNode(node);
-        }
+    previousParents = parents;
+    parents = [];
+    final count = previousParents!.length;
+
+    if (count == 0 || (count == 1 && previousParents![0] == parent)) {
+      return;
+    }
+
+    for (var i = 0; i < count; i++) {
+      final node = previousParents![i];
+      if (node == parent) continue;
+
+      node.children.remove(this);
+
+      if (node.canBeRemoved) {
+        _removeNode(node);
       }
-      parents = [];
     }
   }
 
