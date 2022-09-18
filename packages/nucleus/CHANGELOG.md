@@ -1,3 +1,7 @@
+## 0.1.9
+
+- Fix orphaned nodes
+
 ## 0.1.8
 
 - performance improvements

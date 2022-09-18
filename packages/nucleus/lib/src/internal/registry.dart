@@ -54,7 +54,10 @@ class AtomRegistry {
     return () {
       remove();
       if (node.canBeRemoved) {
-        _scheduler.runPostFrame(() => _maybeRemoveNode(node));
+        _scheduler.runPostFrame(() {
+          if (!node.canBeRemoved) return;
+          _removeNode(node);
+        });
       }
     };
   }
@@ -109,18 +112,19 @@ class AtomRegistry {
         if (!atom.shouldKeepAlive) {
           _scheduler.runPostFrame(() => _maybeRemoveAtom(atom));
         }
-        return Node(atom, _createNodeDepsFn(atom));
+        return Node(atom, _createNodeDepsFn(atom), _removeNode);
       });
 
   void _maybeRemoveAtom(Atom atom) {
     if (nodes.containsKey(atom)) {
-      _maybeRemoveNode(nodes[atom]!);
+      final node = nodes[atom]!;
+      if (node.canBeRemoved) {
+        _removeNode(node);
+      }
     }
   }
 
-  void _maybeRemoveNode(Node node) {
-    if (!node.canBeRemoved) return;
-
+  void _removeNode(Node node) {
     final parents = node.parents;
 
     nodes.remove(node.atom);
@@ -128,7 +132,9 @@ class AtomRegistry {
 
     if (parents.isEmpty) return;
     for (final node in parents) {
-      _maybeRemoveNode(node);
+      if (node.canBeRemoved) {
+        _removeNode(node);
+      }
     }
   }
 

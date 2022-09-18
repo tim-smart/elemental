@@ -10,15 +10,16 @@ enum NodeState {
 }
 
 class Node {
-  Node(this.atom, NodeDepsFn builder) {
+  Node(this.atom, NodeDepsFn builder, this._removeNode) {
     _builder = builder(addParent, setValue, _getValue);
   }
 
   final Atom atom;
+  late final LifetimeDepsFn _builder;
+  final void Function(Node node) _removeNode;
+
   var _state = NodeState.uninitialized;
   NodeState get state => _state;
-
-  late final LifetimeDepsFn _builder;
 
   var parents = <Node>[];
   var children = <Node>[];
@@ -139,7 +140,11 @@ class Node {
       for (var i = 0; i < count; i++) {
         final node = parents[i];
         if (node == parent) continue;
+
         node.children.remove(this);
+        if (node.canBeRemoved) {
+          _removeNode(node);
+        }
       }
       parents = [];
     }
