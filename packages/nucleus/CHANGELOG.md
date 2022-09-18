@@ -1,3 +1,7 @@
+## 0.1.5+1
+
+- Remove unused dependencies
+
 ## 0.1.5
 
 - Simplify internal dep injection
