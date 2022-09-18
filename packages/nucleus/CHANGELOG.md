@@ -1,3 +1,7 @@
+## 0.1.10
+
+- Improve invalidation performance
+
 ## 0.1.9
 
 - Fix orphaned nodes
