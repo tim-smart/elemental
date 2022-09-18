@@ -27,7 +27,10 @@ class Node {
   ReadLifetime? _lifetime;
 
   bool get canBeRemoved =>
-      !atom.shouldKeepAlive && listeners.isEmpty && children.isEmpty;
+      !atom.shouldKeepAlive &&
+      _state != NodeState.removed &&
+      listeners.isEmpty &&
+      children.isEmpty;
 
   late dynamic _value;
   dynamic get value {
@@ -57,7 +60,7 @@ class Node {
   void addChild(Node node) {
     assert(_state != NodeState.removed);
 
-    if (children.contains(node)) {
+    if (children.isNotEmpty && children.contains(node)) {
       return;
     }
     children.add(node);
@@ -99,12 +102,16 @@ class Node {
   void invalidateChildren() {
     assert(_state == NodeState.stale || _state == NodeState.valid);
 
-    if (children.isEmpty) return;
+    if (children.isEmpty) {
+      return;
+    }
 
     final childNodes = children;
+    final count = childNodes.length;
     children = [];
 
-    for (final node in childNodes) {
+    for (var i = 0; i < count; i++) {
+      final node = childNodes[i];
       if (node._state == NodeState.stale) continue;
       node.invalidate(this);
     }
@@ -113,9 +120,13 @@ class Node {
   void notifyListeners() {
     assert(_state == NodeState.valid || _state == NodeState.stale);
 
-    if (listeners.isEmpty) return;
-    for (final f in listeners) {
-      f();
+    if (listeners.isEmpty) {
+      return;
+    }
+
+    final count = listeners.length;
+    for (var i = 0; i < count; i++) {
+      listeners[i]();
     }
   }
 
@@ -124,7 +135,9 @@ class Node {
     _lifetime = null;
 
     if (parents.isNotEmpty) {
-      for (final node in parents) {
+      final count = parents.length;
+      for (var i = 0; i < count; i++) {
+        final node = parents[i];
         if (node == parent) continue;
         node.children.remove(this);
       }

@@ -29,10 +29,8 @@ class AtomRegistry {
   A get<A>(Atom<A> atom) => _ensureNode(atom).value as A;
 
   /// Set the state of a [WritableAtom].
-  void set<R, W>(WritableAtom<R, W> atom, W value) {
-    final node = _ensureNode(atom);
-    atom.write(get, set, node.setValue, value);
-  }
+  void set<R, W>(WritableAtom<R, W> atom, W value) =>
+      atom.write(get, set, _ensureNode(atom).setValue, value);
 
   /// Listen to changes of an atom's state.
   ///
@@ -115,9 +113,9 @@ class AtomRegistry {
       });
 
   void _maybeRemoveAtom(Atom atom) {
-    final node = nodes[atom];
-    if (node == null) return;
-    _maybeRemoveNode(nodes[atom]!);
+    if (nodes.containsKey(atom)) {
+      _maybeRemoveNode(nodes[atom]!);
+    }
   }
 
   void _maybeRemoveNode(Node node) {
