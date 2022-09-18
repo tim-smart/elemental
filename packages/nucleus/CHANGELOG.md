@@ -1,3 +1,7 @@
+## 0.1.8
+
+- performance improvements
+
 ## 0.1.7
 
 - Fix issue where ReadLifetime was disposed more than once
