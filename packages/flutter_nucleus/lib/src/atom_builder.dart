@@ -52,26 +52,24 @@ class _AtomBuilderState extends State<AtomBuilder> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final newAtomRegistry = AtomScope.registryOf(context);
-    if (newAtomRegistry != _registry) {
-      _registry = newAtomRegistry;
-
-      for (final cancel in _cancellers.values) {
-        cancel();
-      }
-      _cancellers.clear();
-      _valueCache.clear();
+    final newRegistry = AtomScope.registryOf(context);
+    if (newRegistry != _registry) {
+      _registry = newRegistry;
+      _dispose();
     }
   }
 
-  @override
-  void dispose() {
+  void _dispose() {
     for (final cancel in _cancellers.values) {
       cancel();
     }
     _cancellers.clear();
     _valueCache.clear();
+  }
 
+  @override
+  void dispose() {
+    _dispose();
     super.dispose();
   }
 }

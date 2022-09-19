@@ -27,7 +27,7 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
   void Function()? _cancel;
 
   void _setup(BuildContext context) {
-    _registry = AtomScope.registryOf(context, listen: false);
+    _registry = AtomScope.registryOf(context);
     _value = _registry.get(hook.atom);
 
     if (hook.listen) {
@@ -46,11 +46,11 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
   void didUpdateHook(_AtomHook<A> oldHook) {
     super.didUpdateHook(oldHook);
 
-    final registry = AtomScope.registryOf(context, listen: false);
+    final newRegistry = AtomScope.registryOf(context);
 
     if (hook.atom != oldHook.atom ||
         hook.listen != oldHook.listen ||
-        registry != _registry) {
+        _registry != newRegistry) {
       _cancel?.call();
       _cancel = null;
     }

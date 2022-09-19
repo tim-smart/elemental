@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 
 class AtomScope extends InheritedWidget {
-  static final defaultAtomRegistry = AtomRegistry();
+  static final defaultRegistry = AtomRegistry();
 
   AtomScope({
     super.key,
@@ -25,7 +25,7 @@ class AtomScope extends InheritedWidget {
         : (context.getElementForInheritedWidgetOfExactType<AtomScope>()?.widget
             as AtomScope?);
 
-    return scope?.registry ?? defaultAtomRegistry;
+    return scope?.registry ?? defaultRegistry;
   }
 }
 
