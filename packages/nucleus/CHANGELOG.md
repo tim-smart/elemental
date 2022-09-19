@@ -1,3 +1,7 @@
+## 0.1.15
+
+- Make `previousValue` on `AtomContext` lazy
+
 ## 0.1.14
 
 - Use `Expando` instead of `HashMap`, so we can have weak atom references.

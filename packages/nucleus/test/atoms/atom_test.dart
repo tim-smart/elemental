@@ -52,7 +52,9 @@ void main() {
       final items = atom((get) => List.generate(
             get(itemCount),
             (i) => stateAtom(i)..keepAlive(),
-          ));
+          ))
+        ..keepAlive();
+
       final registry = AtomRegistry();
 
       expect(registry.get(items).length, 10);
@@ -62,14 +64,18 @@ void main() {
       await Future.microtask(() => null);
       expect(registry.get(items).map(registry.get).last, 9);
 
+      // Create new list
+      registry.set(itemCount, 20);
+      expect(registry.get(items).length, 20);
+      expect(registry.get(items).map(registry.get).last, 19);
+
       // Uncomment these lines to check if the atoms have been GC'ed.
       // You can inspect the internal Expando _data property in the registry.
       // await Future.delayed(Duration(seconds: 5));
       // debugger();
 
-      // Create new list
-      registry.set(itemCount, 20);
-      expect(registry.get(items).length, 20);
+      // Keep alive works for new list
+      await Future.microtask(() => null);
       expect(registry.get(items).map(registry.get).last, 19);
     });
   });

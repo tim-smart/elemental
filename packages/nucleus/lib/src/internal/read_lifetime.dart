@@ -3,15 +3,14 @@ part of 'internal.dart';
 final _emptyDisposers = List<void Function()>.empty();
 
 class ReadLifetime implements AtomContext<dynamic> {
-  ReadLifetime(this.node)
-      : registry = node.registry,
-        previousValue = node._value;
+  ReadLifetime(this.node) : registry = node.registry;
 
   final AtomRegistry registry;
   final Node node;
 
   var _disposers = _emptyDisposers;
   var _disposed = false;
+  var _setSelf = false;
 
   @override
   T call<T>(Atom<T> atom) {
@@ -40,11 +39,15 @@ class ReadLifetime implements AtomContext<dynamic> {
   @override
   void setSelf(dynamic value) {
     assert(!_disposed);
+    _setSelf = true;
     node.setValue(value);
   }
 
   @override
-  final dynamic previousValue;
+  dynamic get previousValue {
+    assert(!_setSelf);
+    return node._value;
+  }
 
   @override
   void onDispose(void Function() onDispose) {
