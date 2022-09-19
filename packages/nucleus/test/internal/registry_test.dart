@@ -8,7 +8,7 @@ void main() {
       final atom = stateAtom(0);
 
       expect(r.get(atom), 0);
-      expect(r.nodes.containsKey(atom), true);
+      expect(r.nodes[atom] != null, true);
     });
 
     test('set updates the value', () {
@@ -24,11 +24,11 @@ void main() {
       final atom = stateAtom(0);
 
       expect(r.get(atom), 0);
-      expect(r.nodes.containsKey(atom), true);
+      expect(r.nodes[atom] != null, true);
 
       await Future.microtask(() {});
 
-      expect(r.nodes.containsKey(atom), false);
+      expect(r.nodes[atom] != null, false);
     });
 
     test('subscribe listens for changes and keeps node alive', () async {
@@ -46,12 +46,12 @@ void main() {
 
       // Keep alive
       await Future.microtask(() {});
-      expect(r.nodes.containsKey(atom), true);
+      expect(r.nodes[atom] != null, true);
 
       // cancel
       cancel();
       await Future.microtask(() {});
-      expect(r.nodes.containsKey(atom), false);
+      expect(r.nodes[atom] != null, false);
     });
 
     test('dependencies are updated', () {
@@ -118,23 +118,33 @@ void main() {
     });
 
     test('dependencies are not orphaned', () async {
-      final count = stateAtom(0);
-      final multiplied = atom((get) => get(count.select((i) => i + 1)) * 2);
+      final count = stateAtom(0)..keepAlive();
+      final selectAtoms = <Atom<int>>[];
+      final derived = atom((get) {
+        final plusOne = count.select((i) => i + 1);
+        selectAtoms.add(plusOne);
+        return get(plusOne) * 2;
+      });
 
       final r = AtomRegistry();
 
-      await r.use(multiplied, () async {
-        expect(r.get(multiplied), 2);
+      await r.use(derived, () async {
+        expect(r.get(derived), 2);
 
         await Future.microtask(() {});
 
         r.set(count, 1);
-        expect(r.get(multiplied), 4);
+        expect(r.get(derived), 4);
       });
 
       await Future.microtask(() {});
 
-      expect(r.nodes.isEmpty, true);
+      expect(r.nodes[count] != null, true);
+      expect(r.nodes[derived] == null, true);
+
+      for (final a in selectAtoms) {
+        expect(r.nodes[a] == null, true);
+      }
     });
   });
 }

@@ -1,5 +1,4 @@
 import 'package:nucleus/nucleus.dart';
-import 'package:nucleus/src/internal/internal.dart';
 
 /// Represents the `writer` argument to [proxyAtom]
 typedef ProxyAtomWriter<W> = void Function(

@@ -1,7 +1,7 @@
 part of 'internal.dart';
 
 class Scheduler {
-  final _postFrameCallbacks = List<void Function()?>.filled(
+  var _postFrameCallbacks = List<void Function()?>.filled(
     32,
     null,
     growable: true,
@@ -25,11 +25,13 @@ class Scheduler {
     _postFrameFuture = null;
 
     final count = _postFrameCount;
+    final callbacks = _postFrameCallbacks;
+
+    _postFrameCallbacks = List.filled(callbacks.length, null);
     _postFrameCount = 0;
 
     for (var i = 0; i < count; i++) {
-      _postFrameCallbacks[i]!();
-      _postFrameCallbacks[i] = null;
+      callbacks[i]!();
     }
   }
 }

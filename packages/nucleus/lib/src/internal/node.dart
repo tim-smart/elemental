@@ -48,7 +48,7 @@ class Node {
       if (previousParents != null && previousParents!.isNotEmpty) {
         for (final node in previousParents!) {
           if (node.canBeRemoved) {
-            registry._removeNode(node);
+            registry._scheduleNodeRemoval(node);
           }
         }
       }
@@ -179,6 +179,8 @@ class Node {
     if (_lifetime != null) {
       disposeLifetime();
     }
+
+    atom.$onNodeRemove?.call();
   }
 
   void Function() addListener(void Function() handler) {

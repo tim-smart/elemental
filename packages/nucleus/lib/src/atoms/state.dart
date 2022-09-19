@@ -1,5 +1,4 @@
 import 'package:nucleus/nucleus.dart';
-import 'package:nucleus/src/internal/internal.dart';
 
 /// See [stateAtom].
 class StateAtom<Value> extends WritableAtom<Value, Value> {

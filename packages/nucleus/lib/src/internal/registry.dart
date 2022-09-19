@@ -17,7 +17,7 @@ class AtomRegistry {
   final _scheduler = Scheduler();
 
   /// The state map, where each atom has a corresponding [Node].
-  final nodes = HashMap<Atom, Node>();
+  final nodes = Expando<Node>();
 
   /// Retrieve the state for the given [Atom], creating or rebuilding it when
   /// required.
@@ -76,47 +76,30 @@ class AtomRegistry {
         get(atom);
       });
 
-  /// Build a tree with the current node state. For debugging only.
-  Map<K, dynamic> buildTree<K>(K Function(Node) key) {
-    Map<K, dynamic> getChildren(Node node) => node.children.fold(
-          {},
-          (acc, node) => {
-            ...acc,
-            key(node): getChildren(node),
-          },
-        );
-
-    return nodes.values.where((n) => n.parents.isEmpty).fold(
-      {},
-      (acc, node) => {
-        ...acc,
-        key(node): getChildren(node),
-      },
-    );
-  }
-
-  /// Get a tree of the current nodes. For debugging only.
-  Map<Node, dynamic> get nodeTree => buildTree((n) => n);
-
-  /// Get a tree of the current atoms. For debugging only.
-  Map<Atom, dynamic> get atomTree => buildTree((n) => n.atom);
-
   // Internal
 
-  Node _ensureNode(Atom atom) => nodes.putIfAbsent(atom, () {
-        if (!atom.shouldKeepAlive) {
-          _scheduler.runPostFrame(() => _maybeRemoveAtom(atom));
-        }
-        return Node(this, atom);
-      });
+  Node _ensureNode(Atom atom) => nodes[atom] ??= _createNode(atom);
+
+  Node _createNode(Atom atom) {
+    if (!atom.shouldKeepAlive) {
+      _scheduler.runPostFrame(() => _maybeRemoveAtom(atom));
+    }
+    return Node(this, atom);
+  }
 
   void _maybeRemoveAtom(Atom atom) {
-    if (nodes.containsKey(atom)) {
-      final node = nodes[atom]!;
+    final node = nodes[atom];
+    if (node != null && node.canBeRemoved) {
+      _removeNode(node);
+    }
+  }
+
+  void _scheduleNodeRemoval(Node node) {
+    _scheduler.runPostFrame(() {
       if (node.canBeRemoved) {
         _removeNode(node);
       }
-    }
+    });
   }
 
   void _removeNode(Node node) {
@@ -124,7 +107,7 @@ class AtomRegistry {
 
     final parents = node.parents;
 
-    nodes.remove(node.atom);
+    nodes[node.atom] = null;
     node.remove();
 
     if (parents.isEmpty) return;

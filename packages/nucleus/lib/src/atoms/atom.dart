@@ -1,4 +1,5 @@
-import '../internal/internal.dart';
+import 'dart:collection';
+import 'package:nucleus/nucleus.dart';
 
 /// The base class for all atoms.
 ///
@@ -22,13 +23,12 @@ abstract class Atom<T> {
   static A Function(Arg arg) family<A extends Atom, Arg>(
     A Function(Arg arg) create,
   ) {
-    final familyHashCode = {}.hashCode;
-
-    return (arg) {
-      final atom = create(arg);
-      atom._hashCodeOverride = familyHashCode ^ arg.hashCode;
-      return atom;
-    };
+    final atoms = HashMap<Arg, A>();
+    return (arg) => atoms.putIfAbsent(arg, () {
+          final atom = create(arg);
+          atom.$onNodeRemove = () => atoms.remove(arg);
+          return atom;
+        });
   }
 
   /// Should this atoms state be kept, even if it isnt being used?
@@ -57,13 +57,8 @@ abstract class Atom<T> {
   /// Used by the registry.
   T $read(AtomContext ctx) => read(_AtomContextProxy._(ctx));
 
-  int? _hashCodeOverride;
-
-  @override
-  late final hashCode = _hashCodeOverride ?? super.hashCode;
-
-  @override
-  operator ==(Object? other) => other.hashCode == hashCode;
+  /// Used by the registry.
+  void Function()? $onNodeRemove;
 
   @override
   String toString() => "$runtimeType(name: $name)";
@@ -141,8 +136,6 @@ class AtomInitialValue<A> {
   final Atom<A> atom;
   final A value;
 }
-
-// Family creator
 
 /// Create an atom factory indexed by the [Arg] type.
 ///
