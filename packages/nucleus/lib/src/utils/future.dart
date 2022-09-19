@@ -35,6 +35,22 @@ abstract class FutureValue<A> {
   const factory FutureValue.error(dynamic error, StackTrace stackTrace) =
       FutureError;
 
+  /// Attempt to read the data from this [FutureValue], otherwise return `null`
+  /// if it is in a loading or error state.
+  A? get dataOrNull {
+    final self = this;
+    if (self is FutureData<A>) {
+      return self.data;
+    } else if (self is FutureLoading<A>) {
+      return self.previousData;
+    }
+
+    return null;
+  }
+
+  /// Is the data still loading?
+  bool get isLoading => this is FutureLoading;
+
   FutureValue<B> map<B>(B Function(A a) f);
 
   B when<B>({

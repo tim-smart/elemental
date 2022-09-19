@@ -1,5 +1,3 @@
-import 'package:nucleus/nucleus.dart';
-
 import '../internal/internal.dart';
 
 /// The base class for all atoms.
@@ -32,11 +30,6 @@ abstract class Atom<T> {
       return atom;
     };
   }
-
-  /// Create a derived atom, that ransforms an atoms value using the given
-  /// function [f].
-  Atom<A> select<A>(A Function(T value) f) =>
-      ReadOnlyAtom((get) => f(get(this)));
 
   /// Should this atoms state be kept, even if it isnt being used?
   ///

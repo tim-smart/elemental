@@ -7,17 +7,28 @@ AtomWithParent<FutureValue<A>, Atom<Stream<A>>> streamAtom<A>(
     AtomWithParent(
       ReadOnlyAtom((get) => create(get).asBroadcastStream()),
       (_, stream) {
+        A? currentData;
+
         _.onDispose(_(stream)
-            .listen((data) => _.setSelf(FutureValue.data(data)))
+            .listen(
+              (data) {
+                currentData = data;
+                _.setSelf(FutureValue.loading(data));
+              },
+              onError: (err, stackTrace) => _.setSelf(FutureValue.error(
+                err,
+                stackTrace,
+              )),
+              onDone: () {
+                if (currentData != null) {
+                  // ignore: null_check_on_nullable_type_parameter
+                  _.setSelf(FutureValue.data(currentData!));
+                  currentData = null;
+                }
+              },
+            )
             .cancel);
 
-        final previous = _.previousValue;
-        if (previous is FutureData<A>) {
-          return FutureValue.loading(previous.data);
-        }
-
-        return initialValue != null
-            ? FutureValue.data(initialValue)
-            : FutureValue.loading();
+        return FutureValue.loading(_.previousValue?.dataOrNull ?? initialValue);
       },
     );

@@ -23,7 +23,7 @@ final delayed123KeepAlive = streamAtom((get) async* {
   ..keepAlive();
 
 void main() {
-  group('streamAtomTuple', () {
+  group('streamAtom', () {
     test('returns a FutureValue', () async {
       final store = AtomRegistry();
       final results = <FutureValue<int>>[];
@@ -40,8 +40,9 @@ void main() {
       expect(
         results,
         containsAllInOrder([
-          FutureValue.data(1),
-          FutureValue.data(2),
+          FutureValue.loading(1),
+          FutureValue.loading(2),
+          FutureValue.loading(3),
           FutureValue.data(3),
         ]),
       );
@@ -60,7 +61,7 @@ void main() {
 
       expect(store.get(delayed123KeepAlive), FutureValue.loading());
       await store.get(delayed123.parent).first;
-      expect(store.get(delayed123KeepAlive), FutureValue.data(1));
+      expect(store.get(delayed123KeepAlive), FutureValue.loading(1));
     });
   });
 }
