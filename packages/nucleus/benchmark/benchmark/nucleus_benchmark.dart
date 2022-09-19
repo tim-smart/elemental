@@ -17,51 +17,49 @@ final depTwo = atom((get) => get(depOne) * 10);
 final depThree = atom((get) => get(depTwo) * 10);
 
 void main() {
+  late AtomRegistry registry;
+
+  setUpEach(() => registry = AtomRegistry());
+
   group('nucleus', () {
     benchmark('read 1000k', () {
-      final store = AtomRegistry();
       for (var i = 0; i < 1000000; i++) {
-        store.get(value);
+        registry.get(value);
       }
     }, iterations: 1);
 
     benchmark('state 100k', () {
-      final store = AtomRegistry();
       for (var i = 0; i < 100000; i++) {
         final atom = nucleus(i);
-        final state = store.get(atom);
-        store.set(atom, state + 1);
-        store.get(atom);
+        final state = registry.get(atom);
+        registry.set(atom, state + 1);
+        registry.get(atom);
       }
     }, iterations: 1);
 
     benchmark('state 10k', () {
-      final store = AtomRegistry();
       for (var i = 0; i < 10000; i++) {
         final atom = nucleus(i);
-        final state = store.get(atom);
-        store.set(atom, state + 1);
-        store.get(atom);
+        final state = registry.get(atom);
+        registry.set(atom, state + 1);
+        registry.get(atom);
       }
     }, iterations: 1);
 
     benchmark('deps state 10k', () {
-      final store = AtomRegistry();
       for (var i = 0; i < 10000; i++) {
-        final state = store.get(value);
-        store.set(value, state + 1);
-        store.get(depThree);
+        final state = registry.get(value);
+        registry.set(value, state + 1);
+        registry.get(depThree);
       }
     }, iterations: 1);
 
     benchmark('nesting 1000k', () {
-      final store = AtomRegistry();
-      store.get(nested).map(store.get);
+      registry.get(nested).map(registry.get);
     }, iterations: 1);
 
     benchmark('nesting 100', () {
-      final store = AtomRegistry();
-      store.get(nested100).map(store.get);
+      registry.get(nested100).map(registry.get);
     }, iterations: 1);
   });
 }

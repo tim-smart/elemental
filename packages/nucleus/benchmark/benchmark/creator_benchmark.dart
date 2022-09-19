@@ -12,16 +12,18 @@ final depTwo = Creator((ref) => ref.watch(depOne) * 10);
 final depThree = Creator((ref) => ref.watch(depTwo) * 10);
 
 void main() {
+  late Ref ref;
+
+  setUpEach(() => ref = Ref());
+
   group('creator', () {
     benchmark('read 1000k', () {
-      final ref = Ref();
       for (var i = 0; i < 1000000; i++) {
         ref.read(value);
       }
     }, iterations: 1);
 
     benchmark('state 100k', () {
-      final ref = Ref();
       for (var i = 0; i < 100000; i++) {
         final c = family(i);
         final state = ref.read(c);
@@ -31,7 +33,6 @@ void main() {
     }, iterations: 1);
 
     benchmark('state 10k', () {
-      final ref = Ref();
       for (var i = 0; i < 10000; i++) {
         final c = family(i);
         final state = ref.read(c);
@@ -41,7 +42,6 @@ void main() {
     }, iterations: 1);
 
     benchmark('deps state 10k', () {
-      final ref = Ref();
       for (var i = 0; i < 10000; i++) {
         final state = ref.read(value);
         ref.set(value, state + 1);

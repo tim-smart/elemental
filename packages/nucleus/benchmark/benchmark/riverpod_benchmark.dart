@@ -18,16 +18,17 @@ final depTwo = Provider((ref) => ref.watch(depOne) * 10);
 final depThree = Provider((ref) => ref.watch(depTwo) * 10);
 
 void main() {
+  late ProviderContainer container;
+  setUpEach(() => container = ProviderContainer());
+
   group('riverpod', () {
     benchmark('read 1000k', () {
-      final container = ProviderContainer();
       for (var i = 0; i < 1000000; i++) {
         container.read(value);
       }
     }, iterations: 1);
 
     benchmark('state 100k', () {
-      final container = ProviderContainer();
       for (var i = 0; i < 100000; i++) {
         final notifier = container.read(riverpod(i).notifier);
         container.read(riverpod(i));
@@ -37,7 +38,6 @@ void main() {
     }, iterations: 1);
 
     benchmark('state 10k', () {
-      final container = ProviderContainer();
       for (var i = 0; i < 10000; i++) {
         final state = container.read(riverpod(i));
         container.read(riverpod(i).notifier).state = state + 1;
@@ -46,7 +46,6 @@ void main() {
     }, iterations: 1);
 
     benchmark('deps state 10k', () {
-      final container = ProviderContainer();
       for (var i = 0; i < 10000; i++) {
         final state = container.read(depZero);
         container.read(depZero.notifier).state = state + 1;
@@ -55,12 +54,10 @@ void main() {
     }, iterations: 1);
 
     benchmark('nesting 1000k', () {
-      final container = ProviderContainer();
       container.read(nested).map(container.read);
     }, iterations: 1);
 
     benchmark('nesting 100', () {
-      final container = ProviderContainer();
       container.read(nested100).map(container.read);
     }, iterations: 1);
   });
