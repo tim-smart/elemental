@@ -31,8 +31,8 @@ If you want to disable the automatic disposal of your atom, then call `keepAlive
 final counter = stateAtom(0)..keepAlive();
 ```
 
-We can then use the `AtomBuilder` widget from the `flutter_nucleus` to listen
-for changes to our counter:
+We can then use the `AtomBuilder` widget from the `flutter_nucleus` package to
+listen for changes to our counter:
 
 ```dart
 class CounterText extends StatelessWidget {
@@ -232,13 +232,15 @@ The underlying `Stream` is available through `latestUser.parent`.
 
 ### atomWithParent
 
-Both `futureAtom` and `streamAtom` use `atomWithParent` to tie the state with the thing that generates is.
+Both `futureAtom` and `streamAtom` use `atomWithParent` to tie the state with
+the thing that generates it.
 
-You can use this pattern too! Lets create our own custom atom type for using a `ValueNotifier` from the flutter SDK. It will:
+You can use this pattern too! Lets create our own custom atom type for using a
+`ValueNotifier` from the flutter SDK. It will:
 
 - Correctly dispose the notifier when done
 - Correctly remove listeners
-- Allow us to directly access the notifier setting its value
+- Allow us to directly access the notifier so we can set its value
 
 ```dart
 AtomWithParent<T, Atom<ValueNotifier<T>>> valueNotifierAtom<T>(
