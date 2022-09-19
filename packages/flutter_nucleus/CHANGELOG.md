@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Update deps
+
 ## 0.1.1
 
 - Fix `didChangeHook` when registry changes for `useAtom`
