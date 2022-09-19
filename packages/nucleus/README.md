@@ -251,15 +251,16 @@ AtomWithParent<T, Atom<ValueNotifier<T>>> valueNotifierAtom<T>(
       get.onDispose(notifier.dispose);
       return notifier;
     }), (get, parent) {
-      final listenable = get(parent);
+      final notifier = get(parent);
 
       void handler() {
-        get.setSelf(listenable.value);
+        get.setSelf(notifier.value);
       }
 
-      get.onDispose(() => listenable.removeListener(handler));
+      notifier.addListemer(handler);
+      get.onDispose(() => notifier.removeListener(handler));
 
-      return listenable.value;
+      return notifier.value;
     });
 ```
 
