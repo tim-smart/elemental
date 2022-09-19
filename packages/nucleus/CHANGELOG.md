@@ -1,3 +1,8 @@
+## 0.1.11
+
+- Update quick tour some more
+- Internal performance tweaks
+
 ## 0.1.10+1
 
 - Start the README quick tour
