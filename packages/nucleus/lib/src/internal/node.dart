@@ -22,14 +22,15 @@ class Node {
   List<Node>? previousParents;
   var children = _emptyNodes;
   final listeners = <void Function()>[];
+  var _listenerCount = 0;
 
   ReadLifetime? _lifetime;
 
   bool get canBeRemoved =>
       !atom.shouldKeepAlive &&
+      _listenerCount == 0 &&
       _state != NodeState.removed &&
-      (children == _emptyNodes || children.isEmpty) &&
-      listeners.isEmpty;
+      (children == _emptyNodes || children.isEmpty);
 
   dynamic _value;
   dynamic get value {
@@ -127,12 +128,14 @@ class Node {
   void notifyListeners() {
     assert(_state == NodeState.valid || _state == NodeState.stale);
 
-    if (listeners.isEmpty) {
+    if (_listenerCount == 0) {
+      return;
+    } else if (_listenerCount == 1) {
+      listeners[0]();
       return;
     }
 
-    final count = listeners.length;
-    for (var i = 0; i < count; i++) {
+    for (var i = 0; i < _listenerCount; i++) {
       listeners[i]();
     }
   }
@@ -180,7 +183,11 @@ class Node {
 
   void Function() addListener(void Function() handler) {
     listeners.add(handler);
-    return () => listeners.remove(handler);
+    _listenerCount++;
+    return () {
+      listeners.remove(handler);
+      _listenerCount--;
+    };
   }
 
   @override
