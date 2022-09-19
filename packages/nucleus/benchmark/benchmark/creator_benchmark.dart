@@ -48,7 +48,7 @@ void main() {
       }
     }, iterations: 1);
 
-    benchmark('nesting', () {
+    benchmark('nesting 1000k', () {
       final store = Ref();
       store.read(nested).map(store.read);
     }, iterations: 1);

@@ -50,7 +50,7 @@ void main() {
       }
     }, iterations: 1);
 
-    benchmark('nesting', () {
+    benchmark('nesting 1000k', () {
       final store = AtomRegistry();
       store.get(nested).map(store.get);
     }, iterations: 1);

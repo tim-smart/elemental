@@ -49,7 +49,7 @@ void main() {
       }
     }, iterations: 1);
 
-    benchmark('nesting', () {
+    benchmark('nesting 1000k', () {
       final container = ProviderContainer();
       container.read(nested).map(container.read);
     }, iterations: 1);
