@@ -7,6 +7,10 @@ final nested = atom((get) => List.generate(
       1000000,
       (i) => stateAtom(i),
     ));
+final nested100 = atom((get) => List.generate(
+      100,
+      (i) => stateAtom(i),
+    ));
 
 final depOne = atom((get) => get(value) * 10);
 final depTwo = atom((get) => get(depOne) * 10);
@@ -53,6 +57,11 @@ void main() {
     benchmark('nesting 1000k', () {
       final store = AtomRegistry();
       store.get(nested).map(store.get);
+    }, iterations: 1);
+
+    benchmark('nesting 100', () {
+      final store = AtomRegistry();
+      store.get(nested100).map(store.get);
     }, iterations: 1);
   });
 }

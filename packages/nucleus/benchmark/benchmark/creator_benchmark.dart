@@ -5,6 +5,7 @@ final value = Creator.value(0);
 final family = Creator.arg1((ref, int i) => i);
 final nested =
     Creator((ref) => List.generate(1000000, (i) => Creator.value(i)));
+final nested100 = Creator((ref) => List.generate(100, (i) => Creator.value(i)));
 
 final depOne = Creator((ref) => ref.watch(value) * 10);
 final depTwo = Creator((ref) => ref.watch(depOne) * 10);
@@ -51,6 +52,11 @@ void main() {
     benchmark('nesting 1000k', () {
       final store = Ref();
       store.read(nested).map(store.read);
+    }, iterations: 1);
+
+    benchmark('nesting 100', () {
+      final store = Ref();
+      store.read(nested100).map(store.read);
     }, iterations: 1);
   });
 }

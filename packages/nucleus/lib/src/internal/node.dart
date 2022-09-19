@@ -31,7 +31,7 @@ class Node {
       (children == _emptyNodes || children.isEmpty) &&
       listeners.isEmpty;
 
-  late dynamic _value;
+  dynamic _value;
   dynamic get value {
     assert(_state != NodeState.removed);
 
@@ -55,8 +55,6 @@ class Node {
 
     return _value;
   }
-
-  dynamic getValue() => _state == NodeState.uninitialized ? null : _value;
 
   void addParent(Node node) {
     assert(_state != NodeState.removed);

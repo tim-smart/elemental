@@ -7,6 +7,10 @@ final nested = Provider((ref) => List.generate(
       1000000,
       (i) => StateProvider.autoDispose((_) => i),
     ));
+final nested100 = Provider((ref) => List.generate(
+      100,
+      (i) => StateProvider.autoDispose((_) => i),
+    ));
 
 final depZero = StateProvider((ref) => 0);
 final depOne = Provider((ref) => ref.watch(value) * 10);
@@ -44,7 +48,8 @@ void main() {
     benchmark('deps state 10k', () {
       final container = ProviderContainer();
       for (var i = 0; i < 10000; i++) {
-        container.read(depZero.notifier).update((i) => i + 1);
+        final state = container.read(depZero);
+        container.read(depZero.notifier).state = state + 1;
         container.read(depThree);
       }
     }, iterations: 1);
@@ -52,6 +57,11 @@ void main() {
     benchmark('nesting 1000k', () {
       final container = ProviderContainer();
       container.read(nested).map(container.read);
+    }, iterations: 1);
+
+    benchmark('nesting 100', () {
+      final container = ProviderContainer();
+      container.read(nested100).map(container.read);
     }, iterations: 1);
   });
 }
