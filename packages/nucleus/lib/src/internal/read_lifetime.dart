@@ -15,14 +15,14 @@ class ReadLifetime implements AtomContext<dynamic> {
 
   @override
   T call<T>(Atom<T> atom) {
-    final parent = node.registry._ensureNode(atom);
+    final parent = registry._ensureNode(atom);
     node.addParent(parent);
     return parent.value as T;
   }
 
   @override
   T get<T>(Atom<T> atom) {
-    final parent = node.registry._ensureNode(atom);
+    final parent = registry._ensureNode(atom);
     node.addParent(parent);
     return parent.value as T;
   }

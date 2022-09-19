@@ -1,3 +1,7 @@
+## 0.1.12
+
+- performance improvements
+
 ## 0.1.11
 
 - Update quick tour some more
