@@ -1,3 +1,7 @@
+## 0.1.13
+
+- simplify internals
+
 ## 0.1.12
 
 - performance improvements
