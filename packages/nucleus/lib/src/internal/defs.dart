@@ -1,6 +1,4 @@
-import 'package:nucleus/nucleus.dart';
-
-import 'internal.dart';
+part of 'internal.dart';
 
 typedef OnSetSelf = void Function();
 typedef OnDispose = void Function(void Function());
@@ -19,14 +17,4 @@ typedef SetSelf<A> = void Function(A value);
 typedef SubscribeToAtom = void Function() Function(
   Atom atom,
   void Function() handler,
-);
-
-typedef LifetimeDepsFn<A> = A Function(
-  OnDispose onDispose,
-  AssertNotDisposed assertNotDisposed,
-);
-typedef NodeDepsFn<A> = LifetimeDepsFn<A> Function(
-  AddParent addParent,
-  SetSelf<A> setSelf,
-  GetPreviousValue<A> getPreviousValue,
 );

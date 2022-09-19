@@ -1,3 +1,5 @@
+part of 'internal.dart';
+
 class Scheduler {
   final _postFrameCallbacks = List<void Function()?>.filled(
     32,

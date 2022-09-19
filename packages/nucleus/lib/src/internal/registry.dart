@@ -1,9 +1,4 @@
-import 'dart:async';
-import 'dart:collection';
-
-import 'package:nucleus/nucleus.dart';
-
-import 'internal.dart';
+part of 'internal.dart';
 
 /// Responsible for mapping atom's to their state.
 ///
@@ -112,7 +107,7 @@ class AtomRegistry {
         if (!atom.shouldKeepAlive) {
           _scheduler.runPostFrame(() => _maybeRemoveAtom(atom));
         }
-        return Node(atom, _createNodeDepsFn(atom), _removeNode);
+        return Node(this, atom);
       });
 
   void _maybeRemoveAtom(Atom atom) {
@@ -139,23 +134,4 @@ class AtomRegistry {
       }
     }
   }
-
-  NodeDepsFn _createNodeDepsFn(Atom atom) =>
-      (addParent, setSelf, previousValue) {
-        T getAndRegister<T>(Atom<T> atom) {
-          final node = _ensureNode(atom);
-          addParent(node);
-          return node.value as T;
-        }
-
-        return (onDispose, assertNotDisposed) => atom.$read(
-              get: getAndRegister,
-              set: set,
-              onDispose: onDispose,
-              setSelf: setSelf,
-              subscribe: subscribe,
-              previousValue: previousValue(),
-              assertNotDisposed: assertNotDisposed,
-            );
-      };
 }

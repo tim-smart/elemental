@@ -55,24 +55,7 @@ abstract class Atom<T> {
   AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
 
   /// Used by the registry.
-  T $read({
-    required GetAtom get,
-    required SetAtom set,
-    required OnDispose onDispose,
-    required SetSelf<T> setSelf,
-    required SubscribeToAtom subscribe,
-    required T? previousValue,
-    required AssertNotDisposed assertNotDisposed,
-  }) =>
-      read(_AtomContextProxy._(
-        get,
-        set,
-        onDispose,
-        setSelf,
-        subscribe,
-        previousValue,
-        assertNotDisposed,
-      ));
+  T $read(AtomContext ctx) => read(_AtomContextProxy._(ctx));
 
   int? _hashCodeOverride;
 
@@ -122,54 +105,31 @@ abstract class AtomContext<T> {
 }
 
 class _AtomContextProxy<T> implements AtomContext<T> {
-  _AtomContextProxy._(
-    this._get,
-    this._set,
-    this._onDispose,
-    this._setSelf,
-    this._subscribe,
-    this.previousValue,
-    this._assert,
-  );
+  _AtomContextProxy._(this._parent);
 
-  final GetAtom _get;
-  final SetAtom _set;
-  final OnDispose _onDispose;
-  final SetSelf<T> _setSelf;
-  final SubscribeToAtom _subscribe;
-  final AssertNotDisposed _assert;
+  final AtomContext _parent;
 
   @override
-  final T? previousValue;
+  late final T? previousValue = _parent.previousValue;
 
   @override
-  A call<A>(Atom<A> atom) {
-    return _get(atom);
-  }
+  A call<A>(Atom<A> atom) => _parent.get(atom);
 
   @override
-  A get<A>(Atom<A> atom) {
-    return _get(atom);
-  }
+  A get<A>(Atom<A> atom) => _parent.get(atom);
 
   @override
-  void set<R, W>(WritableAtom<R, W> atom, W value) {
-    _assert("set");
-    _set(atom, value);
-  }
+  void set<R, W>(WritableAtom<R, W> atom, W value) => _parent.set(atom, value);
 
   @override
-  void setSelf(T value) {
-    _assert("setSelf");
-    _setSelf(value);
-  }
+  void setSelf(T value) => _parent.setSelf(value);
 
   @override
   void Function() subscribe(Atom atom, void Function() handler) =>
-      _subscribe(atom, handler);
+      _parent.subscribe(atom, handler);
 
   @override
-  void onDispose(void Function() cb) => _onDispose(cb);
+  void onDispose(void Function() cb) => _parent.onDispose(cb);
 }
 
 typedef AtomReader<R> = R Function(AtomContext<R> get);

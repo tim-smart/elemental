@@ -1,6 +1,4 @@
-import 'package:nucleus/nucleus.dart';
-
-import 'internal.dart';
+part of 'internal.dart';
 
 final _emptyNodes = List<Node>.empty();
 
@@ -12,13 +10,10 @@ enum NodeState {
 }
 
 class Node {
-  Node(this.atom, NodeDepsFn builder, this._removeNode) {
-    _builder = builder(addParent, setValue, _getValue);
-  }
+  Node(this.registry, this.atom);
 
+  final AtomRegistry registry;
   final Atom atom;
-  late final LifetimeDepsFn _builder;
-  final void Function(Node node) _removeNode;
 
   var _state = NodeState.uninitialized;
   NodeState get state => _state;
@@ -41,9 +36,9 @@ class Node {
     assert(_state != NodeState.removed);
 
     if (_state != NodeState.valid) {
-      _lifetime = ReadLifetime(_builder);
+      _lifetime = ReadLifetime(this);
 
-      final value = _lifetime!.create();
+      final value = atom.$read(_lifetime!);
       if (_state != NodeState.valid) {
         setValue(value);
       }
@@ -52,7 +47,7 @@ class Node {
       if (previousParents != null && previousParents!.isNotEmpty) {
         for (final node in previousParents!) {
           if (node.canBeRemoved) {
-            _removeNode(node);
+            registry._removeNode(node);
           }
         }
       }
@@ -61,7 +56,7 @@ class Node {
     return _value;
   }
 
-  dynamic _getValue() => _state == NodeState.uninitialized ? null : _value;
+  dynamic getValue() => _state == NodeState.uninitialized ? null : _value;
 
   void addParent(Node node) {
     assert(_state != NodeState.removed);
@@ -169,7 +164,7 @@ class Node {
       node.children.remove(this);
 
       if (node.canBeRemoved) {
-        _removeNode(node);
+        registry._removeNode(node);
       }
     }
   }
