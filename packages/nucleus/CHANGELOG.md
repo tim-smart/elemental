@@ -1,3 +1,7 @@
+## 0.1.14
+
+- Use `Expando` instead of `HashMap`, so we can have weak atom references.
+
 ## 0.1.13
 
 - simplify internals
