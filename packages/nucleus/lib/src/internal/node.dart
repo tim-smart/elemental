@@ -87,7 +87,6 @@ class Node {
     if (_state == NodeState.uninitialized) {
       _state = NodeState.valid;
       _value = value;
-      notifyListeners();
       return;
     }
 
@@ -110,11 +109,11 @@ class Node {
     _state = NodeState.stale;
 
     disposeLifetime(parent);
-    invalidateChildren(parent);
+    invalidateChildren();
     notifyListeners();
   }
 
-  void invalidateChildren([Node? parent]) {
+  void invalidateChildren() {
     assert(_state == NodeState.stale || _state == NodeState.valid);
 
     if (children == _emptyNodes) {
@@ -124,10 +123,6 @@ class Node {
     final childNodes = children;
     final count = childNodes.length;
     children = [];
-
-    if (parent != null && count == 1 && childNodes[0] == parent) {
-      return;
-    }
 
     for (var i = 0; i < count; i++) {
       final node = childNodes[i];
@@ -163,7 +158,7 @@ class Node {
     parents = [];
     final count = previousParents!.length;
 
-    if (count == 0 || (count == 1 && previousParents![0] == parent)) {
+    if (count == 1 && previousParents![0] == parent) {
       return;
     }
 
