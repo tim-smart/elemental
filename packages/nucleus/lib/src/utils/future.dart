@@ -8,22 +8,19 @@ import 'package:nucleus/nucleus.dart';
 AtomWithParent<FutureValue<A>, Atom<Future<A>>> futureAtom<A>(
   AtomReader<Future<A>> create,
 ) =>
-    AtomWithParent(ReadOnlyAtom(create), (_, future) {
+    AtomWithParent(ReadOnlyAtom(create), (get, future) {
       bool disposed = false;
-      _.onDispose(() => disposed = true);
+      get.onDispose(() => disposed = true);
 
-      _(future).then((value) {
+      get(future).then((value) {
         if (disposed) return;
-        _.setSelf(FutureValue.data(value));
+        get.setSelf(FutureValue.data(value));
       }, onError: (err, stack) {
         if (disposed) return;
-        _.setSelf(FutureValue.error(err, stack));
+        get.setSelf(FutureValue.error(err, stack));
       });
 
-      final prev = _.previousValue;
-      return prev is FutureData<A>
-          ? FutureValue.loading(prev.data)
-          : FutureValue.loading();
+      return FutureValue.loading(get.previousValue?.dataOrNull);
     });
 
 /// Represents the loading, error and data state of an async operation.
