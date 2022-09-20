@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'package:nucleus/nucleus.dart';
 
 /// The base class for all atoms.
@@ -10,26 +9,6 @@ import 'package:nucleus/nucleus.dart';
 abstract class Atom<T> {
   /// Used by the registry to read the atoms value.
   T read(AtomContext<T> ctx);
-
-  /// Create a family factory function, for indexing similar atoms with the
-  /// [Arg] type.
-  ///
-  /// ```dart
-  /// final userAtom = atomFamily((int id) => atom((get) => get(listOfUsers).getById(id)));
-  ///
-  /// // To get an atom that points to user with id 123
-  /// final user123Atom = userAtom(123);
-  /// ```
-  static A Function(Arg arg) family<A extends Atom, Arg>(
-    A Function(Arg arg) create,
-  ) {
-    final atoms = HashMap<Arg, A>();
-    return (arg) => atoms.putIfAbsent(arg, () {
-          final atom = create(arg);
-          atom.$onNodeRemove = () => atoms.remove(arg);
-          return atom;
-        });
-  }
 
   /// Should this atoms state be kept, even if it isnt being used?
   ///
@@ -136,12 +115,3 @@ class AtomInitialValue<A> {
   final Atom<A> atom;
   final A value;
 }
-
-/// Create an atom factory indexed by the [Arg] type.
-///
-/// Automatically calls `.autoDipose()` on the child atoms, so to prevent state
-/// from being removed, explicitly call `.keepAlive()` on the created atom.
-A Function(Arg arg) atomFamily<A extends Atom, Arg>(
-  A Function(Arg arg) create,
-) =>
-    Atom.family(create);

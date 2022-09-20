@@ -46,6 +46,22 @@ void main() {
     });
   });
 
+  group('weakAtomFamily', () {
+    test('allows keepAlive atoms to be GCed', () async {
+      final family = weakAtomFamily((int id) => stateAtom(id)..keepAlive());
+      final registry = AtomRegistry();
+
+      expect(registry.get(family(1)), 1);
+      registry.set(family(1), 2);
+      expect(registry.get(family(1)), 2);
+
+      // Wait for GC
+      await Future.delayed(Duration(seconds: 2));
+
+      expect(registry.get(family(1)), 1);
+    });
+  });
+
   group('atoms in atom', () {
     test('list is rebuilt on parent change', () async {
       final itemCount = stateAtom(10);

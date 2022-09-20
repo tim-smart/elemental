@@ -3,6 +3,7 @@ import 'package:nucleus/nucleus.dart';
 
 final value = stateAtom(0)..keepAlive();
 final nucleus = atomFamily((int i) => stateAtom(i));
+final nucleusWeak = weakAtomFamily((int i) => stateAtom(i));
 final nested = atom((get) => List.generate(
       1000000,
       (i) => stateAtom(i),
@@ -31,6 +32,15 @@ void main() {
     benchmark('state 100k', () {
       for (var i = 0; i < 100000; i++) {
         final atom = nucleus(i);
+        final state = registry.get(atom);
+        registry.set(atom, state + 1);
+        registry.get(atom);
+      }
+    }, iterations: 1);
+
+    benchmark('state 100k weak', () {
+      for (var i = 0; i < 100000; i++) {
+        final atom = nucleusWeak(i);
         final state = registry.get(atom);
         registry.set(atom, state + 1);
         registry.get(atom);
