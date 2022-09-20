@@ -36,9 +36,6 @@ abstract class Atom<T> {
   /// Used by the registry.
   T $read(AtomContext ctx) => read(_AtomContextProxy._(ctx));
 
-  /// Used by the registry.
-  void Function()? $onNodeRemove;
-
   @override
   String toString() => "$runtimeType(name: $name)";
 }

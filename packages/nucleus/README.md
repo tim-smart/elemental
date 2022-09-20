@@ -118,7 +118,7 @@ Other methods on `BuilderContext` include:
   unmount();
   ```
 
-### `atom`
+### atom
 
 We can now create and track some shared state in our app, but now we might want
 to create derived state from other atoms.
@@ -155,7 +155,7 @@ https://pub.dev/documentation/nucleus/latest/nucleus/AtomContext-class.html#inst
 At this point, with `stateAtom` and `atom` you probably have all you need to
 build a simple stateful app. But what about `async` / `await` and `Stream`?
 
-### `futureAtom`
+### futureAtom
 
 If you need to work with `Future`'s in your app (which pretty much every app does!), then `futureAtom` makes it easy.
 
@@ -195,7 +195,7 @@ https://pub.dev/documentation/nucleus/latest/nucleus/FutureValue-class.html#inst
 > });
 > ```
 
-### `streamAtom`
+### streamAtom
 
 Similar to `futureAtom`, `streamAtom` turns a `Stream` into a `FutureValue` containing the latest value.
 

@@ -15,11 +15,7 @@ A Function(Arg arg) atomFamily<A extends Atom, Arg>(
   A Function(Arg arg) create,
 ) {
   final atoms = HashMap<Arg, A>();
-  return (arg) => atoms.putIfAbsent(arg, () {
-        final atom = create(arg);
-        atom.$onNodeRemove = () => atoms.remove(arg);
-        return atom;
-      });
+  return (arg) => atoms.putIfAbsent(arg, () => create(arg));
 }
 
 /// Alternate version of [atomFamily] that holds a weak reference to each child.
@@ -35,7 +31,6 @@ A Function(Arg arg) weakAtomFamily<A extends Atom, Arg>(
     }
 
     final newAtom = create(arg);
-    newAtom.$onNodeRemove = () => atoms.remove(arg);
     atoms[arg] = WeakReference(newAtom);
     return newAtom;
   };
