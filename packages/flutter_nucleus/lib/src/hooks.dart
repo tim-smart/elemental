@@ -33,9 +33,13 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
     if (hook.listen) {
       _cancel = _registry.subscribe(
         hook.atom,
-        () => setState(() {
-          _value = _registry.get(hook.atom);
-        }),
+        () {
+          final newValue = _registry.get(hook.atom);
+          if (newValue == _value) return;
+          setState(() {
+            _value = newValue;
+          });
+        },
       );
     } else {
       _cancel = _registry.mount(hook.atom);

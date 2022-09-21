@@ -45,7 +45,13 @@ class _AtomBuilderState extends State<AtomBuilder> {
       } else {
         _subscriptions[atom] = _registry.subscribe(
           atom,
-          () => setState(() => _valueCache.remove(atom)),
+          () {
+            final nextValue = _registry.get(atom);
+            if (nextValue == _valueCache[atom]) return;
+            setState(() {
+              _valueCache[atom] = nextValue;
+            });
+          },
         );
       }
     } else if (!_mounts.containsKey(atom)) {
