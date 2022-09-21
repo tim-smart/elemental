@@ -1,6 +1,8 @@
-export 'atoms/atom.dart';
-export 'atoms/extension.dart';
-export 'atoms/parent.dart';
-export 'atoms/proxy.dart';
-export 'atoms/read_only.dart';
-export 'atoms/state.dart';
+import 'package:nucleus/nucleus.dart';
+
+part 'atoms/atom.dart';
+part 'atoms/extension.dart';
+part 'atoms/parent.dart';
+part 'atoms/proxy.dart';
+part 'atoms/read_only.dart';
+part 'atoms/state.dart';

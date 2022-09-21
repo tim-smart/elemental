@@ -1,4 +1,4 @@
-import 'package:nucleus/nucleus.dart';
+part of '../atoms.dart';
 
 /// The base class for all atoms.
 ///
