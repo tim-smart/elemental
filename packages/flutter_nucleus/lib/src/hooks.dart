@@ -35,7 +35,7 @@ class _AtomHookState<A> extends HookState<A, _AtomHook<A>> {
         hook.atom,
         () {
           final newValue = _registry.get(hook.atom);
-          if (newValue == _value) return;
+          if (identical(_value, newValue)) return;
           setState(() {
             _value = newValue;
           });

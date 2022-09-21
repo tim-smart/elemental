@@ -47,7 +47,7 @@ class _AtomBuilderState extends State<AtomBuilder> {
           atom,
           () {
             final nextValue = _registry.get(atom);
-            if (nextValue == _valueCache[atom]) return;
+            if (identical(_valueCache[atom], nextValue)) return;
             setState(() {
               _valueCache[atom] = nextValue;
             });
