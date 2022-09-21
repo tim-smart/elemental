@@ -1,4 +1,4 @@
-import 'package:nucleus/nucleus.dart';
+part of '../atoms.dart';
 
 /// See [atomWithParent].
 class AtomWithParent<A, Parent extends Atom> extends Atom<A> {

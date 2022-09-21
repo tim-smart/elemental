@@ -1,4 +1,4 @@
-import 'package:nucleus/nucleus.dart';
+part of '../atoms.dart';
 
 /// See [atom].
 class ReadOnlyAtom<Value> extends Atom<Value> {
