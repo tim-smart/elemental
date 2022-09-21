@@ -282,6 +282,39 @@ We can now get the current count by watching `counter`, and access the notifier 
 
 We just implemented our own custom atom type! I hope this shows you just how composable atoms can be.
 
+### atomFamily
+
+If you ever need to group atoms together, then you can use `atomFamily`.
+
+Lets say you wanted to fetch a user by their ID number, and wanted to represent
+this as an atom. You need a way to pass in the `id` parameter.
+
+Using our `userRepository` from earlier, this is how you would do it with
+`atomFamily`:
+
+```dart
+final userById = atomFamily((int id) {
+  return futureAtom((get) => get(userRepository).fetchUser(id));
+});
+```
+
+Now in your widgets, you can use the atom just like another (`futureAtom`)[#futureAtom]:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return AtomBuilder((context, watch, child) {
+    final futureValue = watch(userById(userId));
+
+    return futureValue.when(
+      data: (user) => UserProfile(user: user),
+      loading: (previousData) => LoadingIndicator(),
+      error: (err, stackTrace) => ErrorMessage(error: err),
+    );
+  });
+}
+```
+
 ### proxyAtom
 
 TODO
