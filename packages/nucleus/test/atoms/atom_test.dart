@@ -29,7 +29,7 @@ void main() {
       expect(registry.get(family(1)), 2);
     });
 
-    test('atom identity changes after disposal', () async {
+    test('atom identity does not change after disposal', () async {
       final family = atomFamily((int id) => stateAtom(id));
       final registry = AtomRegistry();
 
@@ -42,7 +42,7 @@ void main() {
 
       final after = family(1);
       expect(registry.get(family(1)), 1);
-      expect(before == after, false);
+      expect(before == after, true);
     });
   });
 

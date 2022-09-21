@@ -25,10 +25,14 @@ void main() {
       final c = StreamController<FutureValue<int>>();
 
       final cancel = store.subscribe(delayed123, () {
-        c.add(store.get(delayed123));
-      });
+        final value = store.get(delayed123);
+        c.add(value);
+      }, fireImmediately: true);
 
-      expect(await c.stream.first, FutureValue.data(123));
+      expect(await c.stream.take(2).toList(), [
+        FutureValue.loading(),
+        FutureValue.data(123),
+      ]);
       cancel();
     });
 

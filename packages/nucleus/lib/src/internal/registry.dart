@@ -39,7 +39,7 @@ class AtomRegistry {
     final remove = node.addListener(handler);
 
     if (fireImmediately) {
-      handler();
+      node.value;
     }
 
     return () {
@@ -58,7 +58,7 @@ class AtomRegistry {
     Atom<A> atom,
     void Function(A? previous, A value) handler, {
     bool fireImmediately = false,
-    bool checkEquality = true,
+    bool Function(A?, A) equalityCheck = identical,
   }) {
     final node = _ensureNode(atom);
 
@@ -71,7 +71,7 @@ class AtomRegistry {
     return subscribe(atom, () {
       final nextValue = node.value;
 
-      if (checkEquality && previousValue == nextValue) {
+      if (equalityCheck(previousValue, nextValue)) {
         return;
       }
 
@@ -83,7 +83,7 @@ class AtomRegistry {
   /// Listen to an [atom], run the given [fn] (which can return a [Future]),
   /// then remove the listener once the [fn] is complete.
   Future<A> use<A>(Atom atom, FutureOr<A> Function() fn) async {
-    final remove = subscribe(atom, () {});
+    final remove = mount(atom);
 
     try {
       return await fn();
