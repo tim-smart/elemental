@@ -1,3 +1,8 @@
+## 0.1.3
+
+- Improve atom GC in `AtomBuilder`
+- Add equality checks with `identical` to prevent unnecessary rebuilds
+
 ## 0.1.2
 
 - Update deps
