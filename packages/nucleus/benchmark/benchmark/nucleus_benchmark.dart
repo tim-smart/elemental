@@ -2,7 +2,7 @@ import 'package:benchmark/benchmark.dart';
 import 'package:nucleus/nucleus.dart';
 
 final value = stateAtom(0)..keepAlive();
-final nucleus = atomFamily((int i) => stateAtom(i));
+final nucleus = atomFamily((int i) => stateAtom(i)..keepAlive());
 final nucleusWeak = weakAtomFamily((int i) => stateAtom(i));
 final nested = atom((get) => List.generate(
       1000000,
