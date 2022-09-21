@@ -39,7 +39,11 @@ class AtomRegistry {
     final remove = node.addListener(handler);
 
     if (fireImmediately) {
-      node.value;
+      if (node.state == NodeState.uninitialized) {
+        node.value;
+      } else {
+        handler();
+      }
     }
 
     return () {
