@@ -1,3 +1,8 @@
+## 0.1.16
+
+- Add `weakAtomFamily`
+- Add `atomIdMap`
+
 ## 0.1.15
 
 - Make `previousValue` on `AtomContext` lazy

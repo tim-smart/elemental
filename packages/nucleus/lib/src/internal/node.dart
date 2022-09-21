@@ -179,8 +179,6 @@ class Node {
     if (_lifetime != null) {
       disposeLifetime();
     }
-
-    atom.$onNodeRemove?.call();
   }
 
   void Function() addListener(void Function() handler) {
