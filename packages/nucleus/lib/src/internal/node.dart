@@ -81,6 +81,7 @@ class Node {
     if (_state == NodeState.uninitialized) {
       _state = NodeState.valid;
       _value = value;
+      notifyListeners();
       return;
     }
 

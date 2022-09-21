@@ -147,4 +147,32 @@ void main() {
       }
     });
   });
+
+  group('subscribeWithValue', () {
+    test('it emits the latest values if they change', () async {
+      final count = stateAtom(0);
+      final registry = AtomRegistry();
+
+      final previousValues = <int?>[];
+      final values = <int>[];
+      registry.subscribeWithValue<int>(count, (previous, value) {
+        previousValues.add(previous);
+        values.add(value);
+      });
+
+      registry.set(count, 1);
+      registry.set(count, 1);
+      registry.set(count, 2);
+
+      expect(
+        previousValues,
+        equals([0, 1]),
+      );
+
+      expect(
+        values,
+        equals([1, 2]),
+      );
+    });
+  });
 }

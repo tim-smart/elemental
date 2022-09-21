@@ -37,6 +37,13 @@ class ReadLifetime implements AtomContext<dynamic> {
       registry.subscribe(atom, handler);
 
   @override
+  void Function() subscribeWithValue<A>(
+    Atom<A> atom,
+    void Function(A? previous, A value) handler,
+  ) =>
+      registry.subscribeWithValue(atom, handler);
+
+  @override
   void setSelf(dynamic value) {
     assert(!_disposed);
     _setSelf = true;

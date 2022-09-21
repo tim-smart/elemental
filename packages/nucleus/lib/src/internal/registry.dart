@@ -36,10 +36,6 @@ class AtomRegistry {
     bool fireImmediately = false,
   }) {
     final node = _ensureNode(atom);
-
-    // Trigger a read
-    node.value;
-
     final remove = node.addListener(handler);
 
     if (fireImmediately) {
@@ -55,6 +51,33 @@ class AtomRegistry {
         });
       }
     };
+  }
+
+  /// Listen to changes of an atom's state, and retrieve the latest value.
+  void Function() subscribeWithValue<A>(
+    Atom<A> atom,
+    void Function(A? previous, A value) handler, {
+    bool fireImmediately = false,
+    bool checkEquality = true,
+  }) {
+    final node = _ensureNode(atom);
+
+    A? previousValue;
+
+    if (!fireImmediately) {
+      previousValue = node.value;
+    }
+
+    return subscribe(atom, () {
+      final nextValue = node.value;
+
+      if (checkEquality && previousValue == nextValue) {
+        return;
+      }
+
+      handler(previousValue, nextValue);
+      previousValue = nextValue;
+    }, fireImmediately: fireImmediately);
   }
 
   /// Listen to an [atom], run the given [fn] (which can return a [Future]),
@@ -74,7 +97,7 @@ class AtomRegistry {
   /// Returns a function which 'unmounts' the [atom].
   void Function() mount(Atom atom) => subscribe(atom, () {
         get(atom);
-      });
+      }, fireImmediately: true);
 
   // Internal
 
