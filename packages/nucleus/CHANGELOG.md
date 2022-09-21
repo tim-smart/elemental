@@ -1,3 +1,8 @@
+## 0.1.17
+
+- Internal refactor
+- Add `atomFamily` to quick tour
+
 ## 0.1.16
 
 - Add `weakAtomFamily`
