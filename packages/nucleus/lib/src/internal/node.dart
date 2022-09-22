@@ -3,20 +3,20 @@ part of 'internal.dart';
 final _emptyNodes = List<Node>.empty();
 
 enum NodeState {
-  uninitialized(needsRebuild: true),
+  uninitialized(waitingForValue: true),
   stale(
-    needsRebuild: true,
+    waitingForValue: true,
     initialized: true,
   ),
   valid(initialized: true),
   removed(alive: false);
 
   const NodeState({
-    this.needsRebuild = false,
+    this.waitingForValue = false,
     this.alive = true,
     this.initialized = false,
   });
-  final bool needsRebuild;
+  final bool waitingForValue;
   final bool alive;
   final bool initialized;
 }
@@ -48,11 +48,11 @@ class Node {
   dynamic get value {
     assert(_state.alive);
 
-    if (_state.needsRebuild) {
+    if (_state.waitingForValue) {
       _lifetime = ReadLifetime(this);
 
       final value = atom.$read(_lifetime!);
-      if (_state.needsRebuild) {
+      if (_state.waitingForValue) {
         setValue(value);
       }
 
