@@ -38,11 +38,13 @@ class _AtomBuilderState extends State<AtomBuilder> {
     bool listen = true,
   }) {
     if (listen && !_subscriptions.containsKey(atom)) {
+      // If we have already subscribed to the atom, then copy it back over.
       if (_previousSubscriptions != null &&
           _previousSubscriptions!.containsKey(atom)) {
         _subscriptions[atom] = _previousSubscriptions![atom]!;
         _previousSubscriptions!.remove(atom);
       } else {
+        // New atom, subscribe
         _subscriptions[atom] = _registry.subscribe(
           atom,
           () {
@@ -54,11 +56,15 @@ class _AtomBuilderState extends State<AtomBuilder> {
           },
         );
       }
-    } else if (!_mounts.containsKey(atom)) {
+
+      // If we don't need to listen for changes, then we just mount the atom.
+    } else if (!listen && !_mounts.containsKey(atom)) {
+      // Check if we have already mounted the atom, and copy it back over.
       if (_previousMounts != null && _previousMounts!.containsKey(atom)) {
         _mounts[atom] = _previousMounts![atom]!;
         _previousMounts!.remove(atom);
       } else {
+        // New atom
         _mounts[atom] = _registry.mount(atom);
       }
     }
