@@ -39,7 +39,7 @@ void main() {
 
       expect(
         results,
-        containsAllInOrder([
+        equals([
           FutureValue.loading(1),
           FutureValue.loading(2),
           FutureValue.loading(3),

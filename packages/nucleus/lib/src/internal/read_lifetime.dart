@@ -10,7 +10,6 @@ class ReadLifetime implements AtomContext<dynamic> {
 
   var _disposers = _emptyDisposers;
   var _disposed = false;
-  var _setSelf = false;
 
   @override
   T call<T>(Atom<T> atom) {
@@ -46,13 +45,12 @@ class ReadLifetime implements AtomContext<dynamic> {
   @override
   void setSelf(dynamic value) {
     assert(!_disposed);
-    _setSelf = true;
     node.setValue(value);
   }
 
   @override
   dynamic get previousValue {
-    assert(!_setSelf);
+    assert(node._state != NodeState.valid);
     return node._value;
   }
 
