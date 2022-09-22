@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Fix check for existing atom mount in `AtomBuilder`
+
 ## 0.1.3
 
 - Improve atom GC in `AtomBuilder`
