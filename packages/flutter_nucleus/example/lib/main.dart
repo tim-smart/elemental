@@ -16,15 +16,18 @@ class MyApp extends StatelessWidget {
 
   // Use an [AtomBuilder] to rebuild on atom changes.
   @override
-  Widget build(BuildContext context) =>
-      AtomBuilder((context, watch, child) => MaterialApp(
-            scaffoldMessengerKey: watch(messenger),
-            title: 'Flutter Demo',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-            ),
-            home: const MyHomePage(title: 'Flutter Demo Home Page'),
-          ));
+  Widget build(BuildContext context) {
+    return AtomBuilder((context, watch, child) {
+      return MaterialApp(
+        scaffoldMessengerKey: watch(messenger),
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      );
+    });
+  }
 }
 
 class MyHomePage extends HookWidget {

@@ -47,9 +47,7 @@ class _AtomBuilderState extends State<AtomBuilder> {
         // New atom, subscribe
         _subscriptions[atom] = _registry.subscribe(
           atom,
-          () {
-            final nextValue = _registry.get(atom);
-            if (identical(_valueCache[atom], nextValue)) return;
+          (nextValue) {
             setState(() {
               _valueCache[atom] = nextValue;
             });

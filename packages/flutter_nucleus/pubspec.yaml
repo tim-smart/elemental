@@ -14,6 +14,10 @@ dependencies:
   nucleus: ^0.1.17
   shared_preferences: ">=2.0.0 <3.0.0"
 
+dependency_overrides:
+  nucleus:
+    path: ../nucleus
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

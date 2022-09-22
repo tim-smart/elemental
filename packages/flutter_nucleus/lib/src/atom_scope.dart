@@ -48,8 +48,20 @@ extension NucleusBuildContextExt on BuildContext {
   /// Subscribe to an atom.
   ///
   /// Returns a function that cancels the subscription.
-  void Function() subscribeAtom(Atom atom, void Function() onChange) =>
+  void Function() subscribeAtom<R>(
+    Atom<R> atom,
+    void Function(R value) onChange,
+  ) =>
       AtomScope.registryOf(this).subscribe(atom, onChange);
+
+  /// Subscribe to an atom.
+  ///
+  /// Returns a function that cancels the subscription.
+  void Function() subscribeAtomWithPrevious<R>(
+    Atom<R> atom,
+    void Function(R? previous, R value) onChange,
+  ) =>
+      AtomScope.registryOf(this).subscribeWithPrevious(atom, onChange);
 
   /// Subscribe to an atom without listening for changes.
   ///
