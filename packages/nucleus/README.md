@@ -185,9 +185,9 @@ As you can see, `FutureValue` allows us to write async code is an easy to unders
 https://pub.dev/documentation/nucleus/latest/nucleus/FutureValue-class.html#instance-methods
 
 > Need to access the actual `Future`?
-> 
+>
 > `futureAtom` uses [`atomWithParent`](#atomWithParent) in its implementation ([take a look](https://pub.dev/documentation/nucleus/latest/nucleus/futureAtom.html#source)), which exposes the `Future` through the `.parent` property. Here we `await` the `allUsers` future, and return a count of the results.
-> 
+>
 > ```dart
 > final userCount = futureAtom((get) async {
 >   final users = await get(allUsers.parent);
@@ -204,7 +204,6 @@ final latestUser = streamAtom((get) => get(userRepository).latestUserStream());
 ```
 
 You can then use it in your widgets:
-
 
 ```dart
 @override
@@ -298,7 +297,7 @@ final userById = atomFamily((int id) {
 });
 ```
 
-Now in your widgets, you can use the atom just like another (`futureAtom`)[#futureAtom]:
+Now in your widgets, you can use the atom just like another [`futureAtom`](#futureAtom):
 
 ```dart
 @override
