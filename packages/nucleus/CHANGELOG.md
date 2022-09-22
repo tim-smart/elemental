@@ -1,3 +1,7 @@
+## 0.1.19
+
+- Eagerly rebuild values, to previous un-necessary rebuilds of children.
+
 ## 0.1.18
 
 - improve internal readability
