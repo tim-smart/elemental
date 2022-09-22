@@ -50,7 +50,7 @@ class ReadLifetime implements AtomContext<dynamic> {
 
   @override
   dynamic get previousValue {
-    assert(node._state != NodeState.valid);
+    assert(node._state.needsRebuild);
     return node._value;
   }
 

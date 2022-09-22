@@ -3,10 +3,22 @@ part of 'internal.dart';
 final _emptyNodes = List<Node>.empty();
 
 enum NodeState {
-  uninitialized,
-  stale,
-  valid,
-  removed,
+  uninitialized(needsRebuild: true),
+  stale(
+    needsRebuild: true,
+    initialized: true,
+  ),
+  valid(initialized: true),
+  removed(alive: false);
+
+  const NodeState({
+    this.needsRebuild = false,
+    this.alive = true,
+    this.initialized = false,
+  });
+  final bool needsRebuild;
+  final bool alive;
+  final bool initialized;
 }
 
 class Node {
@@ -34,13 +46,13 @@ class Node {
 
   dynamic _value;
   dynamic get value {
-    assert(_state != NodeState.removed);
+    assert(_state.alive);
 
-    if (_state != NodeState.valid) {
+    if (_state.needsRebuild) {
       _lifetime = ReadLifetime(this);
 
       final value = atom.$read(_lifetime!);
-      if (_state != NodeState.valid) {
+      if (_state.needsRebuild) {
         setValue(value);
       }
 
@@ -58,7 +70,7 @@ class Node {
   }
 
   void addParent(Node node) {
-    assert(_state != NodeState.removed);
+    assert(_state.alive);
 
     if (parents == _emptyNodes) {
       parents = [node];
@@ -76,7 +88,7 @@ class Node {
   }
 
   void setValue(dynamic value) {
-    assert(_state != NodeState.removed);
+    assert(_state.alive);
 
     if (_state == NodeState.uninitialized) {
       _state = NodeState.valid;
@@ -109,7 +121,7 @@ class Node {
   }
 
   void invalidateChildren() {
-    assert(_state == NodeState.stale || _state == NodeState.valid);
+    assert(_state.initialized);
 
     if (children == _emptyNodes) {
       return;
@@ -127,7 +139,7 @@ class Node {
   }
 
   void notifyListeners() {
-    assert(_state == NodeState.valid || _state == NodeState.stale);
+    assert(_state.initialized);
 
     if (_listenerCount == 0) {
       return;
@@ -173,7 +185,7 @@ class Node {
 
   void remove() {
     assert(canBeRemoved);
-    assert(_state != NodeState.removed);
+    assert(_state.alive);
 
     _state = NodeState.removed;
 
