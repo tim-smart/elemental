@@ -1,3 +1,7 @@
+## 0.1.5
+
+- Update `nucleus`
+
 ## 0.1.4
 
 - Fix check for existing atom mount in `AtomBuilder`
