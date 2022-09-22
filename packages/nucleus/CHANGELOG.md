@@ -1,3 +1,8 @@
+## 0.1.18
+
+- improve internal readability
+- fix previousValue assertion
+
 ## 0.1.17
 
 - Internal refactor
