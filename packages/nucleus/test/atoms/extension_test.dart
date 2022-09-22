@@ -14,7 +14,7 @@ void main() {
       final previousValues = <String?>[];
       final values = <String>[];
 
-      registry.subscribeWithValue<String>(nameAtom, (prev, next) {
+      registry.subscribeWithPrevious<String>(nameAtom, (prev, next) {
         previousValues.add(prev);
         values.add(next);
       }, fireImmediately: true);

@@ -63,10 +63,10 @@ abstract class AtomContext<T> {
   void setSelf(T value);
 
   /// Subscribe to the given [atom].
-  void Function() subscribe(Atom atom, void Function() handler);
+  void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler);
 
   /// Subscribe to the given [atom].
-  void Function() subscribeWithValue<A>(
+  void Function() subscribeWithPrevious<A>(
     Atom<A> atom,
     void Function(A? previous, A value) handler,
   );
@@ -102,15 +102,15 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   void setSelf(T value) => _parent.setSelf(value);
 
   @override
-  void Function() subscribe(Atom atom, void Function() handler) =>
+  void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler) =>
       _parent.subscribe(atom, handler);
 
   @override
-  void Function() subscribeWithValue<A>(
+  void Function() subscribeWithPrevious<A>(
     Atom<A> atom,
     void Function(A? previous, A value) handler,
   ) =>
-      _parent.subscribeWithValue(atom, handler);
+      _parent.subscribeWithPrevious(atom, handler);
 
   @override
   void onDispose(void Function() cb) => _parent.onDispose(cb);

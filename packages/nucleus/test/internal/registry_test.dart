@@ -36,7 +36,7 @@ void main() {
       final atom = stateAtom(0);
 
       var counter = 0;
-      final cancel = r.subscribe(atom, () {
+      final cancel = r.subscribe(atom, (_) {
         counter++;
       });
 
@@ -148,14 +148,14 @@ void main() {
     });
   });
 
-  group('subscribeWithValue', () {
+  group('subscribeWithPrevious', () {
     test('it emits the latest values if they change', () async {
       final count = stateAtom(0);
       final registry = AtomRegistry();
 
       final previousValues = <int?>[];
       final values = <int>[];
-      registry.subscribeWithValue<int>(count, (previous, value) {
+      registry.subscribeWithPrevious<int>(count, (previous, value) {
         previousValues.add(previous);
         values.add(value);
       });
@@ -166,7 +166,7 @@ void main() {
 
       expect(
         previousValues,
-        equals([0, 1]),
+        equals([null, 1]),
       );
 
       expect(

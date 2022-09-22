@@ -30,19 +30,21 @@ class AtomRegistry {
   /// Listen to changes of an atom's state.
   ///
   /// Call [get] to retrieve the latest value after the [handler] is called.
-  void Function() subscribe(
+  void Function() subscribe<A>(
     Atom atom,
-    void Function() handler, {
+    void Function(A value) handler, {
     bool fireImmediately = false,
   }) {
     final node = _ensureNode(atom);
-    final remove = node.addListener(handler);
+    final remove = node.addListener(() {
+      handler(node._value);
+    });
 
     if (fireImmediately) {
-      if (node.state == NodeState.uninitialized) {
+      if (!node._state.initialized) {
         node.value;
       } else {
-        handler();
+        handler(node.value);
       }
     }
 
@@ -58,27 +60,16 @@ class AtomRegistry {
   }
 
   /// Listen to changes of an atom's state, and retrieve the latest value.
-  void Function() subscribeWithValue<A>(
+  void Function() subscribeWithPrevious<A>(
     Atom<A> atom,
     void Function(A? previous, A value) handler, {
     bool fireImmediately = false,
-    bool Function(A?, A) equalityCheck = identical,
   }) {
     final node = _ensureNode(atom);
 
-    A? previousValue;
+    A? previousValue = node._value;
 
-    if (!fireImmediately) {
-      previousValue = node.value;
-    }
-
-    return subscribe(atom, () {
-      final nextValue = node.value;
-
-      if (equalityCheck(previousValue, nextValue)) {
-        return;
-      }
-
+    return subscribe(atom, (A nextValue) {
       handler(previousValue, nextValue);
       previousValue = nextValue;
     }, fireImmediately: fireImmediately);
@@ -99,9 +90,8 @@ class AtomRegistry {
   /// Listen to an [atom], but don't register a handler function.
   ///
   /// Returns a function which 'unmounts' the [atom].
-  void Function() mount(Atom atom) => subscribe(atom, () {
-        get(atom);
-      }, fireImmediately: true);
+  void Function() mount(Atom atom) =>
+      subscribe(atom, (_) {}, fireImmediately: true);
 
   // Internal
 

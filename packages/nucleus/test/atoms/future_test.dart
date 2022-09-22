@@ -24,8 +24,7 @@ void main() {
       final store = AtomRegistry();
       final c = StreamController<FutureValue<int>>();
 
-      final cancel = store.subscribe(delayed123, () {
-        final value = store.get(delayed123);
+      final cancel = store.subscribe<FutureValue<int>>(delayed123, (value) {
         c.add(value);
       }, fireImmediately: true);
 

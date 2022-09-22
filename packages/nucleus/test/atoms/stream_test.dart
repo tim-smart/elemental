@@ -30,8 +30,8 @@ void main() {
 
       expect(store.get(delayed123), FutureValue.loading());
 
-      final cancel = store.subscribe(delayed123, () {
-        results.add(store.get(delayed123));
+      final cancel = store.subscribe<FutureValue<int>>(delayed123, (value) {
+        results.add(value);
       });
 
       await store.get(delayed123.parent).last;

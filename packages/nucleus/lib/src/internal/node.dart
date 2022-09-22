@@ -4,10 +4,7 @@ final _emptyNodes = List<Node>.empty();
 
 enum NodeState {
   uninitialized(waitingForValue: true),
-  stale(
-    waitingForValue: true,
-    initialized: true,
-  ),
+  stale(initialized: true, waitingForValue: true),
   valid(initialized: true),
   removed(alive: false);
 
@@ -97,7 +94,6 @@ class Node {
       return;
     }
 
-    final previousState = _state;
     _state = NodeState.valid;
     if (value == _value) {
       return;
@@ -105,23 +101,22 @@ class Node {
 
     _value = value;
 
-    if (previousState == NodeState.valid) {
-      invalidateChildren();
-      notifyListeners();
-    }
-  }
-
-  void invalidate(Node parent) {
-    assert(_state == NodeState.valid, _state.toString());
-    _state = NodeState.stale;
-
-    disposeLifetime(parent);
     invalidateChildren();
     notifyListeners();
   }
 
+  void invalidate(Node parent) {
+    assert(_state == NodeState.valid);
+
+    _state = NodeState.stale;
+    disposeLifetime(parent);
+
+    // Rebuild
+    value;
+  }
+
   void invalidateChildren() {
-    assert(_state.initialized);
+    assert(_state == NodeState.valid);
 
     if (children == _emptyNodes) {
       return;
@@ -133,7 +128,6 @@ class Node {
 
     for (var i = 0; i < count; i++) {
       final node = childNodes[i];
-      if (node._state == NodeState.stale) continue;
       node.invalidate(this);
     }
   }
