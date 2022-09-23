@@ -19,6 +19,8 @@ class MemoryNucleusStorage implements NucleusStorage {
   }
 }
 
+const _noValue = {};
+
 /// Create a [stateAtom], except it's value is persisted to a [NucleusStorage]
 /// instance.
 WritableAtom<A, A> stateAtomWithStorage<A>(
@@ -28,12 +30,12 @@ WritableAtom<A, A> stateAtomWithStorage<A>(
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
 }) {
-  final valueAtom = stateAtom<A?>(null);
+  final valueAtom = stateAtom<Object?>(_noValue);
 
   return proxyAtom((get) {
     final value = get(valueAtom);
-    if (value != null) {
-      return value;
+    if (value != _noValue) {
+      return value as A;
     }
 
     final storedValue = get(storage).get(key);
