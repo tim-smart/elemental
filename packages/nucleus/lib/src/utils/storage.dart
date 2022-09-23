@@ -19,7 +19,7 @@ class MemoryNucleusStorage implements NucleusStorage {
   }
 }
 
-const _noValue = {};
+const _noValue = Symbol('stateAtomWithStorage_noValue');
 
 /// Create a [stateAtom], except it's value is persisted to a [NucleusStorage]
 /// instance.
