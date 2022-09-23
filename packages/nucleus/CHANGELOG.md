@@ -1,3 +1,8 @@
+## 0.1.20
+
+- Support `null` in storage
+- Refactor invalidation after eager rebuilds
+
 ## 0.1.19
 
 - Eagerly rebuild values, to previous un-necessary rebuilds of children.
