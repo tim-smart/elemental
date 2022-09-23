@@ -1,3 +1,8 @@
+## 0.1.21
+
+- Add `asyncSelect`
+- Add extension methods for future and stream atoms
+
 ## 0.1.20
 
 - Support `null` in storage
