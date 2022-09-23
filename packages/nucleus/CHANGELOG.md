@@ -1,3 +1,7 @@
+## 0.1.22
+
+- Improve DX of `FutureValue` `select` and `asyncSelect`
+
 ## 0.1.21
 
 - Add `asyncSelect`
