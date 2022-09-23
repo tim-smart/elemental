@@ -24,8 +24,7 @@ class Node {
   final AtomRegistry registry;
   final Atom atom;
 
-  var _state = NodeState.uninitialized;
-  NodeState get state => _state;
+  var state = NodeState.uninitialized;
 
   var parents = _emptyNodes;
   List<Node>? previousParents;
@@ -38,24 +37,26 @@ class Node {
   bool get canBeRemoved =>
       !atom.shouldKeepAlive &&
       _listenerCount == 0 &&
-      _state != NodeState.removed &&
+      state != NodeState.removed &&
       (children == _emptyNodes || children.isEmpty);
 
   dynamic _value;
   dynamic get value {
-    assert(_state.alive);
+    assert(state.alive);
 
-    if (_state.waitingForValue) {
+    if (state.waitingForValue) {
       _lifetime = ReadLifetime(this);
 
       final value = atom.$read(_lifetime!);
-      if (_state.waitingForValue) {
+      if (state.waitingForValue) {
         setValue(value);
       }
 
       // Removed orphaned parents
       if (previousParents != null && previousParents!.isNotEmpty) {
         for (final node in previousParents!) {
+          node.children.remove(this);
+
           if (node.canBeRemoved) {
             registry._scheduleNodeRemoval(node);
           }
@@ -67,7 +68,7 @@ class Node {
   }
 
   void addParent(Node node) {
-    assert(_state.alive);
+    assert(state.alive);
 
     if (parents == _emptyNodes) {
       parents = [node];
@@ -85,16 +86,16 @@ class Node {
   }
 
   void setValue(dynamic value) {
-    assert(_state.alive);
+    assert(state.alive);
 
-    if (_state == NodeState.uninitialized) {
-      _state = NodeState.valid;
+    if (state == NodeState.uninitialized) {
+      state = NodeState.valid;
       _value = value;
       notifyListeners();
       return;
     }
 
-    _state = NodeState.valid;
+    state = NodeState.valid;
     if (value == _value) {
       return;
     }
@@ -106,17 +107,17 @@ class Node {
   }
 
   void invalidate(Node parent) {
-    assert(_state == NodeState.valid);
+    assert(state == NodeState.valid);
 
-    _state = NodeState.stale;
-    disposeLifetime(parent);
+    state = NodeState.stale;
+    disposeLifetime();
 
     // Rebuild
     value;
   }
 
   void invalidateChildren() {
-    assert(_state == NodeState.valid);
+    assert(state == NodeState.valid);
 
     if (children == _emptyNodes) {
       return;
@@ -133,7 +134,7 @@ class Node {
   }
 
   void notifyListeners() {
-    assert(_state.initialized);
+    assert(state.initialized, state.toString());
 
     if (_listenerCount == 0) {
       return;
@@ -147,7 +148,7 @@ class Node {
     }
   }
 
-  void disposeLifetime([Node? parent]) {
+  void disposeLifetime() {
     if (_lifetime != null) {
       _lifetime!.dispose();
       _lifetime = null;
@@ -159,32 +160,26 @@ class Node {
 
     previousParents = parents;
     parents = [];
-    final count = previousParents!.length;
-
-    if (count == 1 && previousParents![0] == parent) {
-      return;
-    }
-
-    for (var i = 0; i < count; i++) {
-      final node = previousParents![i];
-      if (node == parent) continue;
-
-      node.children.remove(this);
-
-      if (node.canBeRemoved) {
-        registry._removeNode(node);
-      }
-    }
   }
 
   void remove() {
     assert(canBeRemoved);
-    assert(_state.alive);
+    assert(state.alive);
 
-    _state = NodeState.removed;
+    state = NodeState.removed;
 
     if (_lifetime != null) {
       disposeLifetime();
+
+      if (previousParents != null && previousParents!.isNotEmpty) {
+        for (final node in previousParents!) {
+          node.children.remove(this);
+
+          if (node.canBeRemoved) {
+            registry._removeNode(node);
+          }
+        }
+      }
     }
   }
 
@@ -199,5 +194,5 @@ class Node {
 
   @override
   String toString() =>
-      "Node(atom: $atom, _state: $_state, canBeRemoved: $canBeRemoved, value: $value)";
+      "Node(atom: $atom, _state: $state, canBeRemoved: $canBeRemoved, value: $value)";
 }

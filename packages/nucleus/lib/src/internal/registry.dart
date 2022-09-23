@@ -41,7 +41,7 @@ class AtomRegistry {
     });
 
     if (fireImmediately) {
-      if (!node._state.initialized) {
+      if (!node.state.initialized) {
         node.value;
       } else {
         handler(node.value);
