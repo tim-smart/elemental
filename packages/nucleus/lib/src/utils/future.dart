@@ -37,16 +37,7 @@ abstract class FutureValue<A> {
 
   /// Attempt to read the data from this [FutureValue], otherwise return `null`
   /// if it is in a loading or error state.
-  A? get dataOrNull {
-    final self = this;
-    if (self is FutureData<A>) {
-      return self.data;
-    } else if (self is FutureLoading<A>) {
-      return self.previousData;
-    }
-
-    return null;
-  }
+  A? get dataOrNull;
 
   /// Is the data still loading?
   bool get isLoading => this is FutureLoading;
@@ -70,9 +61,12 @@ abstract class FutureValue<A> {
 /// Represents the case where an async operation succeeds, and has returned a
 /// some [data].
 class FutureData<A> extends FutureValue<A> {
-  const FutureData(this.data);
+  const FutureData(this.data) : dataOrNull = data;
 
   final A data;
+
+  @override
+  final A? dataOrNull;
 
   @override
   FutureValue<B> map<B>(B Function(A a) f) => FutureData(f(data));
@@ -113,6 +107,9 @@ class FutureError<A> extends FutureValue<A> {
   final StackTrace stackTrace;
 
   @override
+  final A? dataOrNull = null;
+
+  @override
   FutureValue<B> map<B>(B Function(A a) f) => FutureError(error, stackTrace);
 
   @override
@@ -149,9 +146,12 @@ class FutureError<A> extends FutureValue<A> {
 ///
 /// It may contain the [previousData] from a previous operation.
 class FutureLoading<A> extends FutureValue<A> {
-  const FutureLoading([this.previousData]);
+  const FutureLoading([this.previousData]) : dataOrNull = previousData;
 
   final A? previousData;
+
+  @override
+  final A? dataOrNull;
 
   @override
   FutureValue<B> map<B>(B Function(A a) f) =>
