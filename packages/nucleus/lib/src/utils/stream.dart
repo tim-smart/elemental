@@ -1,6 +1,9 @@
 import 'package:nucleus/nucleus.dart';
 
-AtomWithParent<FutureValue<A>, Atom<Stream<A>>> streamAtom<A>(
+/// Represents an [AtomWithParent] for a streaming operation.
+typedef StreamAtom<A> = AtomWithParent<FutureValue<A>, Atom<Stream<A>>>;
+
+StreamAtom<A> streamAtom<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
 }) =>

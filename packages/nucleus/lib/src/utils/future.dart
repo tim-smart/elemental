@@ -1,11 +1,14 @@
 import 'package:nucleus/nucleus.dart';
 
+/// Represents an [AtomWithParent] for an async operation.
+typedef FutureAtom<A> = AtomWithParent<FutureValue<A>, Atom<Future<A>>>;
+
 /// Create an [AtomWithParent] that returns a [FutureValue] representing the
 /// current state of the [Future]'s execution.
 ///
 /// The `parent` property is set to the [Future] itself, so you can `await` it
 /// if required.
-AtomWithParent<FutureValue<A>, Atom<Future<A>>> futureAtom<A>(
+FutureAtom<A> futureAtom<A>(
   AtomReader<Future<A>> create,
 ) =>
     AtomWithParent(ReadOnlyAtom(create), (get, future) {
