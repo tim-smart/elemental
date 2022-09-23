@@ -128,8 +128,7 @@ class Node {
     children = [];
 
     for (var i = 0; i < count; i++) {
-      final node = childNodes[i];
-      node.invalidate(this);
+      childNodes[i].invalidate(this);
     }
   }
 
