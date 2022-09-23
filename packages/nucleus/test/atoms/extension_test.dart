@@ -62,36 +62,97 @@ void main() {
       expect(idValues, equals([1, 2]));
       expect(nameValues, equals(['Tim', 'John']));
     });
+
+    test('works with FutureValue', () async {
+      final registry = AtomRegistry();
+
+      final user = stateAtom({
+        'id': 1,
+        'name': 'Tim',
+      });
+      final futureUser = futureAtom((get) async {
+        final value = get(user);
+        await Future.microtask(() {});
+        return value;
+      });
+
+      final id = futureUser.select((u) => u['id'] as int);
+      final name = futureUser.select((u) => u['name'] as String);
+
+      final idValues = <FutureValue<int>>[];
+      registry.subscribe(id, idValues.add, fireImmediately: true);
+      final nameValues = <FutureValue<String>>[];
+      registry.subscribe(name, nameValues.add, fireImmediately: true);
+
+      await Future.microtask(() {});
+      registry.set(user, {'id': 1, 'name': 'John'});
+      await Future.microtask(() {});
+
+      expect(
+        idValues,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data(1),
+        ]),
+      );
+
+      expect(
+        nameValues,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data('Tim'),
+          FutureValue.data('John'),
+        ]),
+      );
+    });
   });
 
   group('asyncSelect', () {
-    test('returns a future atom', () async {
-      final counter = stateAtom(1);
-      final delayed = counter.asyncSelect((i) async {
-        await Future.microtask(() {});
-        return i;
-      })
-        ..keepAlive();
-      final multiplied = delayed.select((i) => i * 10)..keepAlive();
-
+    test('only rebuilds when the selection changes', () async {
       final registry = AtomRegistry();
 
-      expect(registry.get(delayed), FutureValue.loading());
-      await registry.get(delayed.parent);
+      final user = stateAtom({
+        'id': 1,
+        'name': 'Tim',
+      });
+      final futureUser = futureAtom((get) async {
+        final value = get(user);
+        await Future.microtask(() {});
+        return value;
+      });
 
-      expect(registry.get(multiplied), FutureValue.loading());
+      final id = futureAtom(
+          (get) => get(futureUser.asyncSelect((u) => u['id'] as int)));
+      final name = futureAtom(
+          (get) => get(futureUser.asyncSelect((u) => u['name'] as String)));
 
-      await Future.microtask(() => null);
-      expect(registry.get(delayed), FutureValue.data(1));
-      expect(registry.get(multiplied), FutureValue.data(10));
+      final idValues = <FutureValue<int>>[];
+      registry.subscribe(id, idValues.add, fireImmediately: true);
+      final nameValues = <FutureValue<String>>[];
+      registry.subscribe(name, nameValues.add, fireImmediately: true);
 
-      registry.set(counter, 2);
-      expect(registry.get(delayed), FutureValue.loading(1));
-      expect(registry.get(multiplied), FutureValue.loading(10));
+      await Future.microtask(() {});
+      registry.set(user, {'id': 1, 'name': 'John'});
+      await Future.microtask(() {});
+      await Future.microtask(() {});
 
-      await registry.get(multiplied.parent);
-      expect(registry.get(delayed), FutureValue.data(2));
-      expect(registry.get(multiplied), FutureValue.data(20));
+      expect(
+        idValues,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data(1),
+        ]),
+      );
+
+      expect(
+        nameValues,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data('Tim'),
+          FutureValue.loading('Tim'),
+          FutureValue.data('John'),
+        ]),
+      );
     });
   });
 }

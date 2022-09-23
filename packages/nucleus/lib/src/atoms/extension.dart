@@ -5,30 +5,41 @@ extension AtomExtension<A> on Atom<A> {
   /// function [f].
   Atom<B> select<B>(B Function(A value) f) =>
       ReadOnlyAtom((get) => f(get(this)));
-
-  /// Create a derived atom, using an asynchronous function.
-  FutureAtom<B> asyncSelect<B>(Future<B> Function(A value) f) =>
-      futureAtom((get) => f(get(this)));
 }
 
-extension FutureAtomExtension<A> on FutureAtom<A> {
+extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
   /// Create a derived atom, that transforms an atoms value using the given
   /// function [f].
-  FutureAtom<B> select<B>(B Function(A value) f) =>
-      futureAtom((get) => get(parent).then(f));
+  Atom<FutureValue<B>> select<B>(B Function(A value) f) => ReadOnlyAtom((get) {
+        final value = get(this).map(f);
+        if (value.dataOrNull != null) {
+          // ignore: null_check_on_nullable_type_parameter
+          return FutureValue.data(value.dataOrNull!);
+        }
 
-  /// Create a derived atom, using an asynchronous function.
-  FutureAtom<B> asyncSelect<B>(Future<B> Function(A value) f) =>
-      futureAtom((get) => get(parent).then(f));
-}
+        if (get.previousValue is FutureData<B>) {
+          return get.previousValue!;
+        }
 
-extension StreamAtomExtension<A> on StreamAtom<A> {
+        return value;
+      });
+
   /// Create a derived atom, that transforms an atoms value using the given
   /// function [f].
-  StreamAtom<B> select<B>(B Function(A value) f) =>
-      streamAtom((get) => get(parent).map(f));
+  Atom<Future<B>> asyncSelect<B>(B Function(A value) f) =>
+      atomWithParent(ReadOnlyAtom<B?>((get) {
+        final value = get(this).map(f);
+        if (value.dataOrNull != null) {
+          return value.dataOrNull;
+        }
 
-  /// Create a derived atom, using an asynchronous function.
-  StreamAtom<B> asyncSelect<B>(Future<B> Function(A value) f) =>
-      streamAtom((get) => get(parent).asyncMap(f));
+        if (get.previousValue != null) {
+          return get.previousValue;
+        }
+
+        return null;
+      }), (get, Atom<B?> parent) {
+        final value = get(parent);
+        return value == null ? Future.any([]) : Future.value(value);
+      });
 }
