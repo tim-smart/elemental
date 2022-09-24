@@ -43,6 +43,9 @@ class ReadLifetime implements AtomContext<dynamic> {
       registry.subscribeWithPrevious(atom, handler);
 
   @override
+  Stream<A> stream<A>(Atom<A> atom) => registry.stream(atom);
+
+  @override
   void setSelf(dynamic value) {
     assert(!_disposed);
     node.setValue(value);

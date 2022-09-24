@@ -93,6 +93,32 @@ class AtomRegistry {
   void Function() mount(Atom atom) =>
       subscribe(atom, (_) {}, fireImmediately: true);
 
+  /// Listen to an [atom] as a [Stream].
+  Stream<A> stream<A>(Atom<A> atom) {
+    late StreamController<A> c;
+    void Function()? cancel;
+
+    void pause() {
+      cancel?.call();
+      cancel = null;
+    }
+
+    void resume() {
+      assert(cancel == null);
+      cancel = subscribe(atom, c.add);
+    }
+
+    c = StreamController(
+      onPause: pause,
+      onResume: resume,
+      onListen: resume,
+      onCancel: pause,
+      sync: true,
+    );
+
+    return c.stream;
+  }
+
   // Internal
 
   Node _ensureNode(Atom atom) => nodes[atom] ??= _createNode(atom);

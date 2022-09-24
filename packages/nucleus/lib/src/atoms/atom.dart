@@ -71,6 +71,9 @@ abstract class AtomContext<T> {
     void Function(A? previous, A value) handler,
   );
 
+  /// Subscribe to the given [atom].
+  Stream<A> stream<A>(Atom<A> atom);
+
   /// Register an [cb] function, that is called when the atom is invalidated or
   /// disposed.
   ///
@@ -104,6 +107,9 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   @override
   void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler) =>
       _parent.subscribe(atom, handler);
+
+  @override
+  Stream<A> stream<A>(Atom<A> atom) => _parent.stream(atom);
 
   @override
   void Function() subscribeWithPrevious<A>(

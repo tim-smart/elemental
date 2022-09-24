@@ -175,4 +175,30 @@ void main() {
       );
     });
   });
+
+  group('stream', () {
+    test('it emits the latest values if they change', () async {
+      final count = stateAtom(0);
+      final registry = AtomRegistry();
+
+      final values = <int>[];
+      final sub = registry.stream(count).listen((value) {
+        values.add(value);
+      });
+
+      registry.set(count, 1);
+      registry.set(count, 1);
+      registry.set(count, 2);
+      registry.set(count, 2);
+      sub.pause();
+      registry.set(count, 3);
+      sub.resume();
+      registry.set(count, 4);
+
+      expect(
+        values,
+        equals([1, 2, 4]),
+      );
+    });
+  });
 }
