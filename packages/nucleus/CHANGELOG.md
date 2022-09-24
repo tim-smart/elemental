@@ -1,3 +1,7 @@
+## 0.1.23
+
+- Add atomFamily2 and atomFamily3
+
 ## 0.1.22
 
 - Improve DX of `FutureValue` `select` and `asyncSelect`
