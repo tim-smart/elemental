@@ -1,3 +1,7 @@
+## 0.1.24
+
+- Add `stream` method
+
 ## 0.1.23
 
 - Add atomFamily2 and atomFamily3
