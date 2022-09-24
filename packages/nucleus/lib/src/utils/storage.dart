@@ -23,14 +23,25 @@ class MemoryNucleusStorage implements NucleusStorage {
 /// instance.
 WritableAtom<A, A> stateAtomWithStorage<A>(
   A initialValue, {
-  required String key,
   required Atom<NucleusStorage> storage,
+  required String key,
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
 }) =>
     proxyAtom((get) {
-      final storedValue = get(storage).get(key);
-      return storedValue != null ? fromJson(storedValue) : initialValue;
+      try {
+        final storedValue = get(storage).get(key);
+        if (storedValue != null) {
+          return fromJson(storedValue);
+        }
+      } catch (err) {
+        assert(() {
+          // ignore: use_rethrow_when_possible
+          throw err;
+        }());
+      }
+
+      return initialValue;
     }, (get, set, setSelf, value) {
       get(storage).set(key, toJson(value));
       setSelf(value);

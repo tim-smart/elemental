@@ -314,15 +314,120 @@ Widget build(BuildContext context) {
 }
 ```
 
-### proxyAtom
-
-TODO
-
 ### stateAtomWithStorage
 
-TODO
+Have a `stateAtom`, but want to make sure it is persisted between app restarts? Then you can use `stateAtomWithStorage`.
+
+First, you need to define your `NucleusStorage` atom. Let's use the `SharedPrefsStorage` implementation from the `flutter_nucleus` package.
+
+```dart
+/// This atom will eventually hold our [SharedPreferences] instance.
+/// We need to make sure we call `keepAlive` so it doesn't get automatically
+/// disposed.
+final sharedPrefsAtom = atom<SharedPreferences>((get) => throw UnimplementedError())..keepAlive();
+
+/// This atom will eventually hold our [SharedPrefsStorage] instance, which
+/// implements [NucleusStorage].
+final sharedPrefsStorage = atom((get) => SharedPrefsStorage(get(sharedPrefsAtom)));
+
+void main() async {
+  // Build our [SharedPreferences] instance
+  final sharedPrefs = await SharedPreferences.build();
+
+  return runApp(AtomScope(
+    // Pass the instance to [initialValues]
+    initialValues: [sharedPrefsAtom.withInitialValue(sharedPrefs)],
+    child: const YourApp(),
+  ));
+}
+```
+
+Now instead of using `stateAtom`, we can use `stateAtomWithStorage`:
+
+```dart
+final counter = stateAtomWithStorage(
+  0,
+  storage: sharedPrefsStorage, // Atom we defined earlier
+  key: 'counter', // Unique string key
+
+  // Override these depending on your state model
+  fromJson: (json) => json as int,
+  toJson: (count) => count,
+);
+```
 
 ### atomWithStorage
+
+For more advanced usage of persistence, you can use `atomWithStorage`.
+
+Let's use our [`valueNotiferAtom`](#atomWithParent) from earlier, and add persistence support!
+
+```dart
+AtomWithParent<T, Atom<ValueNotifier<T>>> valueNotifierAtomWithStorage<T>(
+  ValueNotifier<T> Function(
+    AtomContext<ValueNotifier<T>> get,
+    T? initialValue,
+  ) create, {
+  required String key,
+  required T Function(dynamic) fromJson,
+  required dynamic Function(T) toJson,
+}) =>
+    // Use `atomWithStorage` for the parent atom
+    atomWithParent(atomWithStorage(
+      (get, read, write) {
+        // Create the notifier, potentially using the stored value
+        final notifier = create(get, read());
+
+        // Add a listener to persist the value to storage
+        notifier.addListener(() {
+          write(notifier.value);
+        });
+
+        get.onDispose(notifier.dispose);
+        return notifier;
+      },
+      key: key,
+      fromJson: fromJson,
+      toJson: toJson,
+
+      // We will use the `NucleusStorage` atom from the `stateAtomWithStorage`
+      // example
+      storage: sharedPrefsStorage,
+    ), (get, parent) {
+      final notifier = get(parent);
+
+      void handler() {
+        get.setSelf(notifier.value);
+      }
+
+      notifier.addListemer(handler);
+      get.onDispose(() => notifier.removeListener(handler));
+
+      return notifier.value;
+    });
+```
+
+Then we can use it, and the counter will not reset back to `0` after the app
+restarts:
+
+```dart
+final counter = valueNotifierAtomWithStorage(
+  (get, int? initialValue) => ValueNotifier(initialValue ?? 0),
+  key: 'counter',
+  toJson: (count) => count,
+  fromJson: (json) => json as int,
+);
+
+// ... in your widgets
+
+// Watch the current count
+watch(counter);
+
+// Update the notifier value
+context.getAtom(counter.parent).value = 123;
+```
+
+### proxyAtom
 
 TODO
 
