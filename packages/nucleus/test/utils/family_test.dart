@@ -95,4 +95,23 @@ void main() {
       expect(registry.get(items).map(registry.get).last, 19);
     });
   });
+
+  group('atomFamily2', () {
+    test('it points to the same atom on multiple calls', () async {
+      final family = atomFamily2((int id, String name) => stateAtom({
+            'id': id,
+            'name': name,
+          }));
+      final registry = AtomRegistry();
+
+      expect(registry.get(family(1, 'Tim')), equals({'id': 1, 'name': 'Tim'}));
+      registry.set(family(1, 'Tim'), {'id': 1, 'name': 'John'});
+      expect(registry.get(family(1, 'Tim')), equals({'id': 1, 'name': 'John'}));
+
+      // Wait for GC
+      await Future.microtask(() => null);
+
+      expect(registry.get(family(1, 'Tim')), equals({'id': 1, 'name': 'Tim'}));
+    });
+  });
 }
