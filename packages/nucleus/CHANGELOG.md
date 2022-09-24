@@ -1,3 +1,7 @@
+## 0.1.25+1
+
+- Add storage examples to the quick tour
+
 ## 0.1.25
 
 - add setSelf to ProxyAtom writer
