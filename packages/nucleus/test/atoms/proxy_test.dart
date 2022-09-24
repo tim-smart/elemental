@@ -7,7 +7,7 @@ void main() {
       final count = stateAtom(0);
       final proxy = proxyAtom(
         (get) => get(count) * 10,
-        (get, set, int value) => set(count, value),
+        (get, set, setSelf, int value) => set(count, value),
       );
 
       final store = AtomRegistry();
@@ -21,7 +21,7 @@ void main() {
       final count = stateAtom(0);
       final proxy = proxyAtom(
         (get) => get(count),
-        (get, set, int i) => set(count, i * 10),
+        (get, set, setSelf, int i) => set(count, i * 10),
       );
 
       final store = AtomRegistry();
@@ -35,7 +35,7 @@ void main() {
       final count = stateAtom(0);
       final proxy = proxyAtom(
         (get) => get(count),
-        (get, set, void _) => set(count, get(count) + 1),
+        (get, set, setSelf, void _) => set(count, get(count) + 1),
       );
 
       final store = AtomRegistry();

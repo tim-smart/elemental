@@ -18,5 +18,5 @@ WritableAtom<A, Null> atomWithRefresh<A>(AtomReader<A> create) {
   return ProxyAtom((get) {
     get(refresher);
     return create(get);
-  }, (get, set, _) => set(refresher, {}));
+  }, (get, set, setSelf, _) => set(refresher, {}));
 }

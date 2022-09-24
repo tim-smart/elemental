@@ -19,8 +19,6 @@ class MemoryNucleusStorage implements NucleusStorage {
   }
 }
 
-const _noValue = Symbol('stateAtomWithStorage_noValue');
-
 /// Create a [stateAtom], except it's value is persisted to a [NucleusStorage]
 /// instance.
 WritableAtom<A, A> stateAtomWithStorage<A>(
@@ -29,22 +27,14 @@ WritableAtom<A, A> stateAtomWithStorage<A>(
   required Atom<NucleusStorage> storage,
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
-}) {
-  final valueAtom = stateAtom<Object?>(_noValue);
-
-  return proxyAtom((get) {
-    final value = get(valueAtom);
-    if (value != _noValue) {
-      return value as A;
-    }
-
-    final storedValue = get(storage).get(key);
-    return storedValue != null ? fromJson(storedValue) : initialValue;
-  }, (get, set, value) {
-    get(storage).set(key, toJson(value));
-    set(valueAtom, value);
-  });
-}
+}) =>
+    proxyAtom((get) {
+      final storedValue = get(storage).get(key);
+      return storedValue != null ? fromJson(storedValue) : initialValue;
+    }, (get, set, setSelf, value) {
+      get(storage).set(key, toJson(value));
+      setSelf(value);
+    });
 
 typedef AtomWithStorageCreate<R, A> = R Function(
   AtomContext<R> get,
