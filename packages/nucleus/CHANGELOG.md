@@ -1,3 +1,7 @@
+## 0.1.25
+
+- add setSelf to ProxyAtom writer
+
 ## 0.1.24
 
 - Add `stream` method
