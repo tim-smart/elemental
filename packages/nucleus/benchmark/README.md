@@ -4,5 +4,5 @@ To run them:
 
 ```
 dart pub get
-dart run benchmark
+dart benchmark/run.dart
 ```
