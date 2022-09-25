@@ -1,3 +1,7 @@
+## 0.1.26
+
+- Allow overriding the scheduler
+
 ## 0.1.25+1
 
 - Add storage examples to the quick tour
