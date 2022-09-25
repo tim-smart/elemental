@@ -30,10 +30,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends HookWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
+class CounterText extends HookWidget {
+  const CounterText({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,27 +39,21 @@ class MyHomePage extends HookWidget {
     // [useAtom] returns and listens to atom value changes.
     final count = useAtom(counter);
 
-    // Create a callback function for updating an atom's value.
+    return Text('$count', style: Theme.of(context).textTheme.headline4);
+  }
+}
+
+class CounterButton extends StatelessWidget {
+  const CounterButton({super.key});
+  @override
+  Widget build(BuildContext context) {
+    // Create a function for updating the counter's value.
     final updateCount = context.updateAtom(counter);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text('$count', style: Theme.of(context).textTheme.headline4),
-            const Text('Multiplied:'),
-            const MultipliedText(),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => updateCount((count) => count + 1),
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    return FloatingActionButton(
+      onPressed: () => updateCount((count) => count + 1),
+      tooltip: 'Increment',
+      child: const Icon(Icons.add),
     );
   }
 }
@@ -76,4 +68,29 @@ class MultipliedText extends StatelessWidget {
             '${watch(multiplied)}',
             style: Theme.of(context).textTheme.headline4,
           ));
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text('You have pushed the button this many times:'),
+            CounterText(),
+            Text('Multiplied:'),
+            MultipliedText(),
+          ],
+        ),
+      ),
+      floatingActionButton: const CounterButton(),
+    );
+  }
 }
