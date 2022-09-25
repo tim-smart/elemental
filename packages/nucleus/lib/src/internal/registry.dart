@@ -7,14 +7,15 @@ part of 'internal.dart';
 class AtomRegistry {
   AtomRegistry({
     List<AtomInitialValue> initialValues = const [],
-  }) {
+    Scheduler? scheduler,
+  }) : _scheduler = scheduler ?? Scheduler() {
     for (final iv in initialValues) {
       final node = _ensureNode(iv.atom);
       node.setValue(iv.value);
     }
   }
 
-  final _scheduler = Scheduler();
+  final Scheduler _scheduler;
 
   /// The state map, where each atom has a corresponding [Node].
   final nodes = Expando<Node>();
