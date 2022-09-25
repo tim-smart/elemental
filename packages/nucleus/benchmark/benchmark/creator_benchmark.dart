@@ -1,10 +1,10 @@
-import 'package:benchmark/benchmark.dart';
 import 'package:creator_core/creator_core.dart';
+
+import 'utils.dart';
 
 final value = Creator.value(0);
 final family = Creator.arg1((ref, int i) => i);
-final nested =
-    Creator((ref) => List.generate(1000000, (i) => Creator.value(i)));
+final nested = Creator((ref) => List.generate(10000, (i) => Creator.value(i)));
 final nested100 = Creator((ref) => List.generate(100, (i) => Creator.value(i)));
 
 final depOne = Creator((ref) => ref.watch(value) * 10);
@@ -12,51 +12,45 @@ final depTwo = Creator((ref) => ref.watch(depOne) * 10);
 final depThree = Creator((ref) => ref.watch(depTwo) * 10);
 
 void main() {
-  late Ref ref;
+  final benchmark = group('creator', Ref.new);
 
-  setUpEach(() => ref = Ref());
+  benchmark('read 1000k', (ref) {
+    for (var i = 0; i < 1000000; i++) {
+      ref.read(value);
+    }
+  });
 
-  group('creator', () {
-    benchmark('read 1000k', () {
-      for (var i = 0; i < 1000000; i++) {
-        ref.read(value);
-      }
-    }, iterations: 1);
+  benchmark('family state 100k', (ref) {
+    for (var i = 0; i < 100000; i++) {
+      final c = family(i);
+      final state = ref.read(c);
+      ref.set(c, state + 1);
+      ref.read(c);
+    }
+  });
 
-    benchmark('state 100k', () {
-      for (var i = 0; i < 100000; i++) {
-        final c = family(i);
-        final state = ref.read(c);
-        ref.set(c, state + 1);
-        ref.read(c);
-      }
-    }, iterations: 1);
+  benchmark('family state 10k', (ref) {
+    for (var i = 0; i < 10000; i++) {
+      final c = family(i);
+      final state = ref.read(c);
+      ref.set(c, state + 1);
+      ref.read(c);
+    }
+  });
 
-    benchmark('state 10k', () {
-      for (var i = 0; i < 10000; i++) {
-        final c = family(i);
-        final state = ref.read(c);
-        ref.set(c, state + 1);
-        ref.read(c);
-      }
-    }, iterations: 1);
+  benchmark('deps state 10k', (ref) {
+    for (var i = 0; i < 10000; i++) {
+      final state = ref.read(value);
+      ref.set(value, state + 1);
+      ref.read(depThree);
+    }
+  });
 
-    benchmark('deps state 10k', () {
-      for (var i = 0; i < 10000; i++) {
-        final state = ref.read(value);
-        ref.set(value, state + 1);
-        ref.read(depThree);
-      }
-    }, iterations: 1);
+  benchmark('nesting 10k', (ref) {
+    ref.read(nested).map(ref.read).toList(growable: false);
+  });
 
-    benchmark('nesting 1000k', () {
-      final store = Ref();
-      store.read(nested).map(store.read);
-    }, iterations: 1);
-
-    benchmark('nesting 100', () {
-      final store = Ref();
-      store.read(nested100).map(store.read);
-    }, iterations: 1);
+  benchmark('nesting 100', (ref) {
+    ref.read(nested100).map(ref.read).toList(growable: false);
   });
 }

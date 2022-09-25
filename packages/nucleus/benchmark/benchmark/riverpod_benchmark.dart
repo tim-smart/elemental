@@ -1,10 +1,11 @@
-import 'package:benchmark/benchmark.dart';
 import 'package:riverpod/riverpod.dart';
+
+import 'utils.dart';
 
 final value = Provider((ref) => 0);
 final riverpod = StateProvider.family((ref, int i) => i);
 final nested = Provider((ref) => List.generate(
-      1000000,
+      10000,
       (i) => StateProvider.autoDispose((_) => i),
     ));
 final nested100 = Provider((ref) => List.generate(
@@ -18,52 +19,49 @@ final depTwo = Provider.autoDispose((ref) => ref.watch(depOne) * 10);
 final depThree = Provider.autoDispose((ref) => ref.watch(depTwo) * 10);
 
 void main() {
-  late ProviderContainer container;
-  setUpEach(() => container = ProviderContainer());
+  final benchmark = group('riverpod', ProviderContainer.new);
 
-  group('riverpod', () {
-    benchmark('read 1000k', () {
-      for (var i = 0; i < 1000000; i++) {
-        container.read(value);
-      }
-    }, iterations: 1);
+  benchmark('read 1000k', (container) {
+    for (var i = 0; i < 1000000; i++) {
+      container.read(value);
+    }
+  });
 
-    benchmark('state 100k', () {
-      for (var i = 0; i < 100000; i++) {
-        final provider = riverpod(i);
-        final notifier = container.read(provider.notifier);
+  benchmark('family state 100k', (container) {
+    for (var i = 0; i < 100000; i++) {
+      final provider = riverpod(i);
+      final notifier = container.read(provider.notifier);
 
-        container.read(provider);
-        notifier.state++;
-        container.read(provider);
-      }
-    }, iterations: 1);
+      container.read(provider);
+      notifier.state++;
+      container.read(provider);
+    }
+  });
 
-    benchmark('state 10k', () {
-      for (var i = 0; i < 10000; i++) {
-        final provider = riverpod(i);
-        final notifier = container.read(provider.notifier);
+  benchmark('family state 10k', (container) {
+    for (var i = 0; i < 10000; i++) {
+      final provider = riverpod(i);
+      final notifier = container.read(provider.notifier);
 
-        container.read(provider);
-        notifier.state++;
-        container.read(provider);
-      }
-    }, iterations: 1);
+      container.read(provider);
+      notifier.state++;
+      container.read(provider);
+    }
+  });
 
-    benchmark('deps state 10k', () {
-      for (var i = 0; i < 10000; i++) {
-        final state = container.read(depZero);
-        container.read(depZero.notifier).state = state + 1;
-        container.read(depThree);
-      }
-    }, iterations: 1);
+  benchmark('deps state 10k', (container) {
+    for (var i = 0; i < 10000; i++) {
+      final state = container.read(depZero);
+      container.read(depZero.notifier).state = state + 1;
+      container.read(depThree);
+    }
+  });
 
-    benchmark('nesting 1000k', () {
-      container.read(nested).map(container.read);
-    }, iterations: 1);
+  benchmark('nesting 10k', (container) {
+    container.read(nested).map(container.read).toList(growable: false);
+  });
 
-    benchmark('nesting 100', () {
-      container.read(nested100).map(container.read);
-    }, iterations: 1);
+  benchmark('nesting 100', (container) {
+    container.read(nested100).map(container.read).toList(growable: false);
   });
 }
