@@ -1,3 +1,7 @@
+## 0.1.7
+
+- Use SchedulerBinding for post frame callbacks
+
 ## 0.1.6
 
 - Simplify BuildContext extension
