@@ -26,19 +26,18 @@ class Node {
 
   var state = NodeState.uninitialized;
 
-  var parents = _emptyNodes;
-  List<Node>? previousParents;
-  var children = _emptyNodes;
-  final listeners = <void Function()>[];
-  var _listenerCount = 0;
+  Branch? parent;
+  Branch? previousParent;
+  Branch? child;
+  Listener? listener;
 
   ReadLifetime? _lifetime;
 
   bool get canBeRemoved =>
       !atom.shouldKeepAlive &&
-      _listenerCount == 0 &&
+      listener == null &&
       state != NodeState.removed &&
-      (children == _emptyNodes || children.isEmpty);
+      child == null;
 
   dynamic _value;
   dynamic get value {
@@ -53,14 +52,24 @@ class Node {
       }
 
       // Removed orphaned parents
-      if (previousParents != null && previousParents!.isNotEmpty) {
-        for (final node in previousParents!) {
-          node.children.remove(this);
-
-          if (node.canBeRemoved) {
-            registry._scheduleNodeRemoval(node);
+      if (previousParent != null) {
+        var branch = previousParent;
+        while (branch != null) {
+          if (parent != null && parent!.contains(branch.node)) {
+            branch = branch.to;
+            continue;
           }
+
+          branch.node.removeChild(this);
+
+          if (branch.node.canBeRemoved) {
+            registry._scheduleNodeRemoval(branch.node);
+          }
+
+          branch = branch.to;
         }
+
+        previousParent = null;
       }
     }
 
@@ -70,18 +79,26 @@ class Node {
   void addParent(Node node) {
     assert(state.alive);
 
-    if (parents == _emptyNodes) {
-      parents = [node];
-    } else {
-      parents.add(node);
-      previousParents?.remove(node);
-    }
+    parent = Branch(
+      node: node,
+      to: parent,
+    );
 
     // Add to parent children
-    if (node.children == _emptyNodes) {
-      node.children = [this];
-    } else if (!node.children.contains(this)) {
-      node.children.add(this);
+    if (node.child == null || !node.child!.contains(this)) {
+      node.child = Branch(
+        node: this,
+        to: node.child,
+      );
+    }
+  }
+
+  void removeChild(Node node) {
+    if (child?.node == node) {
+      child = child?.to;
+      child?.from = null;
+    } else {
+      child?.remove(node);
     }
   }
 
@@ -119,31 +136,30 @@ class Node {
   void invalidateChildren() {
     assert(state == NodeState.valid);
 
-    if (children == _emptyNodes) {
+    if (child == null) {
       return;
     }
 
-    final childNodes = children;
-    final count = childNodes.length;
-    children = [];
+    var branch = child;
+    child = null;
 
-    for (var i = 0; i < count; i++) {
-      childNodes[i].invalidate(this);
+    while (branch != null) {
+      branch.node.invalidate(this);
+      branch = branch.to;
     }
   }
 
   void notifyListeners() {
     assert(state.initialized, state.toString());
 
-    if (_listenerCount == 0) {
-      return;
-    } else if (_listenerCount == 1) {
-      listeners[0]();
+    if (listener == null) {
       return;
     }
 
-    for (var i = 0; i < _listenerCount; i++) {
-      listeners[i]();
+    var next = listener;
+    while (next != null) {
+      next.fn();
+      next = next.next;
     }
   }
 
@@ -153,12 +169,8 @@ class Node {
       _lifetime = null;
     }
 
-    if (parents == _emptyNodes) {
-      return;
-    }
-
-    previousParents = parents;
-    parents = [];
+    previousParent = parent;
+    parent = null;
   }
 
   void remove() {
@@ -170,28 +182,97 @@ class Node {
     if (_lifetime != null) {
       disposeLifetime();
 
-      if (previousParents != null && previousParents!.isNotEmpty) {
-        for (final node in previousParents!) {
-          node.children.remove(this);
+      if (previousParent != null) {
+        var branch = previousParent;
+        while (branch != null) {
+          branch.node.removeChild(this);
 
-          if (node.canBeRemoved) {
-            registry._removeNode(node);
+          if (branch.node.canBeRemoved) {
+            registry._removeNode(branch.node);
           }
+
+          branch = branch.to;
         }
+
+        previousParent = null;
       }
     }
   }
 
   void Function() addListener(void Function() handler) {
-    listeners.add(handler);
-    _listenerCount++;
+    final l = Listener(
+      fn: handler,
+      next: listener,
+    );
+    listener = l;
     return () {
-      listeners.remove(handler);
-      _listenerCount--;
+      if (listener == l) {
+        listener = l.next;
+        l.next?.previous = null;
+      } else {
+        l.previous!.next = l.next;
+        l.next?.previous = l.previous;
+      }
     };
   }
 
   @override
   String toString() =>
       "Node(atom: $atom, _state: $state, canBeRemoved: $canBeRemoved, value: $value)";
+}
+
+class Branch {
+  Branch({
+    required this.node,
+    this.from,
+    this.to,
+  }) {
+    if (to != null) {
+      to?.from = this;
+    }
+  }
+
+  final Node node;
+  Branch? from;
+  Branch? to;
+
+  bool contains(Node node) {
+    Branch? branch = this;
+    while (branch != null) {
+      if (branch.node == node) {
+        return true;
+      }
+      branch = branch.to;
+    }
+    return false;
+  }
+
+  void remove(Node node) {
+    Branch? branch = this;
+    while (branch != null) {
+      if (branch.node == node) {
+        branch.from?.to = branch.to;
+        branch.to?.from = branch.from;
+        break;
+      }
+
+      branch = branch.to;
+    }
+  }
+}
+
+class Listener {
+  Listener({
+    required this.fn,
+    this.previous,
+    this.next,
+  }) {
+    if (next != null) {
+      next?.previous = this;
+    }
+  }
+
+  final void Function() fn;
+  Listener? previous;
+  Listener? next;
 }

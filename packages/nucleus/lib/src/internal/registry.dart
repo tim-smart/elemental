@@ -149,16 +149,16 @@ class AtomRegistry {
   void _removeNode(Node node) {
     assert(node.canBeRemoved);
 
-    final parents = node.parents;
+    var branch = node.parent;
 
     nodes[node.atom] = null;
     node.remove();
 
-    if (parents.isEmpty) return;
-    for (final node in parents) {
-      if (node.canBeRemoved) {
+    while (branch != null) {
+      if (branch.node.canBeRemoved) {
         _removeNode(node);
       }
+      branch = branch.to;
     }
   }
 }
