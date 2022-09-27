@@ -22,11 +22,10 @@ class Scheduler {
 
   void runPostFrame(void Function() f) {
     if (_postFrameCount == _postFrameCallbacks.length) {
-      _postFrameCallbacks.add(f);
-      _postFrameCount++;
-    } else {
-      _postFrameCallbacks[_postFrameCount++] = f;
+      _postFrameCallbacks.length += 16;
     }
+
+    _postFrameCallbacks[_postFrameCount++] = f;
 
     if (!_postFrameScheduled) {
       _postFrameScheduled = true;
