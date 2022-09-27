@@ -1,14 +1,12 @@
 part of 'internal.dart';
 
-final _emptyDisposers = List<void Function()>.empty();
-
 class ReadLifetime implements AtomContext<dynamic> {
   ReadLifetime(this.node) : registry = node.registry;
 
   final AtomRegistry registry;
   final Node node;
 
-  var _disposers = _emptyDisposers;
+  Listener? _disposers;
   var _disposed = false;
 
   @override
@@ -56,24 +54,25 @@ class ReadLifetime implements AtomContext<dynamic> {
 
   @override
   void onDispose(void Function() onDispose) {
-    if (_disposers == _emptyDisposers) {
-      _disposers = [onDispose];
-    } else {
-      _disposers.add(onDispose);
-    }
+    _disposers = Listener(
+      fn: onDispose,
+      next: _disposers,
+    );
   }
 
   void dispose() {
     assert(!_disposed);
     _disposed = true;
 
-    if (_disposers == _emptyDisposers) {
+    if (_disposers == null) {
       return;
     }
 
-    for (final f in _disposers) {
-      f();
+    var next = _disposers;
+    while (next != null) {
+      next.fn();
+      next = next.next;
     }
-    _disposers = _emptyDisposers;
+    _disposers = null;
   }
 }

@@ -1,7 +1,5 @@
 part of 'internal.dart';
 
-final _emptyNodes = List<Node>.empty();
-
 enum NodeState {
   uninitialized(waitingForValue: true),
   stale(initialized: true, waitingForValue: true),
@@ -26,9 +24,9 @@ class Node {
 
   var state = NodeState.uninitialized;
 
-  Branch? parent;
-  Branch? previousParent;
-  Branch? child;
+  Relation? parent;
+  Relation? previousParent;
+  Relation? child;
   Listener? listener;
 
   ReadLifetime? _lifetime;
@@ -53,16 +51,16 @@ class Node {
 
       // Removed orphaned parents
       if (previousParent != null) {
-        var branch = previousParent;
-        while (branch != null) {
-          if (parent?.contains(branch.node) != true) {
-            branch.node.removeChild(this);
-            if (branch.node.canBeRemoved) {
-              registry._scheduleNodeRemoval(branch.node);
+        var relation = previousParent;
+        while (relation != null) {
+          if (parent?.contains(relation.node) != true) {
+            relation.node.removeChild(this);
+            if (relation.node.canBeRemoved) {
+              registry._scheduleNodeRemoval(relation.node);
             }
           }
 
-          branch = branch.to;
+          relation = relation.next;
         }
 
         previousParent = null;
@@ -75,24 +73,24 @@ class Node {
   void addParent(Node node) {
     assert(state.alive);
 
-    parent = Branch(
+    parent = Relation(
       node: node,
-      to: parent,
+      next: parent,
     );
 
     // Add to parent children
     if (node.child?.contains(this) != true) {
-      node.child = Branch(
+      node.child = Relation(
         node: this,
-        to: node.child,
+        next: node.child,
       );
     }
   }
 
   void removeChild(Node node) {
     if (child?.node == node) {
-      child = child!.to;
-      child?.from = null;
+      child = child!.next;
+      child?.previous = null;
     } else {
       child?.remove(node);
     }
@@ -136,12 +134,12 @@ class Node {
       return;
     }
 
-    var branch = child;
+    var relation = child;
     child = null;
 
-    while (branch != null) {
-      branch.node.invalidate(this);
-      branch = branch.to;
+    while (relation != null) {
+      relation.node.invalidate(this);
+      relation = relation.next;
     }
   }
 
@@ -182,14 +180,14 @@ class Node {
     disposeLifetime();
 
     if (previousParent != null) {
-      var branch = previousParent;
-      while (branch != null) {
-        branch.node.removeChild(this);
-        if (branch.node.canBeRemoved) {
-          registry._removeNode(branch.node);
+      var relation = previousParent;
+      while (relation != null) {
+        relation.node.removeChild(this);
+        if (relation.node.canBeRemoved) {
+          registry._removeNode(relation.node);
         }
 
-        branch = branch.to;
+        relation = relation.next;
       }
 
       previousParent = null;
@@ -219,39 +217,39 @@ class Node {
       "Node(atom: $atom, _state: $state, canBeRemoved: $canBeRemoved, value: $value)";
 }
 
-class Branch {
-  Branch({
+class Relation {
+  Relation({
     required this.node,
-    this.to,
+    this.next,
   }) {
-    to?.from = this;
+    next?.previous = this;
   }
 
   final Node node;
-  Branch? from;
-  Branch? to;
+  Relation? previous;
+  Relation? next;
 
   bool contains(Node node) {
-    Branch? branch = this;
-    while (branch != null) {
-      if (branch.node == node) {
+    Relation? relation = this;
+    while (relation != null) {
+      if (relation.node == node) {
         return true;
       }
-      branch = branch.to;
+      relation = relation.next;
     }
     return false;
   }
 
   void remove(Node node) {
-    Branch? branch = this;
-    while (branch != null) {
-      if (branch.node == node) {
-        branch.from?.to = branch.to;
-        branch.to?.from = branch.from;
+    Relation? relation = this;
+    while (relation != null) {
+      if (relation.node == node) {
+        relation.previous?.next = relation.next;
+        relation.next?.previous = relation.previous;
         break;
       }
 
-      branch = branch.to;
+      relation = relation.next;
     }
   }
 }
