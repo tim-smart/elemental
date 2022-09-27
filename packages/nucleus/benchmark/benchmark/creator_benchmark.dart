@@ -20,17 +20,14 @@ void main() {
     }
   });
 
-  benchmark('family state 100k', (ref) {
+  benchmark('family read 100k', (ref) {
     for (var i = 0; i < 100000; i++) {
-      final c = family(i);
-      final state = ref.read(c);
-      ref.set(c, state + 1);
-      ref.read(c);
+      ref.read(family(i));
     }
   });
 
-  benchmark('family state 10k', (ref) {
-    for (var i = 0; i < 10000; i++) {
+  benchmark('family state 100k', (ref) {
+    for (var i = 0; i < 100000; i++) {
       final c = family(i);
       final state = ref.read(c);
       ref.set(c, state + 1);

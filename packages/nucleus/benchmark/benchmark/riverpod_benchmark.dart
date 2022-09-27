@@ -3,6 +3,7 @@ import 'package:riverpod/riverpod.dart';
 import 'utils.dart';
 
 final value = Provider((ref) => 0);
+final familyRead = Provider.family((ref, int i) => i);
 final family = StateProvider.family((ref, int i) => i);
 final nested = Provider((ref) => List.generate(
       10000,
@@ -27,19 +28,14 @@ void main() {
     }
   });
 
-  benchmark('family state 100k', (container) {
+  benchmark('family read 100k', (container) {
     for (var i = 0; i < 100000; i++) {
-      final provider = family(i);
-      final notifier = container.read(provider.notifier);
-
-      container.read(provider);
-      notifier.state++;
-      container.read(provider);
+      container.read(familyRead(i));
     }
   });
 
-  benchmark('family state 10k', (container) {
-    for (var i = 0; i < 10000; i++) {
+  benchmark('family state 100k', (container) {
+    for (var i = 0; i < 100000; i++) {
       final provider = family(i);
       final notifier = container.read(provider.notifier);
 

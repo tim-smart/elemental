@@ -27,6 +27,12 @@ void main() {
     }
   });
 
+  benchmark('family read 100k', (registry) {
+    for (var i = 0; i < 100000; i++) {
+      registry.get(family(i));
+    }
+  });
+
   benchmark('family state 100k', (registry) {
     for (var i = 0; i < 100000; i++) {
       final atom = family(i);
@@ -39,15 +45,6 @@ void main() {
   benchmark('family state 100k weak', (registry) {
     for (var i = 0; i < 100000; i++) {
       final atom = familyWeak(i);
-      final state = registry.get(atom);
-      registry.set(atom, state + 1);
-      registry.get(atom);
-    }
-  });
-
-  benchmark('family state 10k', (registry) {
-    for (var i = 0; i < 10000; i++) {
-      final atom = family(i);
       final state = registry.get(atom);
       registry.set(atom, state + 1);
       registry.get(atom);
