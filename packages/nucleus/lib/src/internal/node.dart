@@ -36,8 +36,8 @@ class Node {
   bool get canBeRemoved =>
       !atom.shouldKeepAlive &&
       listener == null &&
-      state != NodeState.removed &&
-      child == null;
+      child == null &&
+      state != NodeState.removed;
 
   dynamic _value;
   dynamic get value {
@@ -81,7 +81,7 @@ class Node {
     );
 
     // Add to parent children
-    if (node.child == null || !node.child!.contains(this)) {
+    if (node.child?.contains(this) != true) {
       node.child = Branch(
         node: this,
         to: node.child,
@@ -91,7 +91,7 @@ class Node {
 
   void removeChild(Node node) {
     if (child?.node == node) {
-      child = child?.to;
+      child = child!.to;
       child?.from = null;
     } else {
       child?.remove(node);
