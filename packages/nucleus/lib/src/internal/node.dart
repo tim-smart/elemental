@@ -55,15 +55,11 @@ class Node {
       if (previousParent != null) {
         var branch = previousParent;
         while (branch != null) {
-          if (parent != null && parent!.contains(branch.node)) {
-            branch = branch.to;
-            continue;
-          }
-
-          branch.node.removeChild(this);
-
-          if (branch.node.canBeRemoved) {
-            registry._scheduleNodeRemoval(branch.node);
+          if (parent == null || !parent!.contains(branch.node)) {
+            branch.node.removeChild(this);
+            if (branch.node.canBeRemoved) {
+              registry._scheduleNodeRemoval(branch.node);
+            }
           }
 
           branch = branch.to;
@@ -205,6 +201,7 @@ class Node {
       next: listener,
     );
     listener = l;
+
     return () {
       if (listener == l) {
         listener = l.next;
@@ -224,12 +221,9 @@ class Node {
 class Branch {
   Branch({
     required this.node,
-    this.from,
     this.to,
   }) {
-    if (to != null) {
-      to?.from = this;
-    }
+    to?.from = this;
   }
 
   final Node node;
@@ -264,12 +258,9 @@ class Branch {
 class Listener {
   Listener({
     required this.fn,
-    this.previous,
     this.next,
   }) {
-    if (next != null) {
-      next?.previous = this;
-    }
+    next?.previous = this;
   }
 
   final void Function() fn;
