@@ -179,19 +179,21 @@ class Node {
 
     disposeLifetime();
 
-    if (previousParent != null) {
-      var relation = previousParent;
-      while (relation != null) {
-        relation.node.removeChild(this);
-        if (relation.node.canBeRemoved) {
-          registry._removeNode(relation.node);
-        }
+    if (previousParent == null) {
+      return;
+    }
 
-        relation = relation.next;
+    var relation = previousParent;
+    while (relation != null) {
+      relation.node.removeChild(this);
+      if (relation.node.canBeRemoved) {
+        registry._removeNode(relation.node);
       }
 
-      previousParent = null;
+      relation = relation.next;
     }
+
+    previousParent = null;
   }
 
   void Function() addListener(void Function() handler) {
