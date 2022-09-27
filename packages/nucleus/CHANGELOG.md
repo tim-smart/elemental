@@ -1,3 +1,8 @@
+## 0.1.28
+
+- Improve dependencies performance
+- Improve listeners performance
+
 ## 0.1.27
 
 - Remove `previousValue`, replace with `get.self()`
