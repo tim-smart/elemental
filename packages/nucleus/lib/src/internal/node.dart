@@ -55,7 +55,7 @@ class Node {
       if (previousParent != null) {
         var branch = previousParent;
         while (branch != null) {
-          if (parent == null || !parent!.contains(branch.node)) {
+          if (parent?.contains(branch.node) != true) {
             branch.node.removeChild(this);
             if (branch.node.canBeRemoved) {
               registry._scheduleNodeRemoval(branch.node);
@@ -175,23 +175,24 @@ class Node {
 
     state = NodeState.removed;
 
-    if (_lifetime != null) {
-      disposeLifetime();
+    if (_lifetime == null) {
+      return;
+    }
 
-      if (previousParent != null) {
-        var branch = previousParent;
-        while (branch != null) {
-          branch.node.removeChild(this);
+    disposeLifetime();
 
-          if (branch.node.canBeRemoved) {
-            registry._removeNode(branch.node);
-          }
-
-          branch = branch.to;
+    if (previousParent != null) {
+      var branch = previousParent;
+      while (branch != null) {
+        branch.node.removeChild(this);
+        if (branch.node.canBeRemoved) {
+          registry._removeNode(branch.node);
         }
 
-        previousParent = null;
+        branch = branch.to;
       }
+
+      previousParent = null;
     }
   }
 
