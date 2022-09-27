@@ -1,7 +1,16 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+class MsEmitter implements ScoreEmitter {
+  @override
+  void emit(String testName, double value) {
+    final ms = (value / 1000).toStringAsPrecision(4);
+    print('$testName(RunTime): $ms ms.');
+  }
+}
+
 class Benchmark<Acc> extends BenchmarkBase {
-  Benchmark(String name, this._setup, this._run) : super(name);
+  Benchmark(String name, this._setup, this._run)
+      : super(name, emitter: MsEmitter());
 
   final Acc Function() _setup;
   late final Acc _acc;

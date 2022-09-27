@@ -56,6 +56,9 @@ abstract class AtomContext<T> {
   /// Get the value for the given [atom].
   R get<R>(Atom<R> atom);
 
+  /// Get the value of the current atom.
+  T? self();
+
   /// Set the value for the given [atom].
   void set<R, W>(WritableAtom<R, W> atom, W value);
 
@@ -79,9 +82,6 @@ abstract class AtomContext<T> {
   ///
   /// Can be called multiple times.
   void onDispose(void Function() cb);
-
-  /// The previous value of this atom.
-  T? get previousValue;
 }
 
 class _AtomContextProxy<T> implements AtomContext<T> {
@@ -90,7 +90,7 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   final AtomContext _parent;
 
   @override
-  late final T? previousValue = _parent.previousValue;
+  T? self() => _parent.self();
 
   @override
   A call<A>(Atom<A> atom) => _parent.get(atom);

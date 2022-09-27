@@ -1,3 +1,7 @@
+## 0.1.27
+
+- Remove `previousValue`, replace with `get.self()`
+
 ## 0.1.26
 
 - Allow overriding the scheduler

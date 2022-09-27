@@ -23,7 +23,7 @@ FutureAtom<A> futureAtom<A>(
         get.setSelf(FutureValue.error(err, stack));
       });
 
-      return FutureValue.loading(get.previousValue?.dataOrNull);
+      return FutureValue.loading(get.self()?.dataOrNull);
     });
 
 /// Represents the loading, error and data state of an async operation.

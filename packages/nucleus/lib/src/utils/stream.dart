@@ -33,7 +33,7 @@ StreamAtom<A> streamAtom<A>(
         get.onDispose(subscription.cancel);
 
         return FutureValue.loading(
-          get.previousValue?.dataOrNull ?? initialValue,
+          get.self()?.dataOrNull ?? initialValue,
         );
       },
     );
