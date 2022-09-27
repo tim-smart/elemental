@@ -7,7 +7,7 @@ final multiplied = atom((get) => get(counter) * 10);
 final messenger = atom((get) => GlobalKey<ScaffoldMessengerState>());
 
 void main() {
-  // (optional) add an AtomScope to the widget tree
+  // add an AtomScope to the widget tree
   runApp(AtomScope(child: const MyApp()));
 }
 

@@ -21,8 +21,9 @@ extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
           return FutureValue.data(value.dataOrNull!);
         }
 
-        if (get.previousValue is FutureData<B>) {
-          return get.previousValue!;
+        final prev = get.self();
+        if (prev is FutureData<B>) {
+          return prev;
         }
 
         return value;
