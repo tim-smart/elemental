@@ -96,26 +96,10 @@ Other methods on `BuilderContext` include:
   setCount(2); // Sets the value of the counter atom to 2.
   ```
 
-- `subscribeAtom` - listen to changes of an atom. Returns a function for
-  removing the listener.
+- `registry` - access the `AtomRegistry` directly
 
   ```dart
-  final unsubscribe = context.subscribeAtom(counter, () {
-    print(context.getAtom(counter));
-  });
-
-  unsubscribe(); // remove the listener
-  ```
-
-- `mountAtom` - similar to `subscribeAtom`, except it doesn't take a listener.
-
-  ```dart
-  final unmount = context.mountAtom(counter);
-
-  // It is now guaranteed that the `counter` atom is active in the registry.
-  // To remove it (if there are no other listeners):
-
-  unmount();
+  final registry = context.registry(listen: true);
   ```
 
 ### atom
