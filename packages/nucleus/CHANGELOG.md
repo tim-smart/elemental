@@ -1,3 +1,7 @@
+## 0.1.29
+
+- Add `combineWith` and `combineWith2` to `FutureValue`.
+
 ## 0.1.28+1
 
 - README updates
