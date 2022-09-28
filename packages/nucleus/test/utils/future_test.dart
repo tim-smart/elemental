@@ -38,9 +38,7 @@ void main() {
     test('loading state has previous data on refresh', () async {
       final store = AtomRegistry();
 
-      final count = stateAtom(0);
       final a = futureAtom((get) async {
-        get(count);
         await Future.microtask(() {});
         return 123;
       });
@@ -50,7 +48,7 @@ void main() {
         await store.get(a.parent);
         expect(store.get(a), FutureValue.data(123));
 
-        store.set(count, 1);
+        store.set(a.parent, null);
 
         expect(store.get(a), FutureValue.loading(123));
         await store.get(a.parent);

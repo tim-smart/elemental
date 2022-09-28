@@ -1,7 +1,10 @@
+// ignore_for_file: prefer_void_to_null
+
 import 'package:nucleus/nucleus.dart';
 
 /// Represents an [AtomWithParent] for an async operation.
-typedef FutureAtom<A> = AtomWithParent<FutureValue<A>, Atom<Future<A>>>;
+typedef FutureAtom<A>
+    = AtomWithParent<FutureValue<A>, WritableAtom<Future<A>, Null>>;
 
 /// Create an [AtomWithParent] that returns a [FutureValue] representing the
 /// current state of the [Future]'s execution.
@@ -11,7 +14,7 @@ typedef FutureAtom<A> = AtomWithParent<FutureValue<A>, Atom<Future<A>>>;
 FutureAtom<A> futureAtom<A>(
   AtomReader<Future<A>> create,
 ) =>
-    AtomWithParent(ReadOnlyAtom(create), (get, future) {
+    AtomWithParent(atomWithRefresh(create), (get, future) {
       bool disposed = false;
       get.onDispose(() => disposed = true);
 
