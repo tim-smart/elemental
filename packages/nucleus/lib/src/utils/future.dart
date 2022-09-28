@@ -56,6 +56,47 @@ abstract class FutureValue<A> {
     B Function(A? previousData)? loading,
     required B Function() orElse,
   });
+
+  FutureValue<Tuple2<A, B>> combineWith<B>(FutureValue<B> other) {
+    final self = this;
+    if (self is FutureError<A>) {
+      return FutureValue.error(self.error, self.stackTrace);
+    } else if (other is FutureError<B>) {
+      return FutureValue.error(other.error, other.stackTrace);
+    }
+
+    final loading = isLoading || other.isLoading;
+    final data = (dataOrNull != null && other.dataOrNull != null)
+        // ignore: null_check_on_nullable_type_parameter
+        ? Tuple2(dataOrNull!, other.dataOrNull!)
+        : null;
+
+    return loading || data == null
+        ? FutureValue.loading(data)
+        : FutureValue.data(data);
+  }
+
+  FutureValue<Tuple3<A, B, C>> combineWith2<B, C>(
+    FutureValue<B> one,
+    FutureValue<C> two,
+  ) =>
+      combineWith(one).combineWith(two).when(
+            data: (t) => FutureValue.data(Tuple3(
+              t.first.first,
+              t.first.second,
+              t.second,
+            )),
+            error: (error, stackTrace) => FutureValue.error(error, stackTrace),
+            loading: (t) => FutureValue.loading(
+              t != null
+                  ? Tuple3(
+                      t.first.first,
+                      t.first.second,
+                      t.second,
+                    )
+                  : null,
+            ),
+          );
 }
 
 /// Represents the case where an async operation succeeds, and has returned a

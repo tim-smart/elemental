@@ -75,5 +75,33 @@ void main() {
       await Future.microtask(() {});
       expect(store.get(a), FutureValue.loading());
     });
+
+    test('combineWith works', () async {
+      final registry = AtomRegistry();
+      final one = futureAtom((get) async {
+        await Future.microtask(() {});
+        return 1;
+      });
+
+      final two = futureAtom((get) async {
+        await Future.delayed(Duration(milliseconds: 10));
+        return 2;
+      });
+
+      final combined = atom((get) => get(one).combineWith(get(two)));
+
+      final values = [];
+      registry.subscribe(combined, values.add, fireImmediately: true);
+
+      await registry.get(two.parent);
+
+      expect(
+        values,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data(Tuple2(1, 2)),
+        ]),
+      );
+    });
   });
 }
