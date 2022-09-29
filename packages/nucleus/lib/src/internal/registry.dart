@@ -26,11 +26,11 @@ class AtomRegistry {
 
   /// Set the state of a [WritableAtom].
   void set<R, W>(WritableAtom<R, W> atom, W value) =>
-      atom.write(get, set, _ensureNode(atom).setValue, value);
+      atom.$write(get, set, _ensureNode(atom).setValue, value);
 
   /// Manually recalculate an [atom]'s value.
   void refresh(Atom atom) {
-    atom.refresh(_refresh);
+    atom.$refresh(_refresh);
   }
 
   /// Listen to changes of an atom's state.

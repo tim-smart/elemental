@@ -8,12 +8,11 @@ class StateAtom<Value> extends WritableAtom<Value, Value> {
   final Value initialValue;
 
   @override
-  Value read(ctx) => initialValue;
+  Value $read(ctx) => initialValue;
 
   @override
-  void write(GetAtom get, SetAtom set, SetSelf<Value> setSelf, Value value) {
-    setSelf(value);
-  }
+  void $write(GetAtom get, SetAtom set, SetSelf<Value> setSelf, Value value) =>
+      setSelf(value);
 }
 
 /// Create a simple atom with mutable state.

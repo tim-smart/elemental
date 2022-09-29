@@ -44,7 +44,7 @@ class Node {
     if (state.waitingForValue) {
       _lifetime = ReadLifetime(this);
 
-      final value = atom.$read(_lifetime!);
+      final value = atom.$$read(_lifetime!);
       if (state.waitingForValue) {
         setValue(value);
       }

@@ -16,10 +16,10 @@ class ProxyAtom<R, W> extends WritableAtom<R, W> {
   final ProxyAtomWriter<R, W> _writer;
 
   @override
-  R read(ctx) => _reader(ctx);
+  R $read(ctx) => _reader(ctx);
 
   @override
-  void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value) {
+  void $write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value) {
     _writer(get, set, setSelf, value);
   }
 }

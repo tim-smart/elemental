@@ -8,10 +8,13 @@ part of '../atoms.dart';
 /// written (see [WritableAtom]).
 abstract class Atom<T> {
   /// Used by the registry to read the atoms value.
-  T read(AtomContext<T> ctx);
+  T $read(AtomContext<T> ctx);
+
+  /// Used by the registry.
+  T $$read(AtomContext ctx) => $read(_AtomContextProxy._(ctx));
 
   /// Determines refresh behaviour.
-  void refresh(void Function(Atom atom) refresh) => refresh(this);
+  void $refresh(void Function(Atom atom) refresh) => refresh(this);
 
   /// Should this atoms state be kept, even if it isnt being used?
   ///
@@ -46,9 +49,6 @@ abstract class Atom<T> {
   /// [AtomRegistry].
   AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
 
-  /// Used by the registry.
-  T $read(AtomContext ctx) => read(_AtomContextProxy._(ctx));
-
   @override
   String toString() => "$runtimeType(name: $name)";
 }
@@ -57,10 +57,10 @@ abstract class Atom<T> {
 abstract class WritableAtom<R, W> extends Atom<R> {
   /// When the atom recieves a write with the given [value], this method
   /// determines the outcome.
-  void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
+  void $write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
 }
 
-/// Passed to the [Atom.read] method, allowing you to interact with other atoms
+/// Passed to the [Atom.$read] method, allowing you to interact with other atoms
 /// and manage the lifecycle of your state.
 abstract class AtomContext<T> {
   /// Get the value for the given [atom].

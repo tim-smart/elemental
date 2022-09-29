@@ -20,10 +20,10 @@ class AtomWithParent<A, Parent extends Atom> extends Atom<A> {
   }
 
   @override
-  A read(AtomContext<A> ctx) => _reader(ctx, parent);
+  A $read(AtomContext<A> ctx) => _reader(ctx, parent);
 
   @override
-  void refresh(void Function(Atom atom) refresh) => refresh(parent);
+  void $refresh(void Function(Atom atom) refresh) => refresh(parent);
 }
 
 /// Create an [Atom] that is linked to a parent [Atom].
