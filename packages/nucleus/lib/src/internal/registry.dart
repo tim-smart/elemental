@@ -28,6 +28,12 @@ class AtomRegistry {
   void set<R, W>(WritableAtom<R, W> atom, W value) =>
       atom.write(get, set, _ensureNode(atom).setValue, value);
 
+  /// Manually recalculate an [atom]'s value.
+  void refresh(Atom atom) {
+    assert(atom.isRefreshable);
+    _ensureNode(atom).invalidate();
+  }
+
   /// Listen to changes of an atom's state.
   ///
   /// Call [get] to retrieve the latest value after the [handler] is called.

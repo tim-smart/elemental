@@ -21,6 +21,16 @@ abstract class Atom<T> {
     _keepAlive = true;
   }
 
+  var _refreshable = false;
+
+  /// Determines whether the atom can be manually refreshed.
+  bool get isRefreshable => _refreshable;
+
+  /// Allow this atom to be manually refreshed
+  void refreshable() {
+    _refreshable = true;
+  }
+
   /// Set a name for debugging
   String? name;
 

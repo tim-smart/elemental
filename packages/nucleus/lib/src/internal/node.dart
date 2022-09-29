@@ -117,11 +117,13 @@ class Node {
     notifyListeners();
   }
 
-  void invalidate(Node parent) {
-    assert(state == NodeState.valid);
+  void invalidate() {
+    assert(state.alive);
 
-    state = NodeState.stale;
-    disposeLifetime();
+    if (state == NodeState.valid) {
+      state = NodeState.stale;
+      disposeLifetime();
+    }
 
     // Rebuild
     value;
@@ -138,7 +140,7 @@ class Node {
     child = null;
 
     while (relation != null) {
-      relation.node.invalidate(this);
+      relation.node.invalidate();
       relation = relation.next;
     }
   }
