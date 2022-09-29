@@ -1,3 +1,7 @@
+## 0.1.34
+
+- Add refreshSelf to AtomContext
+
 ## 0.1.33
 
 - Add `refresh` to registry
