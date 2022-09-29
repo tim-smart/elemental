@@ -1,3 +1,7 @@
+## 0.1.31
+
+- Hide tuple classes from exports
+
 ## 0.1.30
 
 - Use `atomWithRefresh` for `futureAtom` and `streamAtom`
