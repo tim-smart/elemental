@@ -3,8 +3,7 @@
 import 'package:nucleus/nucleus.dart';
 
 /// Represents an [AtomWithParent] for an async operation.
-typedef FutureAtom<A>
-    = AtomWithParent<FutureValue<A>, WritableAtom<Future<A>, Null>>;
+typedef FutureAtom<A> = AtomWithParent<FutureValue<A>, Atom<Future<A>>>;
 
 /// Create an [AtomWithParent] that returns a [FutureValue] representing the
 /// current state of the [Future]'s execution.
@@ -14,7 +13,7 @@ typedef FutureAtom<A>
 FutureAtom<A> futureAtom<A>(
   AtomReader<Future<A>> create,
 ) =>
-    AtomWithParent(atomWithRefresh(create), (get, future) {
+    AtomWithParent(atom(create), (get, future) {
       bool disposed = false;
       get.onDispose(() => disposed = true);
 

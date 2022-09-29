@@ -1,3 +1,7 @@
+## 0.1.9
+
+- Add refreshAtom to BuildContext
+
 ## 0.1.8
 
 - Update deps

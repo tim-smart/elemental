@@ -1,3 +1,15 @@
+## 0.1.35
+
+- Allow refreshSelf even when not externally refreshable
+
+## 0.1.34
+
+- Add refreshSelf to AtomContext
+
+## 0.1.33
+
+- Add `refresh` to registry
+
 ## 0.1.32
 
 - Rename `Tuple` to `FamilyArg`

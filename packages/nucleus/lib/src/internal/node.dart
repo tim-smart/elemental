@@ -24,17 +24,17 @@ class Node {
 
   var state = NodeState.uninitialized;
 
-  Relation? parent;
-  Relation? previousParent;
-  Relation? child;
-  Listener? listener;
+  Relation? parents;
+  Relation? previousParents;
+  Relation? children;
+  Listener? listeners;
 
   ReadLifetime? _lifetime;
 
   bool get canBeRemoved =>
       !atom.shouldKeepAlive &&
-      listener == null &&
-      child == null &&
+      listeners == null &&
+      children == null &&
       state != NodeState.removed;
 
   dynamic _value;
@@ -44,16 +44,17 @@ class Node {
     if (state.waitingForValue) {
       _lifetime = ReadLifetime(this);
 
-      final value = atom.$read(_lifetime!);
+      final value = atom.$$read(_lifetime!);
       if (state.waitingForValue) {
         setValue(value);
       }
 
       // Removed orphaned parents
-      if (previousParent != null) {
-        var relation = previousParent;
+      if (previousParents != null) {
+        var relation = previousParents;
+        previousParents = null;
         while (relation != null) {
-          if (parent?.contains(relation.node) != true) {
+          if (parents?.contains(relation.node) != true) {
             relation.node.removeChild(this);
             if (relation.node.canBeRemoved) {
               registry._scheduleNodeRemoval(relation.node);
@@ -62,8 +63,6 @@ class Node {
 
           relation = relation.next;
         }
-
-        previousParent = null;
       }
     }
 
@@ -73,26 +72,26 @@ class Node {
   void addParent(Node node) {
     assert(state.alive);
 
-    parent = Relation(
+    parents = Relation(
       node: node,
-      next: parent,
+      next: parents,
     );
 
     // Add to parent children
-    if (node.child?.contains(this) != true) {
-      node.child = Relation(
+    if (node.children?.contains(this) != true) {
+      node.children = Relation(
         node: this,
-        next: node.child,
+        next: node.children,
       );
     }
   }
 
   void removeChild(Node node) {
-    if (child?.node == node) {
-      child = child!.next;
-      child?.previous = null;
+    if (children?.node == node) {
+      children = children!.next;
+      children?.previous = null;
     } else {
-      child?.remove(node);
+      children?.remove(node);
     }
   }
 
@@ -117,11 +116,13 @@ class Node {
     notifyListeners();
   }
 
-  void invalidate(Node parent) {
-    assert(state == NodeState.valid);
+  void invalidate() {
+    assert(state.alive);
 
-    state = NodeState.stale;
-    disposeLifetime();
+    if (state == NodeState.valid) {
+      state = NodeState.stale;
+      disposeLifetime();
+    }
 
     // Rebuild
     value;
@@ -130,15 +131,15 @@ class Node {
   void invalidateChildren() {
     assert(state == NodeState.valid);
 
-    if (child == null) {
+    if (children == null) {
       return;
     }
 
-    var relation = child;
-    child = null;
+    var relation = children;
+    children = null;
 
     while (relation != null) {
-      relation.node.invalidate(this);
+      relation.node.invalidate();
       relation = relation.next;
     }
   }
@@ -146,11 +147,11 @@ class Node {
   void notifyListeners() {
     assert(state.initialized, state.toString());
 
-    if (listener == null) {
+    if (listeners == null) {
       return;
     }
 
-    var next = listener;
+    var next = listeners;
     while (next != null) {
       next.fn();
       next = next.next;
@@ -163,13 +164,12 @@ class Node {
       _lifetime = null;
     }
 
-    previousParent = parent;
-    parent = null;
+    previousParents = parents;
+    parents = null;
   }
 
   void remove() {
     assert(canBeRemoved);
-    assert(state.alive);
 
     state = NodeState.removed;
 
@@ -179,11 +179,12 @@ class Node {
 
     disposeLifetime();
 
-    if (previousParent == null) {
+    if (previousParents == null) {
       return;
     }
 
-    var relation = previousParent;
+    var relation = previousParents;
+    previousParents = null;
     while (relation != null) {
       relation.node.removeChild(this);
       if (relation.node.canBeRemoved) {
@@ -192,20 +193,18 @@ class Node {
 
       relation = relation.next;
     }
-
-    previousParent = null;
   }
 
   void Function() addListener(void Function() handler) {
     final l = Listener(
       fn: handler,
-      next: listener,
+      next: listeners,
     );
-    listener = l;
+    listeners = l;
 
     return () {
-      if (listener == l) {
-        listener = l.next;
+      if (listeners == l) {
+        listeners = l.next;
         l.next?.previous = null;
       } else {
         l.previous!.next = l.next;

@@ -26,7 +26,12 @@ class AtomRegistry {
 
   /// Set the state of a [WritableAtom].
   void set<R, W>(WritableAtom<R, W> atom, W value) =>
-      atom.write(get, set, _ensureNode(atom).setValue, value);
+      atom.$write(get, set, _ensureNode(atom).setValue, value);
+
+  /// Manually recalculate an [atom]'s value.
+  void refresh(Atom atom) {
+    atom.$refresh(_refresh);
+  }
 
   /// Listen to changes of an atom's state.
   ///
@@ -131,6 +136,11 @@ class AtomRegistry {
     return Node(this, atom);
   }
 
+  void _refresh(Atom atom) {
+    assert(atom.isRefreshable);
+    _ensureNode(atom).invalidate();
+  }
+
   void _maybeRemoveAtom(Atom atom) {
     final node = nodes[atom];
     if (node != null && node.canBeRemoved) {
@@ -149,7 +159,7 @@ class AtomRegistry {
   void _removeNode(Node node) {
     assert(node.canBeRemoved);
 
-    var relation = node.parent;
+    var relation = node.parents;
 
     nodes[node.atom] = null;
     node.remove();

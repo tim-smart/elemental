@@ -8,7 +8,13 @@ part of '../atoms.dart';
 /// written (see [WritableAtom]).
 abstract class Atom<T> {
   /// Used by the registry to read the atoms value.
-  T read(AtomContext<T> ctx);
+  T $read(AtomContext<T> ctx);
+
+  /// Used by the registry.
+  T $$read(AtomContext ctx) => $read(_AtomContextProxy._(ctx));
+
+  /// Determines refresh behaviour.
+  void $refresh(void Function(Atom atom) refresh) => refresh(this);
 
   /// Should this atoms state be kept, even if it isnt being used?
   ///
@@ -19,6 +25,16 @@ abstract class Atom<T> {
   /// Prevent the state of this atom from being automatically disposed.
   void keepAlive() {
     _keepAlive = true;
+  }
+
+  var _refreshable = false;
+
+  /// Determines whether the atom can be manually refreshed.
+  bool get isRefreshable => _refreshable;
+
+  /// Allow this atom to be manually refreshed
+  void refreshable() {
+    _refreshable = true;
   }
 
   /// Set a name for debugging
@@ -33,9 +49,6 @@ abstract class Atom<T> {
   /// [AtomRegistry].
   AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
 
-  /// Used by the registry.
-  T $read(AtomContext ctx) => read(_AtomContextProxy._(ctx));
-
   @override
   String toString() => "$runtimeType(name: $name)";
 }
@@ -44,10 +57,10 @@ abstract class Atom<T> {
 abstract class WritableAtom<R, W> extends Atom<R> {
   /// When the atom recieves a write with the given [value], this method
   /// determines the outcome.
-  void write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
+  void $write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value);
 }
 
-/// Passed to the [Atom.read] method, allowing you to interact with other atoms
+/// Passed to the [Atom.$read] method, allowing you to interact with other atoms
 /// and manage the lifecycle of your state.
 abstract class AtomContext<T> {
   /// Get the value for the given [atom].
@@ -64,6 +77,12 @@ abstract class AtomContext<T> {
 
   /// Set the value for the current atom.
   void setSelf(T value);
+
+  /// Refresh the givem [atom].
+  void refresh(Atom atom);
+
+  /// Refresh the current atom
+  void refreshSelf();
 
   /// Subscribe to the given [atom].
   void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler);
@@ -103,6 +122,12 @@ class _AtomContextProxy<T> implements AtomContext<T> {
 
   @override
   void setSelf(T value) => _parent.setSelf(value);
+
+  @override
+  void refresh(Atom atom) => _parent.refresh(atom);
+
+  @override
+  void refreshSelf() => _parent.refreshSelf();
 
   @override
   void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler) =>

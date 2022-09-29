@@ -3,15 +3,14 @@
 import 'package:nucleus/nucleus.dart';
 
 /// Represents an [AtomWithParent] for a streaming operation.
-typedef StreamAtom<A>
-    = AtomWithParent<FutureValue<A>, WritableAtom<Stream<A>, Null>>;
+typedef StreamAtom<A> = AtomWithParent<FutureValue<A>, Atom<Stream<A>>>;
 
 StreamAtom<A> streamAtom<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
 }) =>
     AtomWithParent(
-      atomWithRefresh((get) => create(get).asBroadcastStream()),
+      atom((get) => create(get).asBroadcastStream()),
       (get, stream) {
         A? currentData;
 
