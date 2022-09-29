@@ -42,7 +42,7 @@ class ReadLifetime implements AtomContext<dynamic> {
   void refreshSelf() {
     assert(!_disposed);
     assert(node.state == NodeState.valid);
-    registry.refresh(node.atom);
+    node.invalidate();
   }
 
   @override

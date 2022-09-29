@@ -14,8 +14,7 @@ void main() {
         c.stream.first.then((_) => get.refreshSelf());
         return count++;
       })
-        ..keepAlive()
-        ..refreshable();
+        ..keepAlive();
 
       expect(registry.get(a), 0);
       expect(registry.get(a), 0);
