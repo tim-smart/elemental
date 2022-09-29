@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
@@ -39,6 +40,13 @@ class AtomScope extends InheritedWidget {
         ? context.dependOnInheritedWidgetOfExactType<AtomScope>()
         : (context.getElementForInheritedWidgetOfExactType<AtomScope>()?.widget
             as AtomScope?);
+
+    if (kDebugMode && scope == null) {
+      // ignore: avoid_print
+      print(
+          "WARNING: You are using nucleus without an AtomScope in your widget tree."
+          "Add an AtomScope widget in runApp() to remove this warning.");
+    }
 
     return scope?.registry ?? defaultRegistry;
   }
