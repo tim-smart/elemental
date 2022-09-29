@@ -1,3 +1,15 @@
+## 0.1.32
+
+- Rename `Tuple` to `FamilyArg`
+
+## 0.1.31
+
+- Hide tuple classes from exports
+
+## 0.1.30
+
+- Use `atomWithRefresh` for `futureAtom` and `streamAtom`
+
 ## 0.1.29
 
 - Add `combineWith` and `combineWith2` to `FutureValue`.

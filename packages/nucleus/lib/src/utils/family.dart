@@ -36,28 +36,30 @@ A Function(Arg arg) weakAtomFamily<A extends Atom, Arg>(
   };
 }
 
-class Tuple2<A, B> {
-  const Tuple2(this.first, this.second);
+class FamilyArg2<A, B> {
+  const FamilyArg2(this.first, this.second);
   final A first;
   final B second;
 
   @override
   operator ==(other) =>
-      other is Tuple2<A, B> && other.first == first && other.second == second;
+      other is FamilyArg2<A, B> &&
+      other.first == first &&
+      other.second == second;
 
   @override
   int get hashCode => Object.hash(runtimeType, first, second);
 }
 
-class Tuple3<A, B, C> {
-  const Tuple3(this.first, this.second, this.third);
+class FamilyArg3<A, B, C> {
+  const FamilyArg3(this.first, this.second, this.third);
   final A first;
   final B second;
   final C third;
 
   @override
   operator ==(other) =>
-      other is Tuple3<A, B, C> &&
+      other is FamilyArg3<A, B, C> &&
       other.first == first &&
       other.second == second &&
       other.third == third;
@@ -71,9 +73,9 @@ A Function(Arg1 a, Arg2 b) atomFamily2<Arg1, Arg2, A extends Atom>(
   A Function(Arg1 a, Arg2 b) create,
 ) {
   final family =
-      atomFamily((Tuple2<Arg1, Arg2> t) => create(t.first, t.second));
+      atomFamily((FamilyArg2<Arg1, Arg2> t) => create(t.first, t.second));
 
-  return (a, b) => family(Tuple2(a, b));
+  return (a, b) => family(FamilyArg2(a, b));
 }
 
 /// A three argument variant of [atomFamily].
@@ -82,7 +84,7 @@ A Function(Arg1 a, Arg2 b, Arg3 c)
   A Function(Arg1 a, Arg2 b, Arg3 c) create,
 ) {
   final family = atomFamily(
-      (Tuple3<Arg1, Arg2, Arg3> t) => create(t.first, t.second, t.third));
+      (FamilyArg3<Arg1, Arg2, Arg3> t) => create(t.first, t.second, t.third));
 
-  return (a, b, c) => family(Tuple3(a, b, c));
+  return (a, b, c) => family(FamilyArg3(a, b, c));
 }

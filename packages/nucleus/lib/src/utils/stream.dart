@@ -1,14 +1,17 @@
+// ignore_for_file: prefer_void_to_null
+
 import 'package:nucleus/nucleus.dart';
 
 /// Represents an [AtomWithParent] for a streaming operation.
-typedef StreamAtom<A> = AtomWithParent<FutureValue<A>, Atom<Stream<A>>>;
+typedef StreamAtom<A>
+    = AtomWithParent<FutureValue<A>, WritableAtom<Stream<A>, Null>>;
 
 StreamAtom<A> streamAtom<A>(
   AtomReader<Stream<A>> create, {
   A? initialValue,
 }) =>
     AtomWithParent(
-      ReadOnlyAtom((get) => create(get).asBroadcastStream()),
+      atomWithRefresh((get) => create(get).asBroadcastStream()),
       (get, stream) {
         A? currentData;
 

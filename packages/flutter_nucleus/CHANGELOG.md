@@ -1,3 +1,8 @@
+## 0.1.8
+
+- Update deps
+- Add warning if using without an AtomScope
+
 ## 0.1.7
 
 - Use SchedulerBinding for post frame callbacks

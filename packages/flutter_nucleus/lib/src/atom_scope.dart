@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_nucleus/flutter_nucleus.dart';
 // ignore: implementation_imports
@@ -39,6 +39,16 @@ class AtomScope extends InheritedWidget {
         ? context.dependOnInheritedWidgetOfExactType<AtomScope>()
         : (context.getElementForInheritedWidgetOfExactType<AtomScope>()?.widget
             as AtomScope?);
+
+    assert(() {
+      if (scope == null) {
+        // ignore: avoid_print
+        print(
+            "WARNING: You are using nucleus without an AtomScope in your widget tree."
+            "Add an AtomScope widget in runApp() to remove this warning.");
+      }
+      return true;
+    }());
 
     return scope?.registry ?? defaultRegistry;
   }
