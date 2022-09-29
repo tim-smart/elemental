@@ -159,7 +159,7 @@ class AtomRegistry {
   void _removeNode(Node node) {
     assert(node.canBeRemoved);
 
-    var relation = node.parent;
+    var relation = node.parents;
 
     nodes[node.atom] = null;
     node.remove();
