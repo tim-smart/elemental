@@ -10,6 +10,9 @@ abstract class Atom<T> {
   /// Used by the registry to read the atoms value.
   T read(AtomContext<T> ctx);
 
+  /// Determines refresh behaviour.
+  void refresh(void Function(Atom atom) refresh) => refresh(this);
+
   /// Should this atoms state be kept, even if it isnt being used?
   ///
   /// Defaults to `false`.

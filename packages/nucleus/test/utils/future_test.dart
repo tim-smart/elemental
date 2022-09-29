@@ -41,14 +41,15 @@ void main() {
       final a = futureAtom((get) async {
         await Future.microtask(() {});
         return 123;
-      });
+      })
+        ..refreshable();
 
       await store.use(a, () async {
         expect(store.get(a), FutureValue.loading());
         await store.get(a.parent);
         expect(store.get(a), FutureValue.data(123));
 
-        store.set(a.parent, null);
+        store.refresh(a);
 
         expect(store.get(a), FutureValue.loading(123));
         await store.get(a.parent);

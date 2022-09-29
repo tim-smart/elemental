@@ -30,8 +30,7 @@ class AtomRegistry {
 
   /// Manually recalculate an [atom]'s value.
   void refresh(Atom atom) {
-    assert(atom.isRefreshable);
-    _ensureNode(atom).invalidate();
+    atom.refresh(_refresh);
   }
 
   /// Listen to changes of an atom's state.
@@ -135,6 +134,11 @@ class AtomRegistry {
       _scheduler.runPostFrame(() => _maybeRemoveAtom(atom));
     }
     return Node(this, atom);
+  }
+
+  void _refresh(Atom atom) {
+    assert(atom.isRefreshable);
+    _ensureNode(atom).invalidate();
   }
 
   void _maybeRemoveAtom(Atom atom) {
