@@ -18,6 +18,10 @@ extension NucleusBuildContextExt on BuildContext {
     return (f) => registry.set(atom, f(registry.get(atom)));
   }
 
+  /// Refresh an atom.
+  void refreshAtom(Atom atom) =>
+      AtomScope.registryOf(this, listen: false).refresh(atom);
+
   AtomRegistry registry({listen = true}) =>
       AtomScope.registryOf(this, listen: listen);
 }
