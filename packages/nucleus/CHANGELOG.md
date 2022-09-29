@@ -1,3 +1,7 @@
+## 0.1.32
+
+- Rename `Tuple` to `FamilyArg`
+
 ## 0.1.31
 
 - Hide tuple classes from exports
