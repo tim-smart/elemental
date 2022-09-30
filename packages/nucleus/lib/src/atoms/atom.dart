@@ -47,7 +47,18 @@ abstract class Atom<T> {
 
   /// Create an initial value override, which can be given to an [AtomScope] or
   /// [AtomRegistry].
-  AtomInitialValue withInitialValue(T value) => AtomInitialValue(this, value);
+  ///
+  /// By default it calls [Atom.keepAlive], to ensure the initial value is not
+  /// disposed.
+  AtomInitialValue withInitialValue(
+    T value, {
+    bool keepAlive = true,
+  }) {
+    if (keepAlive) {
+      this.keepAlive();
+    }
+    return AtomInitialValue(this, value);
+  }
 
   @override
   String toString() => "$runtimeType(name: $name)";

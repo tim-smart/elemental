@@ -1,3 +1,7 @@
+## 0.1.36
+
+- Call `keepAlive()` in `withInitialValue`
+
 ## 0.1.35
 
 - Allow refreshSelf even when not externally refreshable
