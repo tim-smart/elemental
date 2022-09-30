@@ -1,3 +1,7 @@
+## 0.1.38
+
+- Add `get.once` to AtomContext
+
 ## 0.1.37
 
 - Add fireImmediately to subscribe on AtomContext
