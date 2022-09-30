@@ -1,3 +1,7 @@
+## 0.1.37
+
+- Add fireImmediately to subscribe on AtomContext
+
 ## 0.1.36
 
 - Call `keepAlive()` in `withInitialValue`

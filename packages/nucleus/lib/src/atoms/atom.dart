@@ -96,13 +96,18 @@ abstract class AtomContext<T> {
   void refreshSelf();
 
   /// Subscribe to the given [atom].
-  void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler);
+  void Function() subscribe<A>(
+    Atom<A> atom,
+    void Function(A value) handler, {
+    bool fireImmediately = false,
+  });
 
   /// Subscribe to the given [atom].
   void Function() subscribeWithPrevious<A>(
     Atom<A> atom,
-    void Function(A? previous, A value) handler,
-  );
+    void Function(A? previous, A value) handler, {
+    bool fireImmediately = false,
+  });
 
   /// Subscribe to the given [atom].
   Stream<A> stream<A>(Atom<A> atom);
@@ -141,8 +146,12 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   void refreshSelf() => _parent.refreshSelf();
 
   @override
-  void Function() subscribe<A>(Atom<A> atom, void Function(A value) handler) =>
-      _parent.subscribe(atom, handler);
+  void Function() subscribe<A>(
+    Atom<A> atom,
+    void Function(A value) handler, {
+    bool fireImmediately = false,
+  }) =>
+      _parent.subscribe(atom, handler, fireImmediately: fireImmediately);
 
   @override
   Stream<A> stream<A>(Atom<A> atom) => _parent.stream(atom);
@@ -150,9 +159,11 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   @override
   void Function() subscribeWithPrevious<A>(
     Atom<A> atom,
-    void Function(A? previous, A value) handler,
-  ) =>
-      _parent.subscribeWithPrevious(atom, handler);
+    void Function(A? previous, A value) handler, {
+    bool fireImmediately = false,
+  }) =>
+      _parent.subscribeWithPrevious(atom, handler,
+          fireImmediately: fireImmediately);
 
   @override
   void onDispose(void Function() cb) => _parent.onDispose(cb);
