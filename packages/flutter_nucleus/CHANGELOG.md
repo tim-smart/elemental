@@ -1,3 +1,9 @@
+## 0.1.10
+
+- Add `changeNotifierAtom`
+- Add `valueNotifierAtom`
+- Add `valueListenableAtom`
+
 ## 0.1.9
 
 - Add refreshAtom to BuildContext
