@@ -14,6 +14,13 @@ extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
+  Atom<B> rawSelect<B>(B Function(FutureValue<A> value) f) =>
+      ReadOnlyAtom((get) => f(get(this)));
+
+  /// Create a derived atom, that transforms an atoms value using the given
+  /// function [f].
+  ///
+  /// Only rebuilds when the selected value changes.
   Atom<FutureValue<B>> select<B>(B Function(A value) f) => ReadOnlyAtom((get) {
         final value = get(this).map(f);
         if (value.dataOrNull != null) {

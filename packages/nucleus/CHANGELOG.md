@@ -1,3 +1,7 @@
+## 0.1.39
+
+- Add `rawSelect` to FutureValue extension
+
 ## 0.1.38
 
 - Add `get.once` to AtomContext
