@@ -24,6 +24,9 @@ class ReadLifetime implements AtomContext<dynamic> {
   }
 
   @override
+  R once<R>(Atom<R> atom) => registry.get(atom);
+
+  @override
   dynamic self() => node._value;
 
   @override

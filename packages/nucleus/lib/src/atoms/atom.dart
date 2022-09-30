@@ -80,6 +80,9 @@ abstract class AtomContext<T> {
   /// Get the value for the given [atom].
   R get<R>(Atom<R> atom);
 
+  /// Get the value for the given [atom] once.
+  R once<R>(Atom<R> atom);
+
   /// Get the value of the current atom.
   T? self();
 
@@ -132,6 +135,9 @@ class _AtomContextProxy<T> implements AtomContext<T> {
 
   @override
   A get<A>(Atom<A> atom) => _parent.get(atom);
+
+  @override
+  R once<R>(Atom<R> atom) => _parent.once(atom);
 
   @override
   void set<R, W>(WritableAtom<R, W> atom, W value) => _parent.set(atom, value);
