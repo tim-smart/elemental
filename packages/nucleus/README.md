@@ -1,6 +1,6 @@
 # nucleus
 
-An atomic state management library for dart.
+An atomic dependency and state management toolkit.
 
 ## Design goals
 
