@@ -136,6 +136,10 @@ If you want to allow your atom to be refreshed / rebuilt externally, then call
 final userRepository = atom((get) => UserRepository(
   httpClient: get(httpClient), // Here we are accessing another atom within our atom
 )).refreshable();
+
+// them using a BuildContext:
+
+context.refreshAtom(userRepository);
 ```
 
 The `get` parameter is actually an `AtomContext` instance, which also has some
