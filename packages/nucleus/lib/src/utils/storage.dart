@@ -21,7 +21,7 @@ class MemoryNucleusStorage implements NucleusStorage {
 
 /// Create a [stateAtom], except it's value is persisted to a [NucleusStorage]
 /// instance.
-WritableAtom<A, A> stateAtomWithStorage<A>(
+ProxyAtom<A, A> stateAtomWithStorage<A>(
   A initialValue, {
   required Atom<NucleusStorage> storage,
   required String key,
@@ -56,7 +56,7 @@ typedef AtomWithStorageCreate<R, A> = R Function(
 /// Create an atom that can read and write to a [NucleusStorage] instance.
 ///
 /// Can be used to wrap other state management tools with persistence.
-Atom<R> atomWithStorage<R, A>(
+ReadOnlyAtom<R> atomWithStorage<R, A>(
   AtomWithStorageCreate<R, A> create, {
   required String key,
   required Atom<NucleusStorage> storage,

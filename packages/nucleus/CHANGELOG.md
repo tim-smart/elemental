@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Fix util types
+
 ## 0.2.2
 
 - Fix atomWithParent propogation
