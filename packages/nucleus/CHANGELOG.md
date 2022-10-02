@@ -1,3 +1,7 @@
+## 0.3.4
+
+- Add FutureValue extension methods for atoms without a parent
+
 ## 0.3.3
 
 - Relax FutureValue select Parent type
