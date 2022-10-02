@@ -1,32 +1,29 @@
 part of '../atoms.dart';
 
 /// See [atom].
-class ReadOnlyAtom<Value> extends Atom<Value>
-    with
-        AtomConfigMixin<ReadOnlyAtom<Value>>,
-        RefreshableAtomMixin<RefreshableReadOnlyAtom<Value>> {
-  ReadOnlyAtom(this._reader);
+class ReadOnlyAtomBase<Value> extends Atom<Value> {
+  ReadOnlyAtomBase(this.reader);
 
-  final AtomReader<Value> _reader;
+  final AtomReader<Value> reader;
 
   @override
-  Value $read(ctx) => _reader(ctx);
-
-  @override
-  RefreshableReadOnlyAtom<Value> refreshable() =>
-      RefreshableReadOnlyAtom(_reader);
+  Value $read(ctx) => reader(ctx);
 }
 
 /// See [atom].
-class RefreshableReadOnlyAtom<Value> extends Atom<Value>
-    with AtomConfigMixin<RefreshableReadOnlyAtom<Value>>, RefreshableAtom {
-  RefreshableReadOnlyAtom(this._reader);
-
-  final AtomReader<Value> _reader;
+class ReadOnlyAtom<T> extends ReadOnlyAtomBase<T>
+    with
+        AtomConfigMixin<ReadOnlyAtom<T>>,
+        RefreshableAtomMixin<RefreshableReadOnlyAtom<T>> {
+  ReadOnlyAtom(super.reader);
 
   @override
-  Value $read(ctx) => _reader(ctx);
+  RefreshableReadOnlyAtom<T> refreshable() => RefreshableReadOnlyAtom(reader);
 }
+
+/// See [atom].
+class RefreshableReadOnlyAtom<T> = ReadOnlyAtomBase<T>
+    with AtomConfigMixin<RefreshableReadOnlyAtom<T>>, RefreshableAtom;
 
 /// Create a read only atom that can interact with other atom's to create
 /// derived state.

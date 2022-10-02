@@ -41,7 +41,7 @@ abstract class Atom<T> {
   String toString() => "$runtimeType(name: $name)";
 }
 
-mixin AtomConfigMixin<A extends Atom> {
+class AtomConfigMixin<A extends Atom> {
   /// Prevent the state of this atom from being automatically disposed.
   A keepAlive() {
     (this as A)._keepAlive = true;
@@ -61,6 +61,8 @@ mixin RefreshableAtom {
 }
 
 mixin RefreshableAtomMixin<A extends RefreshableAtom> {
+  /// Create a refreshable version of this atom, which can be used with
+  /// [AtomRegistry.refresh] or [AtomContext.refresh].
   A refreshable();
 }
 

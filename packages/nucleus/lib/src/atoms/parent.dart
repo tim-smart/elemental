@@ -1,41 +1,33 @@
 part of '../atoms.dart';
 
 /// See [atomWithParent].
-class AtomWithParent<A, Parent extends Atom> extends Atom<A>
+class AtomWithParentBase<A, Parent extends Atom> extends Atom<A> {
+  AtomWithParentBase(this.parent, this.reader);
+
+  /// The parent [Atom].
+  final Parent parent;
+  final A Function(AtomContext<A>, Parent parent) reader;
+
+  @override
+  A $read(AtomContext<A> ctx) => reader(ctx, parent);
+}
+
+class AtomWithParent<A, Parent extends Atom>
+    extends AtomWithParentBase<A, Parent>
     with
         AtomConfigMixin<AtomWithParent<A, Parent>>,
         RefreshableAtomMixin<RefreshableAtomWithParent<A, Parent>> {
-  AtomWithParent(this.parent, this._reader);
-
-  /// The parent [Atom].
-  final Parent parent;
-  final A Function(AtomContext<A>, Parent parent) _reader;
-
-  @override
-  A $read(AtomContext<A> ctx) => _reader(ctx, parent);
+  AtomWithParent(super.parent, super.reader);
 
   @override
   RefreshableAtomWithParent<A, Parent> refreshable() =>
-      RefreshableAtomWithParent(parent, _reader);
+      RefreshableAtomWithParent(parent, reader);
 }
 
 /// See [atomWithParent].
-class RefreshableAtomWithParent<A, Parent extends Atom> extends Atom<A>
-    with
-        AtomConfigMixin<RefreshableAtomWithParent<A, Parent>>,
-        RefreshableAtom {
-  RefreshableAtomWithParent(this.parent, this._reader);
-
-  /// The parent [Atom].
-  final Parent parent;
-  final A Function(AtomContext<A>, Parent parent) _reader;
-
-  @override
-  A $read(AtomContext<A> ctx) => _reader(ctx, parent);
-
-  @override
-  void $refresh(void Function(Atom atom) refresh) => refresh(parent);
-}
+class RefreshableAtomWithParent<A, Parent extends Atom> = AtomWithParentBase<A,
+        Parent>
+    with AtomConfigMixin<RefreshableAtomWithParent<A, Parent>>, RefreshableAtom;
 
 /// Create an [Atom] that is linked to a parent [Atom].
 ///

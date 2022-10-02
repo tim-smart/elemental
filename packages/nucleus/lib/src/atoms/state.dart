@@ -1,42 +1,33 @@
 part of '../atoms.dart';
 
 /// See [stateAtom].
-class StateAtom<Value> extends WritableAtom<Value, Value>
-    with
-        AtomConfigMixin<StateAtom<Value>>,
-        RefreshableAtomMixin<RefreshableStateAtom<Value>> {
-  StateAtom(this.initialValue);
+class StateAtomBase<T> extends WritableAtom<T, T> {
+  StateAtomBase(this.initialValue);
 
-  /// The [Value] that this atom contains when first read.
-  final Value initialValue;
+  /// The [T] that this atom contains when first read.
+  final T initialValue;
 
   @override
-  Value $read(ctx) => initialValue;
+  T $read(ctx) => initialValue;
 
   @override
-  void $write(GetAtom get, SetAtom set, SetSelf<Value> setSelf, Value value) =>
+  void $write(GetAtom get, SetAtom set, SetSelf<T> setSelf, T value) =>
       setSelf(value);
+}
+
+class StateAtom<T> extends StateAtomBase<T>
+    with
+        AtomConfigMixin<StateAtom<T>>,
+        RefreshableAtomMixin<RefreshableStateAtom<T>> {
+  StateAtom(super.initialValue);
 
   @override
-  RefreshableStateAtom<Value> refreshable() =>
-      RefreshableStateAtom(initialValue);
+  RefreshableStateAtom<T> refreshable() => RefreshableStateAtom(initialValue);
 }
 
 /// See [stateAtom].
-class RefreshableStateAtom<Value> extends WritableAtom<Value, Value>
-    with AtomConfigMixin<RefreshableStateAtom<Value>>, RefreshableAtom {
-  RefreshableStateAtom(this.initialValue);
-
-  /// The [Value] that this atom contains when first read.
-  final Value initialValue;
-
-  @override
-  Value $read(ctx) => initialValue;
-
-  @override
-  void $write(GetAtom get, SetAtom set, SetSelf<Value> setSelf, Value value) =>
-      setSelf(value);
-}
+class RefreshableStateAtom<T> = StateAtomBase<T>
+    with AtomConfigMixin<RefreshableStateAtom<T>>, RefreshableAtom;
 
 /// Create a simple atom with mutable state.
 ///
