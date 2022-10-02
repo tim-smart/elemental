@@ -1,3 +1,7 @@
+## 0.2.1
+
+- DRY for refreshable atom types
+
 ## 0.2.0
 
 - Change configuration methods on atoms to not return void
