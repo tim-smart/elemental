@@ -5,23 +5,29 @@ extension AtomExtension<A> on Atom<A> {
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  Atom<B> select<B>(B Function(A value) f) =>
-      ReadOnlyAtom((get) => f(get(this)));
+  AtomWithParent<B, Atom<A>> select<B>(B Function(A value) f) =>
+      AtomWithParent(this, (get, parent) => f(get(parent)));
 }
 
-extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
+extension FutureValueAtomExtension<A, P>
+    on AtomWithParent<FutureValue<A>, Atom<Future<P>>> {
   /// Create a derived atom, that transforms an atoms value using the given
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  Atom<B> rawSelect<B>(B Function(FutureValue<A> value) f) =>
-      ReadOnlyAtom((get) => f(get(this)));
+  AtomWithParent<B, Atom<Future<P>>> rawSelect<B>(
+    B Function(FutureValue<A> value) f,
+  ) =>
+      AtomWithParent(parent, (get, parent) => f(get(this)));
 
   /// Create a derived atom, that transforms an atoms value using the given
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  Atom<FutureValue<B>> select<B>(B Function(A value) f) => ReadOnlyAtom((get) {
+  AtomWithParent<FutureValue<B>, Atom<Future<P>>> select<B>(
+    B Function(A value) f,
+  ) =>
+      AtomWithParent(parent, (get, parent) {
         final value = get(this).map(f);
         if (value.dataOrNull != null) {
           // ignore: null_check_on_nullable_type_parameter
@@ -40,11 +46,11 @@ extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  Atom<Future<B>> asyncSelect<B>(B Function(A value) f) => atomWithParent(
-        select(f),
-        (get, Atom<FutureValue<B>> parent) => get(parent).whenOrElse(
-          data: Future.value,
-          orElse: () => Future.any([]),
-        ),
-      );
+  AtomWithParent<Future<B>, Atom<Future<P>>> asyncSelect<B>(
+    B Function(A value) f,
+  ) =>
+      select(f).rawSelect((a) => a.whenOrElse(
+            data: Future.value,
+            orElse: () => Future.any([]),
+          ));
 }

@@ -16,10 +16,9 @@ abstract class Atom<T> {
   bool get shouldKeepAlive => _keepAlive;
   bool _keepAlive = false;
 
-  String? _name;
-
   /// Debug name for this atom
   String? get name => _name;
+  String? _name;
 
   /// Create an initial value override, which can be given to an [AtomScope] or
   /// [AtomRegistry].

@@ -27,7 +27,7 @@ class AtomWithParent<A, Parent extends Atom>
 
   @override
   AtomWithParent<A, Parent> setName(String name) {
-    parent._name = '$name.parent';
+    parent._name ??= '$name.parent';
     return super.setName(name);
   }
 
@@ -46,7 +46,7 @@ class RefreshableAtomWithParent<A, Parent extends Atom>
 
   @override
   RefreshableAtomWithParent<A, Parent> setName(String name) {
-    parent._name = '$name.parent';
+    parent._name ??= '$name.parent';
     return super.setName(name);
   }
 

@@ -154,5 +154,39 @@ void main() {
         ]),
       );
     });
+
+    test('is refreshable', () async {
+      final registry = AtomRegistry();
+
+      var count = 1;
+      final futureUser = futureAtom((get) async {
+        await Future.microtask(() {});
+        return {
+          'id': count++,
+          'name': 'Tim',
+        };
+      });
+
+      final id = futureUser.select((u) => u['id'] as int).refreshable();
+      final idValues = <FutureValue<int>>[];
+      registry.subscribe(id, idValues.add, fireImmediately: true);
+
+      await registry.get(futureUser.parent);
+
+      expect(idValues, equals([FutureValue.loading(), FutureValue.data(1)]));
+
+      registry.refresh(id);
+
+      await registry.get(futureUser.parent);
+
+      expect(
+        idValues,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data(1),
+          FutureValue.data(2),
+        ]),
+      );
+    });
   });
 }

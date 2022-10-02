@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Update FutureValue select method to use AtomWithParent
+
 ## 0.3.1
 
 - Update README
