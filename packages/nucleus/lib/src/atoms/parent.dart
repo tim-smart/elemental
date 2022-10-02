@@ -1,7 +1,10 @@
 part of '../atoms.dart';
 
 /// See [atomWithParent].
-class AtomWithParent<A, Parent extends Atom> extends Atom<A> {
+class AtomWithParent<A, Parent extends Atom> extends Atom<A>
+    with
+        AtomConfigMixin<AtomWithParent<A, Parent>>,
+        RefreshableAtomMixin<RefreshableAtomWithParent<A, Parent>> {
   AtomWithParent(this.parent, this._reader);
 
   /// The parent [Atom].
@@ -9,15 +12,23 @@ class AtomWithParent<A, Parent extends Atom> extends Atom<A> {
   final A Function(AtomContext<A>, Parent parent) _reader;
 
   @override
-  void keepAlive() {
-    parent.keepAlive();
-    super.keepAlive();
-  }
+  A $read(AtomContext<A> ctx) => _reader(ctx, parent);
 
   @override
-  void refreshable() {
-    parent.refreshable();
-  }
+  RefreshableAtomWithParent<A, Parent> refreshable() =>
+      RefreshableAtomWithParent(parent, _reader);
+}
+
+/// See [atomWithParent].
+class RefreshableAtomWithParent<A, Parent extends Atom> extends Atom<A>
+    with
+        AtomConfigMixin<RefreshableAtomWithParent<A, Parent>>,
+        RefreshableAtom {
+  RefreshableAtomWithParent(this.parent, this._reader);
+
+  /// The parent [Atom].
+  final Parent parent;
+  final A Function(AtomContext<A>, Parent parent) _reader;
 
   @override
   A $read(AtomContext<A> ctx) => _reader(ctx, parent);

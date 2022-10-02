@@ -13,8 +13,7 @@ void main() {
       final a = atom((get) {
         c.stream.first.then((_) => get.refreshSelf());
         return count++;
-      })
-        ..keepAlive();
+      }).keepAlive();
 
       expect(registry.get(a), 0);
       expect(registry.get(a), 0);

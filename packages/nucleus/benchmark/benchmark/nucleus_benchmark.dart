@@ -2,8 +2,8 @@ import 'package:nucleus/nucleus.dart';
 
 import 'utils.dart';
 
-final value = stateAtom(0)..keepAlive();
-final family = atomFamily((int i) => stateAtom(i)..keepAlive());
+final value = stateAtom(0).keepAlive();
+final family = atomFamily((int i) => stateAtom(i).keepAlive());
 final familyWeak = weakAtomFamily((int i) => stateAtom(i));
 final nested = atom((get) => List.generate(
       10000,

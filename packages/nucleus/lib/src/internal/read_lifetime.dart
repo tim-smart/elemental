@@ -36,7 +36,7 @@ class ReadLifetime implements AtomContext<dynamic> {
   }
 
   @override
-  void refresh(Atom atom) {
+  void refresh(RefreshableAtom atom) {
     assert(!_disposed);
     registry.refresh(atom);
   }

@@ -19,8 +19,7 @@ final delayed123KeepAlive = streamAtom((get) async* {
   yield 2;
   await Future.microtask(() {});
   yield 3;
-})
-  ..keepAlive();
+}).keepAlive();
 
 void main() {
   group('streamAtom', () {

@@ -118,7 +118,7 @@ void main() {
     });
 
     test('dependencies are not orphaned', () async {
-      final count = stateAtom(0)..keepAlive();
+      final count = stateAtom(0).keepAlive();
       final selectAtoms = <Atom<int>>[];
       final derived = atom((get) {
         final plusOne = count.select((i) => i + 1);

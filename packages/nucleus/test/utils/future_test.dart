@@ -41,8 +41,7 @@ void main() {
       final a = futureAtom((get) async {
         await Future.microtask(() {});
         return 123;
-      })
-        ..refreshable();
+      }).refreshable();
 
       await store.use(a, () async {
         expect(store.get(a), FutureValue.loading());

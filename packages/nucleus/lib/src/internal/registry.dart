@@ -29,9 +29,7 @@ class AtomRegistry {
       atom.$write(get, set, _ensureNode(atom).setValue, value);
 
   /// Manually recalculate an [atom]'s value.
-  void refresh(Atom atom) {
-    atom.$refresh(_refresh);
-  }
+  void refresh(RefreshableAtom atom) => atom.$refresh(_refresh);
 
   /// Listen to changes of an atom's state.
   ///
@@ -137,7 +135,6 @@ class AtomRegistry {
   }
 
   void _refresh(Atom atom) {
-    assert(atom.isRefreshable);
     _ensureNode(atom).invalidate();
   }
 

@@ -18,7 +18,7 @@ void main() {
     });
 
     test('keepAlive works', () async {
-      final family = atomFamily((int id) => stateAtom(id)..keepAlive());
+      final family = atomFamily((int id) => stateAtom(id).keepAlive());
       final registry = AtomRegistry();
 
       registry.set(family(1), 2);
@@ -48,7 +48,7 @@ void main() {
 
   group('weakAtomFamily', () {
     test('allows keepAlive atoms to be GCed', () async {
-      final family = weakAtomFamily((int id) => stateAtom(id)..keepAlive());
+      final family = weakAtomFamily((int id) => stateAtom(id).keepAlive());
       final registry = AtomRegistry();
 
       expect(registry.get(family(1)), 1);
@@ -67,9 +67,8 @@ void main() {
       final itemCount = stateAtom(10);
       final items = atom((get) => List.generate(
             get(itemCount),
-            (i) => stateAtom(i)..keepAlive(),
-          ))
-        ..keepAlive();
+            (i) => stateAtom(i).keepAlive(),
+          )).keepAlive();
 
       final registry = AtomRegistry();
 

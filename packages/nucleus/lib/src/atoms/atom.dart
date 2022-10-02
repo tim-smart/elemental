@@ -13,37 +13,14 @@ abstract class Atom<T> {
   /// Used by the registry.
   T $$read(AtomContext ctx) => $read(_AtomContextProxy._(ctx));
 
-  /// Determines refresh behaviour.
-  void $refresh(void Function(Atom atom) refresh) => refresh(this);
-
   /// Should this atoms state be kept, even if it isnt being used?
   ///
   /// Defaults to `false`.
   bool get shouldKeepAlive => _keepAlive;
   bool _keepAlive = false;
 
-  /// Prevent the state of this atom from being automatically disposed.
-  void keepAlive() {
-    _keepAlive = true;
-  }
-
-  var _refreshable = false;
-
-  /// Determines whether the atom can be manually refreshed.
-  bool get isRefreshable => _refreshable;
-
-  /// Allow this atom to be manually refreshed
-  void refreshable() {
-    _refreshable = true;
-  }
-
   /// Set a name for debugging
   String? name;
-
-  /// Set a name for debugging
-  void setName(String name) {
-    this.name = name;
-  }
 
   /// Create an initial value override, which can be given to an [AtomScope] or
   /// [AtomRegistry].
@@ -55,13 +32,36 @@ abstract class Atom<T> {
     bool keepAlive = true,
   }) {
     if (keepAlive) {
-      this.keepAlive();
+      _keepAlive = true;
     }
     return AtomInitialValue(this, value);
   }
 
   @override
   String toString() => "$runtimeType(name: $name)";
+}
+
+mixin AtomConfigMixin<A extends Atom> {
+  /// Prevent the state of this atom from being automatically disposed.
+  A keepAlive() {
+    (this as A)._keepAlive = true;
+    return this as A;
+  }
+
+  /// Set a name for debugging
+  A setName(String name) {
+    (this as A).name = name;
+    return this as A;
+  }
+}
+
+mixin RefreshableAtom {
+  /// Determines refresh behaviour.
+  void $refresh(void Function(Atom atom) refresh) => refresh(this as Atom);
+}
+
+mixin RefreshableAtomMixin<A extends RefreshableAtom> {
+  A refreshable();
 }
 
 /// Represents an [Atom] that can be written to.
@@ -93,7 +93,7 @@ abstract class AtomContext<T> {
   void setSelf(T value);
 
   /// Refresh the givem [atom].
-  void refresh(Atom atom);
+  void refresh(RefreshableAtom atom);
 
   /// Refresh the current atom
   void refreshSelf();
@@ -146,7 +146,7 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   void setSelf(T value) => _parent.setSelf(value);
 
   @override
-  void refresh(Atom atom) => _parent.refresh(atom);
+  void refresh(RefreshableAtom atom) => _parent.refresh(atom);
 
   @override
   void refreshSelf() => _parent.refreshSelf();

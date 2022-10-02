@@ -1,8 +1,26 @@
 part of '../atoms.dart';
 
 /// See [atom].
-class ReadOnlyAtom<Value> extends Atom<Value> {
+class ReadOnlyAtom<Value> extends Atom<Value>
+    with
+        AtomConfigMixin<ReadOnlyAtom<Value>>,
+        RefreshableAtomMixin<RefreshableReadOnlyAtom<Value>> {
   ReadOnlyAtom(this._reader);
+
+  final AtomReader<Value> _reader;
+
+  @override
+  Value $read(ctx) => _reader(ctx);
+
+  @override
+  RefreshableReadOnlyAtom<Value> refreshable() =>
+      RefreshableReadOnlyAtom(_reader);
+}
+
+/// See [atom].
+class RefreshableReadOnlyAtom<Value> extends Atom<Value>
+    with AtomConfigMixin<RefreshableReadOnlyAtom<Value>>, RefreshableAtom {
+  RefreshableReadOnlyAtom(this._reader);
 
   final AtomReader<Value> _reader;
 
@@ -17,4 +35,5 @@ class ReadOnlyAtom<Value> extends Atom<Value> {
 /// final count = stateAtom(0);
 /// final countTimesTwo = atom((get) => get(count) * 2);
 /// ```
-Atom<Value> atom<Value>(AtomReader<Value> create) => ReadOnlyAtom(create);
+ReadOnlyAtom<Value> atom<Value>(AtomReader<Value> create) =>
+    ReadOnlyAtom(create);

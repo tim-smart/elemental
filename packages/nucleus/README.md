@@ -28,7 +28,7 @@ By default, all atom's are created **lazily** (only when they are used) and are
 If you want to disable the automatic disposal of your atom, then call `keepAlive()`:
 
 ```dart
-final counter = stateAtom(0)..keepAlive();
+final counter = stateAtom(0).keepAlive();
 ```
 
 We can then use the `AtomBuilder` widget from the `flutter_nucleus` package to
@@ -114,9 +114,10 @@ dependency:
 final httpClient = atom((get) => MyHttpClient());
 ```
 
-> It is worth noting that `atom` creates a read-only atom (the type is `Atom<T>`).
-> Earlier, `stateAtom(0)` created a `WritableAtom<int, int>` (the first generic
-> type is the **read** type, the second is the **write** type).
+> It is worth noting that `atom` creates a read-only atom (the type is
+> `ReadOnlyAtom<T>`). Earlier `stateAtom(0)` created a `StateAtom<int>`, which
+> extends `WritableAtom<int, int>` (the first generic type is the **read** type,
+> the second is the **write** type).
 
 Now we can create our derived atom:
 
@@ -308,7 +309,7 @@ First, you need to define your `NucleusStorage` atom. Let's use the `SharedPrefs
 /// This atom will eventually hold our [SharedPreferences] instance.
 /// We need to make sure we call `keepAlive` so it doesn't get automatically
 /// disposed.
-final sharedPrefsAtom = atom<SharedPreferences>((get) => throw UnimplementedError())..keepAlive();
+final sharedPrefsAtom = atom<SharedPreferences>((get) => throw UnimplementedError()).keepAlive();
 
 /// This atom will eventually hold our [SharedPrefsStorage] instance, which
 /// implements [NucleusStorage].
