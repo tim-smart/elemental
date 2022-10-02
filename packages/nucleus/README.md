@@ -115,9 +115,8 @@ final httpClient = atom((get) => MyHttpClient());
 ```
 
 > It is worth noting that `atom` creates a read-only atom (the type is
-> `ReadOnlyAtom<T>`). Earlier `stateAtom(0)` created a `StateAtom<int>`, which
-> extends `WritableAtom<int, int>` (the first generic type is the **read** type,
-> the second is the **write** type).
+> `ReadOnlyAtom<T>`). Earlier `stateAtom(0)` created a `WritableAtom<int, int>`
+> (the first generic type is the **read** type, the second is the **write** type).
 
 Now we can create our derived atom:
 
@@ -412,7 +411,7 @@ watch(counter);
 context.getAtom(counter.parent).value = 123;
 ```
 
-### proxyAtom
+### writableAtom
 
 TODO
 

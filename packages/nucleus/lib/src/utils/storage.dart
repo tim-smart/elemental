@@ -21,14 +21,14 @@ class MemoryNucleusStorage implements NucleusStorage {
 
 /// Create a [stateAtom], except it's value is persisted to a [NucleusStorage]
 /// instance.
-ProxyAtom<A, A> stateAtomWithStorage<A>(
+WritableAtom<A, A> stateAtomWithStorage<A>(
   A initialValue, {
   required Atom<NucleusStorage> storage,
   required String key,
   required A Function(dynamic json) fromJson,
   required dynamic Function(A a) toJson,
 }) =>
-    proxyAtom((get) {
+    writableAtom((get) {
       try {
         final storedValue = get(storage).get(key);
         if (storedValue != null) {

@@ -30,7 +30,7 @@ class ReadLifetime implements AtomContext<dynamic> {
   dynamic self() => node._value;
 
   @override
-  void set<R, W>(WritableAtom<R, W> atom, W value) {
+  void set<R, W>(WritableAtomBase<R, W> atom, W value) {
     assert(!_disposed);
     registry.set(atom, value);
   }

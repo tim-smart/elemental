@@ -2,13 +2,13 @@ import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('ProxyAtom', () {
+  group('WritableAtom', () {
     test('writes to the parent', () {
       final count = stateAtom(0);
-      final proxy = proxyAtom(
+      final proxy = writableAtom(
         (get) => get(count) * 10,
         (get, set, setSelf, int value) => set(count, value),
-      );
+      ).keepAlive().refreshable();
 
       final store = AtomRegistry();
 
@@ -19,7 +19,7 @@ void main() {
 
     test('can proxy writes', () {
       final count = stateAtom(0);
-      final proxy = proxyAtom(
+      final proxy = writableAtom(
         (get) => get(count),
         (get, set, setSelf, int i) => set(count, i * 10),
       );
@@ -33,7 +33,7 @@ void main() {
 
     test('can get parent in writer', () {
       final count = stateAtom(0);
-      final proxy = proxyAtom(
+      final proxy = writableAtom(
         (get) => get(count),
         (get, set, setSelf, void _) => set(count, get(count) + 1),
       );

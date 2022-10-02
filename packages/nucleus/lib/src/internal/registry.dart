@@ -25,7 +25,7 @@ class AtomRegistry {
   A get<A>(Atom<A> atom) => _ensureNode(atom).value as A;
 
   /// Set the state of a [WritableAtom].
-  void set<R, W>(WritableAtom<R, W> atom, W value) =>
+  void set<R, W>(WritableAtomBase<R, W> atom, W value) =>
       atom.$write(get, set, _ensureNode(atom).setValue, value);
 
   /// Manually recalculate an [atom]'s value.

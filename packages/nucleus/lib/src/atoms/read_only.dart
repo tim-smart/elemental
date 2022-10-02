@@ -7,7 +7,7 @@ class ReadOnlyAtomBase<Value> extends Atom<Value> {
   final AtomReader<Value> reader;
 
   @override
-  Value $read(ctx) => reader(ctx);
+  Value $read(ctx) => reader(_AtomContextProxy(ctx));
 }
 
 /// See [atom].

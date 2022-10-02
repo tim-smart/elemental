@@ -1,33 +1,18 @@
 part of '../atoms.dart';
 
-/// See [stateAtom].
-class StateAtomBase<T> extends WritableAtom<T, T> {
-  StateAtomBase(this.initialValue);
+/// Represents an [Atom] that can be written to.
+class StateAtom<R> extends WritableAtom<R, R> {
+  StateAtom(this.initialValue);
 
-  /// The [T] that this atom contains when first read.
-  final T initialValue;
-
-  @override
-  T $read(ctx) => initialValue;
+  final R initialValue;
 
   @override
-  void $write(GetAtom get, SetAtom set, SetSelf<T> setSelf, T value) =>
+  R $read(AtomContext ctx) => initialValue;
+
+  @override
+  void $write(GetAtom get, SetAtom set, SetSelf<R> setSelf, R value) =>
       setSelf(value);
 }
-
-class StateAtom<T> extends StateAtomBase<T>
-    with
-        AtomConfigMixin<StateAtom<T>>,
-        RefreshableAtomMixin<RefreshableStateAtom<T>> {
-  StateAtom(super.initialValue);
-
-  @override
-  RefreshableStateAtom<T> refreshable() => RefreshableStateAtom(initialValue);
-}
-
-/// See [stateAtom].
-class RefreshableStateAtom<T> = StateAtomBase<T>
-    with AtomConfigMixin<RefreshableStateAtom<T>>, RefreshableAtom;
 
 /// Create a simple atom with mutable state.
 ///
@@ -41,5 +26,5 @@ class RefreshableStateAtom<T> = StateAtomBase<T>
 /// ```dart
 /// final counter = stateAtom(0).keepAlive();
 /// ```
-StateAtom<Value> stateAtom<Value>(Value initialValue) =>
+WritableAtom<Value, Value> stateAtom<Value>(Value initialValue) =>
     StateAtom(initialValue);

@@ -9,7 +9,7 @@ class AtomWithParentBase<A, Parent extends Atom> extends Atom<A> {
   final A Function(AtomContext<A>, Parent parent) reader;
 
   @override
-  A $read(AtomContext<A> ctx) => reader(ctx, parent);
+  A $read(AtomContext ctx) => reader(_AtomContextProxy(ctx), parent);
 }
 
 class AtomWithParent<A, Parent extends Atom>

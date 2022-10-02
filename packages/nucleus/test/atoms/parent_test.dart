@@ -12,4 +12,16 @@ void main() {
       expect(a.parent.shouldKeepAlive, true);
     });
   });
+
+  group('setName', () {
+    test('sets the name on the parent', () {
+      final a = atomWithParent(
+        atom((get) => 1),
+        (get, Atom<int> parent) => get(parent),
+      ).keepAlive().setName('count');
+
+      expect(a.name, 'count');
+      expect(a.parent.name, 'count.parent');
+    });
+  });
 }
