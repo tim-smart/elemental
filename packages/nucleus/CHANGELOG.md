@@ -1,3 +1,7 @@
+## 0.3.4+1
+
+- Add install notes to README
+
 ## 0.3.4
 
 - Add FutureValue extension methods for atoms without a parent
