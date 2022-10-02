@@ -8,6 +8,20 @@ An atomic dependency and state management toolkit.
 - Performance - allow for millions of `Atom`'s without a high penalty
 - Composability - make it easy to create your own functionality
 
+## Installation
+
+If you are using flutter, then all you need is the `flutter_nucleus` package:
+
+```
+flutter pub add flutter_nucleus
+```
+
+If you are working only with dart, then install the `nucleus` package:
+
+```
+dart pub add nucleus
+```
+
 ## A quick tour
 
 The first thing you might need in your Flutter app is some shared state.
