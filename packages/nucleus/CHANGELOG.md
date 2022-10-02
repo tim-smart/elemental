@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Fix atomWithParent propogation
+
 ## 0.2.1
 
 - DRY for refreshable atom types

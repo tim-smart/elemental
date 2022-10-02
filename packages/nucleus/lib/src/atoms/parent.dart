@@ -20,14 +20,45 @@ class AtomWithParent<A, Parent extends Atom>
   AtomWithParent(super.parent, super.reader);
 
   @override
+  AtomWithParent<A, Parent> keepAlive() {
+    parent._keepAlive = true;
+    return super.keepAlive();
+  }
+
+  @override
+  AtomWithParent<A, Parent> setName(String name) {
+    parent._name = '$name.parent';
+    return super.setName(name);
+  }
+
+  @override
   RefreshableAtomWithParent<A, Parent> refreshable() =>
       RefreshableAtomWithParent(parent, reader);
 }
 
 /// See [atomWithParent].
-class RefreshableAtomWithParent<A, Parent extends Atom> = AtomWithParentBase<A,
-        Parent>
-    with AtomConfigMixin<RefreshableAtomWithParent<A, Parent>>, RefreshableAtom;
+class RefreshableAtomWithParent<A, Parent extends Atom>
+    extends AtomWithParentBase<A, Parent>
+    with
+        AtomConfigMixin<RefreshableAtomWithParent<A, Parent>>,
+        RefreshableAtom {
+  RefreshableAtomWithParent(super.parent, super.reader);
+
+  @override
+  RefreshableAtomWithParent<A, Parent> setName(String name) {
+    parent._name = '$name.parent';
+    return super.setName(name);
+  }
+
+  @override
+  RefreshableAtomWithParent<A, Parent> keepAlive() {
+    parent._keepAlive = true;
+    return super.keepAlive();
+  }
+
+  @override
+  void $refresh(void Function(Atom atom) refresh) => refresh(parent);
+}
 
 /// Create an [Atom] that is linked to a parent [Atom].
 ///

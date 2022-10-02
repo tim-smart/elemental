@@ -19,8 +19,10 @@ abstract class Atom<T> {
   bool get shouldKeepAlive => _keepAlive;
   bool _keepAlive = false;
 
-  /// Set a name for debugging
-  String? name;
+  String? _name;
+
+  /// Debug name for this atom
+  String? get name => _name;
 
   /// Create an initial value override, which can be given to an [AtomScope] or
   /// [AtomRegistry].
@@ -38,7 +40,7 @@ abstract class Atom<T> {
   }
 
   @override
-  String toString() => "$runtimeType(name: $name)";
+  String toString() => "$runtimeType(name: $_name)";
 }
 
 class AtomConfigMixin<A extends Atom> {
@@ -50,7 +52,7 @@ class AtomConfigMixin<A extends Atom> {
 
   /// Set a name for debugging
   A setName(String name) {
-    (this as A).name = name;
+    (this as A)._name = name;
     return this as A;
   }
 }
