@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Update for latest nucleus
+
 ## 0.2.0
 
 - Update for latest nucleus
