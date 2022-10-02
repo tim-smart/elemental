@@ -1,7 +1,7 @@
 part of '../atoms.dart';
 
 /// See [atom].
-class ReadOnlyAtomBase<Value> extends Atom<Value> {
+abstract class ReadOnlyAtomBase<Value> extends Atom<Value> {
   ReadOnlyAtomBase(this.reader);
 
   final AtomReader<Value> reader;

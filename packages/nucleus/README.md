@@ -428,6 +428,9 @@ context.getAtom(counter.parent).value = 123;
 
 TODO
 
-### atomWithRefresh
+Until some docs are written, take a look at the `stateAtomWithStorage`
+implementation:
 
-TODO
+https://pub.dev/documentation/nucleus/latest/nucleus/stateAtomWithStorage.html#source
+
+`writableAtom` gives you full access to the atom read / write API surface.

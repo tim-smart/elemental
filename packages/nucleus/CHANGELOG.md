@@ -1,3 +1,8 @@
+## 0.3.1
+
+- Update README
+- Make base classes abstract
+
 ## 0.3.0
 
 - Refactor class hierarchy

@@ -1,7 +1,7 @@
 part of '../atoms.dart';
 
 /// See [atomWithParent].
-class AtomWithParentBase<A, Parent extends Atom> extends Atom<A> {
+abstract class AtomWithParentBase<A, Parent extends Atom> extends Atom<A> {
   AtomWithParentBase(this.parent, this.reader);
 
   /// The parent [Atom].
