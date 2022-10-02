@@ -1,3 +1,7 @@
+## 0.3.3
+
+- Relax FutureValue select Parent type
+
 ## 0.3.2
 
 - Update FutureValue select method to use AtomWithParent

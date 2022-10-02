@@ -9,13 +9,13 @@ extension AtomExtension<A> on Atom<A> {
       AtomWithParent(this, (get, parent) => f(get(parent)));
 }
 
-extension FutureValueAtomExtension<A, P>
-    on AtomWithParent<FutureValue<A>, Atom<Future<P>>> {
+extension FutureValueAtomExtension<A, Parent extends Atom>
+    on AtomWithParent<FutureValue<A>, Parent> {
   /// Create a derived atom, that transforms an atoms value using the given
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  AtomWithParent<B, Atom<Future<P>>> rawSelect<B>(
+  AtomWithParent<B, Parent> rawSelect<B>(
     B Function(FutureValue<A> value) f,
   ) =>
       AtomWithParent(parent, (get, parent) => f(get(this)));
@@ -24,7 +24,7 @@ extension FutureValueAtomExtension<A, P>
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  AtomWithParent<FutureValue<B>, Atom<Future<P>>> select<B>(
+  AtomWithParent<FutureValue<B>, Parent> select<B>(
     B Function(A value) f,
   ) =>
       AtomWithParent(parent, (get, parent) {
@@ -46,7 +46,7 @@ extension FutureValueAtomExtension<A, P>
   /// function [f].
   ///
   /// Only rebuilds when the selected value changes.
-  AtomWithParent<Future<B>, Atom<Future<P>>> asyncSelect<B>(
+  AtomWithParent<Future<B>, Parent> asyncSelect<B>(
     B Function(A value) f,
   ) =>
       select(f).rawSelect((a) => a.whenOrElse(
