@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Refactor class hierarchy
+
 ## 0.2.3
 
 - Fix util types
