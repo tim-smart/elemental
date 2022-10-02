@@ -137,7 +137,7 @@ final userRepository = atom((get) => UserRepository(
   httpClient: get(httpClient), // Here we are accessing another atom within our atom
 )).refreshable();
 
-// them using a BuildContext:
+// then using a BuildContext:
 
 context.refreshAtom(userRepository);
 ```
