@@ -19,7 +19,7 @@ extension NucleusBuildContextExt on BuildContext {
   }
 
   /// Refresh an atom.
-  void refreshAtom(Atom atom) =>
+  void refreshAtom(RefreshableAtom atom) =>
       AtomScope.registryOf(this, listen: false).refresh(atom);
 
   AtomRegistry registry({listen = true}) =>

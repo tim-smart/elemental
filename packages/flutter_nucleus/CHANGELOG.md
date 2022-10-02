@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Update for latest nucleus
+
 ## 0.1.10
 
 - Add `changeNotifierAtom`
