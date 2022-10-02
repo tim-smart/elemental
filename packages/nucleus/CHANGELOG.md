@@ -1,3 +1,8 @@
+## 0.2.0
+
+- Change configuration methods on atoms to not return void
+- Add `RefreshableAtom`, to make `refresh` type safe
+
 ## 0.1.39
 
 - Add `rawSelect` to FutureValue extension
