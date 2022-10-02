@@ -129,6 +129,15 @@ final userRepository = atom((get) => UserRepository(
 If the `httpClient` ever changed, then our `userRepository` would also re-create
 itself.
 
+If you want to allow your atom to be refreshed / rebuilt externally, then call
+`.refreshable()` (similar to `.keepAlive()`):
+
+```dart
+final userRepository = atom((get) => UserRepository(
+  httpClient: get(httpClient), // Here we are accessing another atom within our atom
+)).refreshable();
+```
+
 The `get` parameter is actually an `AtomContext` instance, which also has some
 other helpful methods attached. View them all here:
 
