@@ -19,9 +19,9 @@ class MyApp extends StatelessWidget {
   // Use an [AtomBuilder] to rebuild on atom changes.
   @override
   Widget build(BuildContext context) {
-    return AtomBuilder((context, watch, child) {
+    return AtomBuilder((context, get, child) {
       return MaterialApp(
-        scaffoldMessengerKey: watch(messenger),
+        scaffoldMessengerKey: get(messenger),
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -62,12 +62,17 @@ class CounterButton extends StatelessWidget {
 
 // Use an [AtomBuilder] to fetch the multiplied value
 class MultipliedText extends StatelessWidget {
-  const MultipliedText({Key? key}) : super(key: key);
+  const MultipliedText({
+    Key? key,
+    this.suffix = '',
+  }) : super(key: key);
+
+  final String suffix;
 
   @override
   Widget build(BuildContext context) =>
-      AtomBuilder((context, watch, child) => Text(
-            '${watch(multiplied)}',
+      AtomBuilder((context, get, child) => Text(
+            '${get(multiplied)}$suffix',
             style: Theme.of(context).textTheme.headline4,
           ));
 }
