@@ -52,8 +52,8 @@ listen for changes to our counter:
 class CounterText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return AtomBuilder((context, watch, child) {
-      final count = watch(counter);
+    return AtomBuilder((context, get, child) {
+      final count = get(counter);
       return Text(count.toString());
     });
   }
@@ -108,6 +108,16 @@ Other methods on `BuilderContext` include:
   // ...
 
   setCount(2); // Sets the value of the counter atom to 2.
+  ```
+
+- `refreshAtom` - if you flagged an atom as `refreshable()`, then you can use this method to refresh it.
+
+  ```dart
+  final users = atom((get) => get(usersRepo).allUsers()).refreshable();
+
+  // ...
+
+  context.refreshAtom(users);
   ```
 
 - `registry` - access the `AtomRegistry` directly
@@ -180,8 +190,8 @@ A `futureAtom` gives us back a `FutureValue<T>`, which can then be used in your 
 
 ```dart
 @override
-Widget build(BuildContext context) => AtomBuilder((context, watch, child) {
-  final users = watch(allUsers);
+Widget build(BuildContext context) => AtomBuilder((context, get, child) {
+  final users = get(allUsers);
 
   return users.when(
     data: (users) => UserList(users: users),
@@ -218,8 +228,8 @@ You can then use it in your widgets:
 
 ```dart
 @override
-Widget build(BuildContext context) => AtomBuilder((context, watch, child) {
-  final userState = watch(latestUser);
+Widget build(BuildContext context) => AtomBuilder((context, get, child) {
+  final userState = get(latestUser);
 
   // `dataOrNull` will be `null` until we first receive some data.
   final user = userState.dataOrNull;
@@ -282,7 +292,7 @@ final counter = valueNotifierAtom((get) => ValueNotifier(0));
 // ... in your widgets
 
 // Watch the current count
-watch(counter);
+AtomBuilder((context, get, child) => Text('${get(counter)}'));
 
 // Update the notifier value
 context.getAtom(counter.parent).value = 123;
@@ -313,8 +323,8 @@ Now in your widgets, you can use the atom just like another [`futureAtom`](#futu
 ```dart
 @override
 Widget build(BuildContext context) {
-  return AtomBuilder((context, watch, child) {
-    final futureValue = watch(userById(userId));
+  return AtomBuilder((context, get, child) {
+    final futureValue = get(userById(userId));
 
     return futureValue.when(
       data: (user) => UserProfile(user: user),
@@ -432,7 +442,7 @@ final counter = valueNotifierAtomWithStorage(
 // ... in your widgets
 
 // Watch the current count
-watch(counter);
+AtomBuilder((context, get, child) => Text('${get(counter)}'));
 
 // Update the notifier value
 context.getAtom(counter.parent).value = 123;
