@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Refactor `AtomBuilder` to wrap an `Atom<Widget>`
+
 ## 0.3.0
 
 - Update for latest nucleus

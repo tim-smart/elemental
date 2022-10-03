@@ -96,7 +96,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.3.0"
+    version: "0.3.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -148,7 +148,7 @@ packages:
       path: "../../nucleus"
       relative: true
     source: path
-    version: "0.3.0"
+    version: "0.3.6"
   path:
     dependency: transitive
     description:
