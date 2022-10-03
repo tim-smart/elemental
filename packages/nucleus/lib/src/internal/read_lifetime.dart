@@ -49,24 +49,38 @@ class ReadLifetime implements AtomContext<dynamic> {
   }
 
   @override
-  void Function() subscribe<T>(
+  void subscribe<T>(
     Atom<T> atom,
     void Function(T value) handler, {
     bool fireImmediately = false,
-  }) =>
-      registry.subscribe(atom, handler, fireImmediately: fireImmediately);
+  }) {
+    assert(!_disposed);
+    onDispose(registry.subscribe(
+      atom,
+      handler,
+      fireImmediately: fireImmediately,
+    ));
+  }
 
   @override
-  void Function() subscribeWithPrevious<A>(
+  void subscribeWithPrevious<A>(
     Atom<A> atom,
     void Function(A? previous, A value) handler, {
     bool fireImmediately = false,
-  }) =>
-      registry.subscribeWithPrevious(
-        atom,
-        handler,
-        fireImmediately: fireImmediately,
-      );
+  }) {
+    assert(!_disposed);
+    onDispose(registry.subscribeWithPrevious(
+      atom,
+      handler,
+      fireImmediately: fireImmediately,
+    ));
+  }
+
+  @override
+  void mount(Atom atom) {
+    assert(!_disposed);
+    onDispose(registry.mount(atom));
+  }
 
   @override
   Stream<A> stream<A>(Atom<A> atom) => registry.stream(atom);

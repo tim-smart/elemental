@@ -27,15 +27,17 @@ abstract class AtomContext<T> {
   /// Refresh the current atom
   void refreshSelf();
 
-  /// Subscribe to the given [atom].
-  void Function() subscribe<A>(
+  /// Subscribe to the given [atom], automatically cancelling the subscription
+  /// when this atom is disposed.
+  void subscribe<A>(
     Atom<A> atom,
     void Function(A value) handler, {
     bool fireImmediately = false,
   });
 
-  /// Subscribe to the given [atom].
-  void Function() subscribeWithPrevious<A>(
+  /// Subscribe to the given [atom], automatically cancelling the subscription
+  /// when this atom is disposed.
+  void subscribeWithPrevious<A>(
     Atom<A> atom,
     void Function(A? previous, A value) handler, {
     bool fireImmediately = false,
@@ -43,6 +45,9 @@ abstract class AtomContext<T> {
 
   /// Subscribe to the given [atom].
   Stream<A> stream<A>(Atom<A> atom);
+
+  /// Subscribe to the given [atom] without listening for changes.
+  void mount(Atom atom);
 
   /// Register an [cb] function, that is called when the atom is invalidated or
   /// disposed.
@@ -81,7 +86,7 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   void refreshSelf() => _parent.refreshSelf();
 
   @override
-  void Function() subscribe<A>(
+  void subscribe<A>(
     Atom<A> atom,
     void Function(A value) handler, {
     bool fireImmediately = false,
@@ -92,13 +97,19 @@ class _AtomContextProxy<T> implements AtomContext<T> {
   Stream<A> stream<A>(Atom<A> atom) => _parent.stream(atom);
 
   @override
-  void Function() subscribeWithPrevious<A>(
+  void subscribeWithPrevious<A>(
     Atom<A> atom,
     void Function(A? previous, A value) handler, {
     bool fireImmediately = false,
   }) =>
-      _parent.subscribeWithPrevious(atom, handler,
-          fireImmediately: fireImmediately);
+      _parent.subscribeWithPrevious(
+        atom,
+        handler,
+        fireImmediately: fireImmediately,
+      );
+
+  @override
+  void mount(Atom atom) => _parent.mount(atom);
 
   @override
   void onDispose(void Function() cb) => _parent.onDispose(cb);

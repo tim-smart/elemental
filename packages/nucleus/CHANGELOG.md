@@ -1,3 +1,7 @@
+## 0.3.7
+
+- Automatically cancel subscriptions when using subscribe with AtomContext
+
 ## 0.3.6
 
 - Add weakAtomFamily2
