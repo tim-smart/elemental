@@ -1,3 +1,8 @@
+## 0.3.6
+
+- Add weakAtomFamily2
+- Add weakAtomFamily3
+
 ## 0.3.5
 
 - Change FutureValue extension to target AtomWithParentBase

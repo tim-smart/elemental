@@ -88,3 +88,24 @@ A Function(Arg1 a, Arg2 b, Arg3 c)
 
   return (a, b, c) => family(FamilyArg3(a, b, c));
 }
+
+/// A two argument variant of [weakAtomFamily].
+A Function(Arg1 a, Arg2 b) weakAtomFamily2<Arg1, Arg2, A extends Atom>(
+  A Function(Arg1 a, Arg2 b) create,
+) {
+  final family =
+      weakAtomFamily((FamilyArg2<Arg1, Arg2> t) => create(t.first, t.second));
+
+  return (a, b) => family(FamilyArg2(a, b));
+}
+
+/// A three argument variant of [weakAtomFamily].
+A Function(Arg1 a, Arg2 b, Arg3 c)
+    weakAtomFamily3<Arg1, Arg2, Arg3, A extends Atom>(
+  A Function(Arg1 a, Arg2 b, Arg3 c) create,
+) {
+  final family = weakAtomFamily(
+      (FamilyArg3<Arg1, Arg2, Arg3> t) => create(t.first, t.second, t.third));
+
+  return (a, b, c) => family(FamilyArg3(a, b, c));
+}
