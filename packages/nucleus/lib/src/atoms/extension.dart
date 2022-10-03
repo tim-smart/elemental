@@ -55,7 +55,7 @@ extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
 }
 
 extension FutureValueAtomWithParentExtension<A, Parent extends Atom>
-    on AtomWithParent<FutureValue<A>, Parent> {
+    on AtomWithParentBase<FutureValue<A>, Parent> {
   /// Create a derived atom, that transforms an atoms value using the given
   /// function [f].
   ///

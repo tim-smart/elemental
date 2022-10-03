@@ -1,3 +1,7 @@
+## 0.3.5
+
+- Change FutureValue extension to target AtomWithParentBase
+
 ## 0.3.4+1
 
 - Add install notes to README
