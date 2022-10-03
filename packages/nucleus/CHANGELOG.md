@@ -1,3 +1,7 @@
+## 0.3.7+1
+
+- Update quick tour for latest changes
+
 ## 0.3.7
 
 - Automatically cancel subscriptions when using subscribe with AtomContext
