@@ -1,3 +1,7 @@
+## 0.3.3
+
+- Use atomWithParent for `valueListenableAtom`
+
 ## 0.3.2
 
 - Update deps

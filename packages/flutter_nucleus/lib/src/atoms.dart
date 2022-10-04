@@ -29,11 +29,11 @@ AtomWithParent<T, Atom<N>> valueNotifierAtom<T, N extends ValueNotifier<T>>(
     changeNotifierAtom(create, (n) => n.value);
 
 /// Create an [Atom] that listens to a [ValueListenable].
-ReadOnlyAtom<T> valueListenableAtom<T>(
-  ValueListenable<T> Function(AtomContext<T> get) create,
+AtomWithParent<T, Atom<ValueListenable<T>>> valueListenableAtom<T>(
+  ValueListenable<T> Function(AtomContext<ValueListenable<T>> get) create,
 ) =>
-    atom((get) {
-      final listenable = create(get);
+    atomWithParent(atom(create), (get, parent) {
+      final listenable = get(parent);
 
       void onChange() => get.setSelf(listenable.value);
       listenable.addListener(onChange);
