@@ -1,6 +1,6 @@
 name: nucleus
 description: An atomic dependency and state management toolkit - fast, simple and composable.
-version: 0.3.7+1
+version: 0.3.8
 homepage: https://github.com/tim-smart/nucleus
 
 environment:

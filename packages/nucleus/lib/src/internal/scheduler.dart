@@ -11,21 +11,15 @@ class Scheduler {
     SchedulerRunner? postFrameRunner,
   }) : _postFrameRunner = postFrameRunner ?? microtaskSchedulerRunner;
 
-  var _postFrameCallbacks = List<void Function()?>.filled(
-    16,
-    null,
-    growable: true,
-  );
-  var _postFrameCount = 0;
+  Listener? _postFrameCallbacks;
   final SchedulerRunner _postFrameRunner;
   bool _postFrameScheduled = false;
 
   void runPostFrame(void Function() f) {
-    if (_postFrameCount == _postFrameCallbacks.length) {
-      _postFrameCallbacks.length += 16;
-    }
-
-    _postFrameCallbacks[_postFrameCount++] = f;
+    _postFrameCallbacks = Listener(
+      fn: f,
+      next: _postFrameCallbacks,
+    );
 
     if (!_postFrameScheduled) {
       _postFrameScheduled = true;
@@ -36,14 +30,12 @@ class Scheduler {
   void _postFrame() {
     _postFrameScheduled = false;
 
-    final count = _postFrameCount;
-    final callbacks = _postFrameCallbacks;
+    var listener = _postFrameCallbacks;
+    _postFrameCallbacks = null;
 
-    _postFrameCallbacks = List.filled(callbacks.length, null);
-    _postFrameCount = 0;
-
-    for (var i = 0; i < count; i++) {
-      callbacks[i]!();
+    while (listener != null) {
+      listener.fn();
+      listener = listener.next;
     }
   }
 }

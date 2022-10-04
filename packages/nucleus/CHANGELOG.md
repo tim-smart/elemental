@@ -1,3 +1,7 @@
+## 0.3.8
+
+- Use `Listener` for scheduler
+
 ## 0.3.7+1
 
 - Update quick tour for latest changes
