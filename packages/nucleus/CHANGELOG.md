@@ -1,3 +1,7 @@
+## 0.3.10
+
+- Revert dependency invalidation changes
+
 ## 0.3.9
 
 - Refactor dependency invalidation
