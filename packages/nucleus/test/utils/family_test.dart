@@ -86,7 +86,7 @@ void main() {
 
       // Uncomment these lines to check if the atoms have been GC'ed.
       // You can inspect the internal Expando _data property in the registry.
-      // await Future.delayed(Duration(seconds: 10));
+      // await Future.delayed(Duration(seconds: 5));
       // debugger();
 
       // Keep alive works for new list

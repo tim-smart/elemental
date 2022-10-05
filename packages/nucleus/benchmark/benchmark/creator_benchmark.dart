@@ -35,14 +35,6 @@ void main() {
     }
   });
 
-  benchmark('deps state 100k', (ref) {
-    for (var i = 0; i < 100000; i++) {
-      final state = ref.read(value);
-      ref.set(value, state + 1);
-      ref.read(depThree);
-    }
-  });
-
   benchmark('deps state 10k', (ref) {
     for (var i = 0; i < 10000; i++) {
       final state = ref.read(value);

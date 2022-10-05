@@ -45,14 +45,6 @@ void main() {
     }
   });
 
-  benchmark('deps state 100k', (container) {
-    for (var i = 0; i < 100000; i++) {
-      final state = container.read(depZero);
-      container.read(depZero.notifier).state = state + 1;
-      container.read(depThree);
-    }
-  });
-
   benchmark('deps state 10k', (container) {
     for (var i = 0; i < 10000; i++) {
       final state = container.read(depZero);
