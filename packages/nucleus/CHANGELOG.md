@@ -1,3 +1,7 @@
+## 0.3.9
+
+- Refactor dependency invalidation
+
 ## 0.3.8
 
 - Use `Listener` for scheduler
