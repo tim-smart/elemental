@@ -51,6 +51,14 @@ void main() {
     }
   });
 
+  benchmark('deps state 100k', (registry) {
+    for (var i = 0; i < 100000; i++) {
+      final state = registry.get(value);
+      registry.set(value, state + 1);
+      registry.get(depThree);
+    }
+  });
+
   benchmark('deps state 10k', (registry) {
     for (var i = 0; i < 10000; i++) {
       final state = registry.get(value);

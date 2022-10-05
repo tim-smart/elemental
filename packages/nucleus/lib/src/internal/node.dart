@@ -25,7 +25,6 @@ class Node {
   var state = NodeState.uninitialized;
 
   Relation? parents;
-  Relation? previousParents;
   Relation? children;
   Listener? listeners;
 
@@ -50,15 +49,12 @@ class Node {
       }
 
       // Removed orphaned parents
-      if (previousParents != null) {
-        var relation = previousParents;
-        previousParents = null;
+      if (parents != null) {
+        var relation = parents;
+
         while (relation != null) {
-          if (parents?.contains(relation.node) != true) {
-            relation.node.removeChild(this);
-            if (relation.node.canBeRemoved) {
-              registry._scheduleNodeRemoval(relation.node);
-            }
+          if (relation.valid == false) {
+            removeParent(relation);
           }
 
           relation = relation.next;
@@ -72,17 +68,37 @@ class Node {
   void addParent(Node node) {
     assert(state.alive);
 
+    if (parents?.findAndValidate(node) == true) {
+      return;
+    }
+
     parents = Relation(
       node: node,
       next: parents,
     );
 
     // Add to parent children
-    if (node.children?.contains(this) != true) {
-      node.children = Relation(
-        node: this,
-        next: node.children,
-      );
+    node.children = Relation(
+      node: this,
+      next: node.children,
+    );
+  }
+
+  void removeParent(Relation relation) {
+    assert(relation.valid == false);
+
+    if (parents == relation) {
+      parents = relation.next;
+      parents!.previous = null;
+    } else {
+      relation.previous!.next = relation.next;
+      relation.next?.previous = relation.previous;
+    }
+
+    relation.node.removeChild(this);
+
+    if (relation.node.canBeRemoved) {
+      registry._scheduleNodeRemoval(relation.node);
     }
   }
 
@@ -136,8 +152,6 @@ class Node {
     }
 
     var relation = children;
-    children = null;
-
     while (relation != null) {
       relation.node.invalidate();
       relation = relation.next;
@@ -164,8 +178,7 @@ class Node {
       _lifetime = null;
     }
 
-    previousParents = parents;
-    parents = null;
+    parents?.invalidateAll();
   }
 
   void remove() {
@@ -173,18 +186,17 @@ class Node {
 
     state = NodeState.removed;
 
-    if (_lifetime == null) {
+    if (_lifetime != null) {
+      disposeLifetime();
+    }
+
+    if (parents == null) {
       return;
     }
 
-    disposeLifetime();
+    var relation = parents;
+    parents = null;
 
-    if (previousParents == null) {
-      return;
-    }
-
-    var relation = previousParents;
-    previousParents = null;
     while (relation != null) {
       relation.node.removeChild(this);
       if (relation.node.canBeRemoved) {
@@ -230,10 +242,13 @@ class Relation {
   Relation? previous;
   Relation? next;
 
-  bool contains(Node node) {
+  var valid = true;
+
+  bool findAndValidate(Node node) {
     Relation? relation = this;
     while (relation != null) {
       if (relation.node == node) {
+        relation.valid = true;
         return true;
       }
       relation = relation.next;
@@ -250,6 +265,14 @@ class Relation {
         break;
       }
 
+      relation = relation.next;
+    }
+  }
+
+  void invalidateAll() {
+    Relation? relation = this;
+    while (relation != null) {
+      relation.valid = false;
       relation = relation.next;
     }
   }
