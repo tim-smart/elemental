@@ -54,11 +54,9 @@ class Node {
         var relation = previousParents;
         previousParents = null;
         while (relation != null) {
-          if (parents?.contains(relation.node) != true) {
-            relation.node.removeChild(this);
-            if (relation.node.canBeRemoved) {
-              registry._scheduleNodeRemoval(relation.node);
-            }
+          relation.node.removeChild(this);
+          if (relation.node.canBeRemoved) {
+            registry._scheduleNodeRemoval(relation.node);
           }
 
           relation = relation.next;
@@ -76,6 +74,14 @@ class Node {
       node: node,
       next: parents,
     );
+
+    if (previousParents != null) {
+      if (previousParents!.node == node) {
+        previousParents = previousParents!.next;
+      } else {
+        previousParents!.remove(node);
+      }
+    }
 
     // Add to parent children
     if (node.children?.contains(this) != true) {
@@ -247,7 +253,6 @@ class Relation {
       if (relation.node == node) {
         relation.previous?.next = relation.next;
         relation.next?.previous = relation.previous;
-        break;
       }
 
       relation = relation.next;
