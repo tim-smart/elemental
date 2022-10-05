@@ -15,7 +15,7 @@ A Function(Arg arg) atomFamily<A extends Atom, Arg>(
   A Function(Arg arg) create,
 ) {
   final atoms = HashMap<Arg, A>();
-  return (arg) => atoms.putIfAbsent(arg, () => create(arg));
+  return (arg) => atoms[arg] ??= create(arg);
 }
 
 /// Alternate version of [atomFamily] that holds a weak reference to each child.
