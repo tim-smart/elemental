@@ -189,4 +189,41 @@ void main() {
       );
     });
   });
+
+  group('filter', () {
+    test('it filters the values correctly', () async {
+      final registry = AtomRegistry();
+
+      final count = stateAtom(0);
+      final evens = count.filter((i) => i.isEven);
+
+      final values = <int>[];
+      registry.subscribe(evens, values.add, fireImmediately: true);
+
+      registry.set(count, 1);
+      registry.set(count, 2);
+      registry.set(count, 3);
+      registry.set(count, 4);
+
+      expect(values, equals([0, 2, 4]));
+    });
+
+    test('it starts with null if false', () async {
+      final registry = AtomRegistry();
+
+      final count = stateAtom(-1);
+      final evens = count.filter((i) => i.isEven);
+
+      final values = <int?>[];
+      registry.subscribe(evens, values.add, fireImmediately: true);
+
+      registry.set(count, 0);
+      registry.set(count, 1);
+      registry.set(count, 2);
+      registry.set(count, 3);
+      registry.set(count, 4);
+
+      expect(values, equals([null, 0, 2, 4]));
+    });
+  });
 }

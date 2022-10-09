@@ -7,6 +7,18 @@ extension AtomExtension<A> on Atom<A> {
   /// Only rebuilds when the selected value changes.
   AtomWithParent<B, Atom<A>> select<B>(B Function(A value) f) =>
       AtomWithParent(this, (get, parent) => f(get(parent)));
+
+  /// Create a derived atom, that filters the values using the given predicate.
+  AtomWithParent<A?, Atom<A>> filter(bool Function(A value) predicate) =>
+      AtomWithParent(this, (get, parent) {
+        get.subscribe(parent, (A a) {
+          if (predicate(a)) {
+            get.setSelf(a);
+          }
+        }, fireImmediately: true);
+
+        return null;
+      });
 }
 
 extension FutureValueAtomExtension<A> on Atom<FutureValue<A>> {
