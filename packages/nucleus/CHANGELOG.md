@@ -1,3 +1,7 @@
+## 0.3.11
+
+- Add `filter` to atom extension methods
+
 ## 0.3.10
 
 - Revert dependency invalidation changes
