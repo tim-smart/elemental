@@ -1,4 +1,5 @@
 import 'package:nucleus/nucleus.dart';
+import 'internal/internal.dart' show Node, ReadLifetime;
 
 part 'atoms/atom.dart';
 part 'atoms/context.dart';

@@ -24,7 +24,7 @@ class RefreshableWritableAtom<R, W> extends WritableAtomBase<R, W>
   final WritableAtom<R, W> _parent;
 
   @override
-  R $read(AtomContext ctx) => _parent.$read(ctx);
+  R $read(AtomContext<R> ctx) => _parent.$read(ctx);
 
   @override
   void $write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value) =>
@@ -38,7 +38,7 @@ class _WritableAtomImpl<R, W> extends WritableAtom<R, W> {
   final AtomWriter<R, W> writer;
 
   @override
-  R $read(AtomContext ctx) => reader(_AtomContextProxy(ctx));
+  R $read(AtomContext<R> ctx) => reader(ctx);
 
   @override
   void $write(GetAtom get, SetAtom set, SetSelf<R> setSelf, W value) =>

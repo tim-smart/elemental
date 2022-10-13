@@ -8,7 +8,11 @@ part of '../atoms.dart';
 /// written (see [WritableAtom]).
 abstract class Atom<T> {
   /// Used by the registry to read the atoms value.
-  T $read(AtomContext ctx);
+  T $read(AtomContext<T> ctx);
+
+  /// Used by the registry to create a read lifetime. Bit hacky, but allows us
+  /// to go from dynamic to T.
+  ReadLifetime<T> $lifetime(Node node) => ReadLifetime(node);
 
   /// Should this atoms state be kept, even if it isnt being used?
   ///

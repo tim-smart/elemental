@@ -42,7 +42,7 @@ class Node {
     assert(state.alive);
 
     if (state.waitingForValue) {
-      _lifetime = ReadLifetime(this);
+      _lifetime = atom.$lifetime(this);
 
       final value = atom.$read(_lifetime!);
       if (state.waitingForValue) {

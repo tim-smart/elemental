@@ -1,6 +1,6 @@
 part of 'internal.dart';
 
-class ReadLifetime implements AtomContext<dynamic> {
+class ReadLifetime<T> implements AtomContext<T> {
   ReadLifetime(this.node) : registry = node.registry;
 
   final AtomRegistry registry;
@@ -10,24 +10,24 @@ class ReadLifetime implements AtomContext<dynamic> {
   var _disposed = false;
 
   @override
-  T call<T>(Atom<T> atom) {
+  A call<A>(Atom<A> atom) {
     final parent = registry._ensureNode(atom);
     node.addParent(parent);
-    return parent.value as T;
+    return parent.value as A;
   }
 
   @override
-  T get<T>(Atom<T> atom) {
+  A get<A>(Atom<A> atom) {
     final parent = registry._ensureNode(atom);
     node.addParent(parent);
-    return parent.value as T;
+    return parent.value as A;
   }
 
   @override
   R once<R>(Atom<R> atom) => registry.get(atom);
 
   @override
-  dynamic self() => node._value;
+  T? self() => node._value;
 
   @override
   void set<R, W>(WritableAtomBase<R, W> atom, W value) {
@@ -49,9 +49,9 @@ class ReadLifetime implements AtomContext<dynamic> {
   }
 
   @override
-  void subscribe<T>(
-    Atom<T> atom,
-    void Function(T value) handler, {
+  void subscribe<A>(
+    Atom<A> atom,
+    void Function(A value) handler, {
     bool fireImmediately = false,
   }) {
     assert(!_disposed);
@@ -86,7 +86,7 @@ class ReadLifetime implements AtomContext<dynamic> {
   Stream<A> stream<A>(Atom<A> atom) => registry.stream(atom);
 
   @override
-  void setSelf(dynamic value) {
+  void setSelf(T value) {
     assert(!_disposed);
     node.setValue(value);
   }
