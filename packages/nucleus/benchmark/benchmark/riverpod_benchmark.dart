@@ -2,19 +2,19 @@ import 'package:riverpod/riverpod.dart';
 
 import 'utils.dart';
 
-final value = Provider((ref) => 0);
-final familyRead = Provider.family((ref, int i) => i);
-final family = StateProvider.family((ref, int i) => i);
-final nested = Provider((ref) => List.generate(
+final value = Provider.autoDispose((ref) => 0);
+final familyRead = Provider.autoDispose.family((ref, int i) => i);
+final family = StateProvider.autoDispose.family((ref, int i) => i);
+final nested = Provider.autoDispose((ref) => List.generate(
       10000,
       (i) => StateProvider.autoDispose((_) => i),
     ));
-final nested100 = Provider((ref) => List.generate(
+final nested100 = Provider.autoDispose((ref) => List.generate(
       100,
       (i) => StateProvider.autoDispose((_) => i),
     ));
 
-final depZero = StateProvider((ref) => 0);
+final depZero = StateProvider.autoDispose((ref) => 0);
 final depOne = Provider.autoDispose((ref) => ref.watch(value) * 10);
 final depTwo = Provider.autoDispose((ref) => ref.watch(depOne) * 10);
 final depThree = Provider.autoDispose((ref) => ref.watch(depTwo) * 10);
