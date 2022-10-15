@@ -3,6 +3,7 @@ import 'package:riverpod/riverpod.dart';
 import 'utils.dart';
 
 final value = Provider.autoDispose((ref) => 0);
+final valueKeepAlive = Provider((ref) => 0);
 final familyRead = Provider.autoDispose.family((ref, int i) => i);
 final family = StateProvider.autoDispose.family((ref, int i) => i);
 final nested = Provider.autoDispose((ref) => List.generate(
@@ -25,6 +26,12 @@ void main() {
   benchmark('read 1000k', (container) {
     for (var i = 0; i < 1000000; i++) {
       container.read(value);
+    }
+  });
+
+  benchmark('read keepAlive 1000k', (container) {
+    for (var i = 0; i < 1000000; i++) {
+      container.read(valueKeepAlive);
     }
   });
 

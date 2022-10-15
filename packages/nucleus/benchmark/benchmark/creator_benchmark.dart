@@ -3,6 +3,7 @@ import 'package:creator_core/creator_core.dart';
 import 'utils.dart';
 
 final value = Creator.value(0);
+final valueKeepAlive = Creator.value(0, keepAlive:true);
 final family = Creator.arg1((ref, int i) => i);
 final nested = Creator((ref) => List.generate(10000, (i) => Creator.value(i)));
 final nested100 = Creator((ref) => List.generate(100, (i) => Creator.value(i)));
@@ -17,6 +18,12 @@ void main() {
   benchmark('read 1000k', (ref) {
     for (var i = 0; i < 1000000; i++) {
       ref.read(value);
+    }
+  });
+
+  benchmark('read keepAlive 1000k', (ref) {
+    for (var i = 0; i < 1000000; i++) {
+      ref.read(valueKeepAlive);
     }
   });
 
