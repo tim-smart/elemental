@@ -1,3 +1,8 @@
+## 0.3.12
+
+- Internal refactor for atom context
+- Update benchmarks
+
 ## 0.3.11
 
 - Add `filter` to atom extension methods
