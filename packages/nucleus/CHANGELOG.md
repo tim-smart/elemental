@@ -1,3 +1,7 @@
+## 0.3.13
+
+- `filter` returns FutureValue
+
 ## 0.3.12
 
 - Internal refactor for atom context

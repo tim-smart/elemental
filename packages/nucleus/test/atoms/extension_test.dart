@@ -197,7 +197,7 @@ void main() {
       final count = stateAtom(0);
       final evens = count.filter((i) => i.isEven);
 
-      final values = <int>[];
+      final values = <FutureValue<int>>[];
       registry.subscribe(evens, values.add, fireImmediately: true);
 
       registry.set(count, 1);
@@ -205,16 +205,19 @@ void main() {
       registry.set(count, 3);
       registry.set(count, 4);
 
-      expect(values, equals([0, 2, 4]));
+      expect(
+        values,
+        equals([FutureValue.data(0), FutureValue.data(2), FutureValue.data(4)]),
+      );
     });
 
-    test('it starts with null if false', () async {
+    test('it starts with FutureValue.loading if false', () async {
       final registry = AtomRegistry();
 
       final count = stateAtom(-1);
       final evens = count.filter((i) => i.isEven);
 
-      final values = <int?>[];
+      final values = <FutureValue<int>>[];
       registry.subscribe(evens, values.add, fireImmediately: true);
 
       registry.set(count, 0);
@@ -223,7 +226,15 @@ void main() {
       registry.set(count, 3);
       registry.set(count, 4);
 
-      expect(values, equals([null, 0, 2, 4]));
+      expect(
+        values,
+        equals([
+          FutureValue.loading(),
+          FutureValue.data(0),
+          FutureValue.data(2),
+          FutureValue.data(4)
+        ]),
+      );
     });
   });
 }

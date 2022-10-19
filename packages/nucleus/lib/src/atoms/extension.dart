@@ -9,15 +9,17 @@ extension AtomExtension<A> on Atom<A> {
       AtomWithParent(this, (get, parent) => f(get(parent)));
 
   /// Create a derived atom, that filters the values using the given predicate.
-  AtomWithParent<A?, Atom<A>> filter(bool Function(A value) predicate) =>
+  AtomWithParent<FutureValue<A>, Atom<A>> filter(
+    bool Function(A value) predicate,
+  ) =>
       AtomWithParent(this, (get, parent) {
         get.subscribe(parent, (A a) {
           if (predicate(a)) {
-            get.setSelf(a);
+            get.setSelf(FutureValue.data(a));
           }
         }, fireImmediately: true);
 
-        return null;
+        return get.self() ?? FutureValue.loading();
       });
 }
 
