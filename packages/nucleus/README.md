@@ -2,11 +2,26 @@
 
 An atomic dependency and state management toolkit.
 
-## Design goals
+### Design goals
 
 - Simplicity - simple API with no surprises
 - Performance - allow for millions of `Atom`'s without a high penalty
 - Composability - make it easy to create your own functionality
+
+## Table of contents
+
+- [Installation](#installation)
+- [A quick tour](#a-quick-tour)
+  - [stateAtom](#stateatom) - A simple way of adding state to your app
+  - [`BuildContext` methods](#flutter_nucleus-buildcontext-methods) - Use these for interacting with your atoms
+  - [atom](#atom) - Create derived state, or manage your app dependencies
+  - [futureAtom](#futureatom) - Easy way to add data from an API into your app
+  - [streamAtom](#streamatom) - Easy way to add stream data from an API into your app
+  - [atomWithParent](#atomwithparent) - Create your own custom atom types!
+  - [atomFamily](#atomfamily) - For grouping atom's with a common parameter. Like fetching something from an API by its ID.
+  - [stateAtomWithStorage](#stateatomwithstorage) - `stateAtom`, but with storage. Persisted between app restarts!
+  - [atomWithStorage](#atomwithstorage) - For more advanced persistence
+  - [writableAtom](#writableatom) - Unlock the full power of atom's
 
 ## Installation
 
