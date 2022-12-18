@@ -1,3 +1,7 @@
+## 0.3.13+1
+
+- Add TOC to the README
+
 ## 0.3.13
 
 - `filter` returns FutureValue
