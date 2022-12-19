@@ -15,7 +15,6 @@ class AtomScope extends InheritedWidget {
         );
 
   static final defaultRegistry = AtomRegistry(scheduler: _buildScheduler());
-  static var _shownAtomScopeWarning = false;
 
   static internal.Scheduler _buildScheduler() {
     final binding = SchedulerBinding.instance;
@@ -40,18 +39,6 @@ class AtomScope extends InheritedWidget {
         ? context.dependOnInheritedWidgetOfExactType<AtomScope>()
         : (context.getElementForInheritedWidgetOfExactType<AtomScope>()?.widget
             as AtomScope?);
-
-    assert(() {
-      if (scope == null && !_shownAtomScopeWarning) {
-        _shownAtomScopeWarning = true;
-
-        // ignore: avoid_print
-        print(
-            'WARNING: You are using nucleus without an AtomScope in your widget tree. '
-            'Add an AtomScope widget in runApp() to remove this warning.');
-      }
-      return true;
-    }());
 
     return scope?.registry ?? defaultRegistry;
   }
