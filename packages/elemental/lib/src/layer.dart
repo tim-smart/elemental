@@ -4,16 +4,20 @@ import 'package:nucleus/src/internal/internal.dart';
 
 typedef GetLayer = EIO<E, A> Function<E, A>(Layer<E, A> layer);
 
-final _layerScopeAtom = atom((get) {
-  final scope = Scope.closable();
-  get.onDispose(() {
-    scope.closeScope.run();
-  });
-  return scope;
-});
+final _layerScopeAtom = atom((get) => Scope.closable());
 
 class Layer<E, Service> {
-  Layer(this._make);
+  Layer._(this._make);
+
+  factory Layer(
+    EIO<E, Service> Function(GetAtom get, GetLayer getLayer) make,
+  ) =>
+      Layer._((get, getLayer) => make(get, getLayer).lift());
+
+  factory Layer.scoped(
+    ZIO<Scope, E, Service> Function(GetAtom get, GetLayer getLayer) make,
+  ) =>
+      Layer._(make);
 
   final ZIO<Scope, E, Service> Function(GetAtom get, GetLayer getLayer) _make;
 
@@ -63,4 +67,6 @@ class Layer<E, Service> {
     );
     return buildAllWith(registry, layers).as(registry);
   }
+
+  static IO<Unit> closeAll(GetAtom get) => get(_layerScopeAtom).closeScope;
 }
