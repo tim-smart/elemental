@@ -140,7 +140,7 @@ class ZIO<R, E, A> {
 
   factory ZIO.tryCatch(
     FutureOr<A> Function() f,
-    E Function(Error error, StackTrace stackTrace) onError,
+    E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       ZIO.from(
         (_) => fromThrowable(
@@ -152,7 +152,7 @@ class ZIO<R, E, A> {
 
   factory ZIO.tryCatchEnv(
     FutureOr<A> Function(R env) f,
-    E Function(Error error, StackTrace stackTrace) onError,
+    E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       ZIO.from(
         (env) => fromThrowable(

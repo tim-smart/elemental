@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Use dynamic for errors
+
 ## 0.0.6
 
 - Add Layer.scope
