@@ -164,6 +164,9 @@ class ZIO<R, E, A> {
 
   static IO<Unit> unit() => ZIO.succeed(fpdart.unit);
 
+  /// Creates a ZIO from a [Future].
+  ///
+  /// **This can be unsafe** because it will throw an error if the future fails.
   factory ZIO.unsafeFuture(
     FutureOr<A> Function() f,
   ) =>

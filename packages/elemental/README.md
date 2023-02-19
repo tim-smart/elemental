@@ -1,6 +1,10 @@
-# elemental
+<h3 align="center">
+  <img src="https://user-images.githubusercontent.com/40680/219979601-724793d8-513d-4196-93b8-db5c1872c240.png" width="700">
+</h3>
 
-A toolkit for writing software in dart.
+<p align="center">
+A toolkit for writing software in dart
+</p>
 
 Includes:
 
