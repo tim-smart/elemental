@@ -1,7 +1,8 @@
 export 'package:fast_immutable_collections/fast_immutable_collections.dart'
-    hide Tuple, Tuple2;
-
-export 'package:fpdart/fpdart.dart' show Either, Option, Tuple2, Unit, unit;
+    hide Predicate, Tuple, Tuple2;
+export 'package:nucleus/nucleus.dart';
+export 'package:fpdart/fpdart.dart'
+    show Either, HKT, HKT2, Option, Predicate, Tuple2, Unit, unit, identity;
 
 export 'src/deferred.dart';
 export 'src/layer.dart';

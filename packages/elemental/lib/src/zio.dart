@@ -12,11 +12,17 @@ class NoEnv {
 /// Represents an operation that cant fail, with no requirements
 typedef IO<A> = ZIO<NoEnv, Never, A>;
 
+/// Represents a IO with a [Scope]
+typedef SIO<A> = ZIO<Scope, Never, A>;
+
 /// Represents an operation that cant fail, with [R] requirements
 typedef RIO<R, A> = ZIO<R, Never, A>;
 
 /// Represents an operation that can fail, with no requirements
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
+
+/// Represents a ZIO with a [Scope]
+typedef SZIO<E, A> = ZIO<Scope, E, A>;
 
 // Do notation helpers
 typedef _DoAdapter<R, E> = FutureOr<A> Function<A>(ZIO<R, E, A> zio);
@@ -49,22 +55,6 @@ class ZIO<R, E, A> {
   factory ZIO.succeed(A a) => ZIO.fromEither(Either.right(a));
 
   factory ZIO.fail(E e) => ZIO.fromEither(Either.left(e));
-
-  static ZIO<R, E, A> acquireRelease<R extends ScopeMixin, E, A>(
-    ZIO<R, E, A> acquire,
-    IO<Unit> Function(A a) release,
-  ) =>
-      ZIO.from(
-        (env) => acquire
-            .tap((a) => env.addScopeFinalizer(release(a)).lift())
-            ._run(env),
-      );
-
-  static ZIO<Scope, E, A> acquireReleaseScope<E, A>(
-    EIO<E, A> acquire,
-    IO<Unit> Function(A a) release,
-  ) =>
-      acquireRelease(acquire.lift(), release);
 
   static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
       ZIO.traverseIterable<R, E, ZIO<R, E, A>, A>(
@@ -381,10 +371,31 @@ extension RIOLiftExt<R extends Object, A> on RIO<R, A> {
 }
 
 extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
+  ZIO<R, E, A> acquireRelease(
+    IO<Unit> Function(A a) release,
+  ) =>
+      tap((a) => addFinalizer(release(a)));
+
   ZIO<R, E, Unit> addFinalizer(
     IO<Unit> release,
   ) =>
-      env<R, E>().flatMap((env) => env.addScopeFinalizer(release).lift());
+      ZIO.env<R, E>().flatMap((env) => env.addScopeFinalizer(release).lift());
+}
+
+extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
+  ZIO<R, E, A> ask<R>() => ZIO.from((R env) => _run(NoEnv()));
+
+  ZIO<Scope, E, A> acquireRelease(
+    IO<Unit> Function(A a) release,
+  ) =>
+      ask<Scope>().tap((a) => addFinalizer(release(a)));
+
+  ZIO<Scope, E, Unit> addFinalizer(
+    IO<Unit> release,
+  ) =>
+      ZIO
+          .env<Scope, E>()
+          .flatMap((env) => env.addScopeFinalizer(release).lift());
 }
 
 extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
@@ -406,24 +417,4 @@ extension ZIONoneExt<R, A> on ZIO<R, None<Never>, A> {
     Option<B> Function(A a) f,
   ) =>
       flatMapOptionOrFail(f, (a) => None());
-}
-
-void main() {
-  print("go");
-  final a = ZIO
-      .acquireReleaseScope(
-        ZIO.succeed(1),
-        (a) => IO(() {
-          print("release");
-          return unit;
-        }),
-      )
-      .tap(
-        (a) => ZIO(() {
-          print(a);
-        }),
-      )
-      .scoped
-      .runSync();
-  print("result $a");
 }
