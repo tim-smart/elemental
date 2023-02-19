@@ -1,3 +1,7 @@
+## 0.3.4
+
+- Add `AtomScope.withRegistry`
+
 ## 0.3.3
 
 - Use atomWithParent for `valueListenableAtom`

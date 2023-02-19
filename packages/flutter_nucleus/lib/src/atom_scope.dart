@@ -14,6 +14,18 @@ class AtomScope extends InheritedWidget {
           scheduler: _buildScheduler(),
         );
 
+  factory AtomScope.withRegistry(
+    AtomRegistry registry, {
+    Key? key,
+    required Widget child,
+    List<AtomInitialValue> initialValues = const [],
+  }) =>
+      AtomScope(
+        key: key,
+        initialValues: initialValues,
+        child: child,
+      );
+
   static final defaultRegistry = AtomRegistry(scheduler: _buildScheduler());
 
   static internal.Scheduler _buildScheduler() {
