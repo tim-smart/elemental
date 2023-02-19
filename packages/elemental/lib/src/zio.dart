@@ -86,7 +86,7 @@ class ZIO<R, E, A> {
 
   factory ZIO.fromEither(Either<E, A> ea) => ZIO.from((_) => ea);
 
-  static ZIO<R, None<Never>, A> fromOption<R, A>(Option<A> oa) =>
+  static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
       ZIO.fromEither(oa.match(
         () => Either.left(None()),
         Either.right,
@@ -162,7 +162,7 @@ class ZIO<R, E, A> {
         ),
       );
 
-  static ZIO<R, E, Unit> unit<R, E>() => ZIO.succeed(fpdart.unit);
+  static IO<Unit> unit() => ZIO.succeed(fpdart.unit);
 
   factory ZIO.unsafeFuture(
     FutureOr<A> Function() f,
