@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:elemental/elemental.dart';
 import 'package:elemental/src/future_or.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:fpdart/fpdart.dart' as fpdart;
 
 class NoEnv {
