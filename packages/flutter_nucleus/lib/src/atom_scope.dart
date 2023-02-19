@@ -5,24 +5,34 @@ import 'package:flutter_nucleus/flutter_nucleus.dart';
 import 'package:nucleus/src/internal/internal.dart' as internal;
 
 class AtomScope extends InheritedWidget {
-  AtomScope({
+  const AtomScope._({
     super.key,
     required super.child,
+    required this.registry,
+  });
+
+  factory AtomScope({
+    Key? key,
+    required Widget child,
     List<AtomInitialValue> initialValues = const [],
-  }) : registry = AtomRegistry(
+  }) =>
+      AtomScope._(
+        registry: AtomRegistry(
           initialValues: initialValues,
           scheduler: _buildScheduler(),
-        );
+        ),
+        key: key,
+        child: child,
+      );
 
   factory AtomScope.withRegistry(
     AtomRegistry registry, {
     Key? key,
     required Widget child,
-    List<AtomInitialValue> initialValues = const [],
   }) =>
-      AtomScope(
+      AtomScope._(
         key: key,
-        initialValues: initialValues,
+        registry: registry,
         child: child,
       );
 

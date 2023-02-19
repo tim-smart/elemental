@@ -1,3 +1,7 @@
+## 0.3.5
+
+- Fix `AtomScope.withRegistry` API
+
 ## 0.3.4
 
 - Add `AtomScope.withRegistry`
