@@ -2,7 +2,20 @@ export 'package:fast_immutable_collections/fast_immutable_collections.dart'
     hide Predicate, Tuple, Tuple2;
 export 'package:nucleus/nucleus.dart';
 export 'package:fpdart/fpdart.dart'
-    show Either, HKT, HKT2, Option, Predicate, Tuple2, Unit, unit, identity;
+    hide
+        IO,
+        IOEither,
+        IORef,
+        random,
+        randomBool,
+        randomInt,
+        Reader,
+        ReaderHKT,
+        State,
+        StateAsync,
+        Task,
+        TaskEither,
+        TaskOption;
 
 export 'src/deferred.dart';
 export 'src/layer.dart';
