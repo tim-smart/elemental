@@ -1,3 +1,7 @@
+## 0.0.6
+
+- Add Layer.scope
+
 ## 0.0.5
 
 - runFutureEither
