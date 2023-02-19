@@ -1,3 +1,7 @@
+## 0.0.5
+
+- runFutureEither
+
 ## 0.0.4
 
 - narrow static methods

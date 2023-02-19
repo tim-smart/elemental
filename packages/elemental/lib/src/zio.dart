@@ -336,6 +336,8 @@ extension ZIORunExt<E, A> on EIO<E, A> {
         identity,
       ));
 
+  Future<Either<E, A>> runFutureEither() => Future.value(run());
+
   FutureOr<A> runFutureOr() => run().flatMap((ea) => ea.match(
         (e) => throw e as Object,
         identity,
