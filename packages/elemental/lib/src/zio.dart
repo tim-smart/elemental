@@ -20,7 +20,7 @@ typedef RIO<R, A> = ZIO<R, Never, A>;
 /// Represents an operation that can fail, with no requirements
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
 
-/// Represents a ZIO with a [Scope]
+/// Represents a [ZIO] with a [Scope]
 typedef SZIO<E, A> = ZIO<Scope, E, A>;
 
 // Do notation helpers
@@ -222,12 +222,12 @@ class ZIO<R, E, A> {
   ) =>
       flatMapEither((a) => Either.fromOption(f(a), () => onNone(a)));
 
-  ZIO<R, Never, A> getOrElse(
+  RIO<R, A> getOrElse(
     A Function(E e) orElse,
   ) =>
       matchSync(orElse, identity);
 
-  ZIO<R, Never, A?> get getOrNull => matchSync((e) => null, identity);
+  RIO<R, A?> get getOrNull => matchSync((e) => null, identity);
 
   ZIO<R, E, B> map<B>(
     B Function(A a) f,
@@ -250,7 +250,7 @@ class ZIO<R, E, A> {
             )),
       );
 
-  ZIO<R, Never, B> matchSync<B>(
+  RIO<R, B> matchSync<B>(
     B Function(E e) onError,
     B Function(A a) onSuccess,
   ) =>
@@ -261,7 +261,7 @@ class ZIO<R, E, A> {
             )),
       );
 
-  ZIO<NoEnv, Never, ZIO<R, E, A>> get memoize => ZIO(() {
+  IO<ZIO<R, E, A>> get memoize => IO(() {
         final deferred = Deferred<Either<E, A>>();
         var executed = false;
 
