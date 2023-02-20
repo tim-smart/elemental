@@ -1,3 +1,7 @@
+## 0.0.11
+
+- Add refAtomWithStorage
+
 ## 0.0.10
 
 - Add `ignore` and `ignoreLogged`
