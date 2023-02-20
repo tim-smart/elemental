@@ -1,3 +1,9 @@
+## 0.0.17
+
+- `Runtime`
+- `Logger`
+- Better `Layer` / dependency management
+
 ## 0.0.16
 
 - \*Env combinators
