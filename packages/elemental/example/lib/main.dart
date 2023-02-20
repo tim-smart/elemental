@@ -53,15 +53,16 @@ final dioAtom = atom(
   (get) => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/')),
 );
 
-final todosLayer = Layer((get, getLayer) => IO(() => Todos(get(dioAtom))));
+final todosLayer = Layer(ZIO.service(dioAtom).map((dio) => Todos(dio)));
 
 Future<void> main() async {
-  /// Build our service layers into an [AtomRegistry], from the nucleus package
-  final registry = await Layer.buildAll([todosLayer]).runFuture();
+  final listTodos = ZIO
+      .layer(todosLayer)
+      .zipLeft(ZIO.logInfo('Fetching todos...'))
+      .liftError<TodosError>()
+      .flatMap((todos) => todos.list);
 
-  final todosService = registry.get(todosLayer.atom);
-
-  final todos = await todosService.list.run();
+  final todos = await listTodos.run();
 
   print(todos);
 }

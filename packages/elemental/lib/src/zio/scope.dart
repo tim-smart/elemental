@@ -1,4 +1,4 @@
-import 'package:elemental/elemental.dart';
+part of '../zio.dart';
 
 mixin ScopeMixin {
   bool get scopeClosable => false;
@@ -10,7 +10,10 @@ mixin ScopeMixin {
         return unit;
       });
 
-  IO<Unit> get closeScope => IO.collectPar(_scopeFinalizers).asUnit;
+  IO<Unit> get closeScope => IO.collectPar(_scopeFinalizers).zipRight(IO(() {
+        _scopeFinalizers.clear();
+        return unit;
+      }));
 }
 
 class Scope with ScopeMixin {

@@ -197,10 +197,10 @@ packages:
     dependency: "direct main"
     description:
       name: nucleus
-      sha256: ab944022e4f3e6560268a5b864b157517d39e61f83e0c790c005f20fc5ecf257
+      sha256: "6ae834b04af28548731b3ff6d8e18744d2f7c4f86875f19cc97669d7ba8051fb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.13+1"
+    version: "0.3.14"
   package_config:
     dependency: transitive
     description:
@@ -394,4 +394,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.17.0 <3.0.0"
+  dart: ">=2.17.0 <4.0.0"

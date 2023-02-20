@@ -1,6 +1,4 @@
-import 'dart:async';
-
-import 'package:elemental/elemental.dart';
+part of '../zio.dart';
 
 class Ref<A> {
   Ref.unsafeMake(this._value);

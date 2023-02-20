@@ -12,4 +12,4 @@ dev_dependencies:
 dependencies:
   fast_immutable_collections: ">=8.0.0 <9.0.0"
   fpdart: ^0.4.0
-  nucleus: ^0.3.13+1
+  nucleus: ^0.3.14

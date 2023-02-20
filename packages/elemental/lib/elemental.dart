@@ -20,9 +20,5 @@ export 'package:fpdart/fpdart.dart'
         TaskOption;
 
 export 'src/atoms.dart';
-export 'src/deferred.dart';
 export 'src/function.dart';
-export 'src/layer.dart';
-export 'src/ref.dart';
-export 'src/scope.dart';
 export 'src/zio.dart';

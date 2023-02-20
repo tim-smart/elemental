@@ -1,7 +1,7 @@
 import 'package:elemental/elemental.dart';
 
 FutureAtom<A> deferredAtom<A>(Deferred<A> deferred) =>
-    futureAtom((get) => deferred.await.runFuture());
+    futureAtom((get) => deferred.await.runFuture(get.registry));
 
 AtomWithParent<A, Atom<Ref<A>>> _refAtomWrap<A>(Atom<Ref<A>> atom) =>
     atomWithParent(atom, (get, parent) {
@@ -11,7 +11,7 @@ AtomWithParent<A, Atom<Ref<A>>> _refAtomWrap<A>(Atom<Ref<A>> atom) =>
         get.setSelf(a);
       }).cancel);
 
-      return ref.get.runSync();
+      return ref.get.runSync(get.registry);
     });
 
 ReadOnlyAtom<Ref<A>> refAtomOnly<A>(A a) => atom((get) {
@@ -19,7 +19,7 @@ ReadOnlyAtom<Ref<A>> refAtomOnly<A>(A a) => atom((get) {
       get.onDispose(() {
         scope.closeScope.run();
       });
-      return Ref.makeScope(a).provide(scope).runSync();
+      return Ref.makeScope(a).provide(scope).runSync(get.registry);
     });
 
 AtomWithParent<A, Atom<Ref<A>>> refAtom<A>(A initialValue) =>
@@ -35,11 +35,13 @@ ReadOnlyAtom<Ref<A>> refAtomWithStorageOnly<A>(
     atomWithStorage<Ref<A>, A>((get, read, write) {
       final scope = Scope.closable();
       get.onDispose(() {
-        scope.closeScope.run();
+        scope.closeScope.run(get.registry);
       });
 
-      final ref =
-          Ref.makeScope(read() ?? defaultValue).provide(scope).runSync();
+      final ref = Ref.makeScope(read() ?? defaultValue)
+          .provide(scope)
+          .runSync(get.registry);
+
       get.onDispose(ref.stream.listen((a) {
         write(a);
       }).cancel);
