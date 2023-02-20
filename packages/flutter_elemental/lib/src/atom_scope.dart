@@ -5,11 +5,11 @@ Future<AtomScope> atomScopeWithLayers(
   Iterable<Layer> layers, {
   Logger? logger,
   LogLevel? logLevel,
-  List<AtomInitialValue> initialValues = const [],
   Key? key,
+  List<AtomInitialValue> initialValues = const [],
   required Widget child,
 }) {
-  final scope = AtomScope(initialValues: initialValues, child: child);
+  final scope = AtomScope(key: key, initialValues: initialValues, child: child);
 
   return Runtime.withLayers(
     layers,

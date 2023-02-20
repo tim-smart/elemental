@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Fix use `key` param when building `AtomScope`
+
 ## 0.0.2
 
 - Update for latest `elemental`
