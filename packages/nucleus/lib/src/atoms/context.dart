@@ -46,6 +46,9 @@ abstract class AtomContext<T> {
   /// Subscribe to the given [atom].
   Stream<A> stream<A>(Atom<A> atom);
 
+  /// Unsafely access the registry
+  AtomRegistry get registry;
+
   /// Subscribe to the given [atom] without listening for changes.
   void mount(Atom atom);
 

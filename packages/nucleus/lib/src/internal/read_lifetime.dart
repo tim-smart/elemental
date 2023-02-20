@@ -3,7 +3,9 @@ part of 'internal.dart';
 class ReadLifetime<T> implements AtomContext<T> {
   ReadLifetime(this.node) : registry = node.registry;
 
+  @override
   final AtomRegistry registry;
+
   final Node node;
 
   Listener? _disposers;

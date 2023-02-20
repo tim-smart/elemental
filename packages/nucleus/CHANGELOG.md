@@ -1,3 +1,7 @@
+## 0.3.14
+
+- Expose registry on AtomContext
+
 ## 0.3.13+1
 
 - Add TOC to the README
