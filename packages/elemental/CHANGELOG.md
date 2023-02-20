@@ -1,3 +1,7 @@
+## 0.0.21
+
+- Add `unsafeGet` to `Ref`
+
 ## 0.0.20
 
 - `ZIO.envWith*`
