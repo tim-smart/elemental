@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:elemental/elemental.dart';
 import 'package:elemental/src/future_or.dart';
 import 'package:fpdart/fpdart.dart' as fpdart;
-// ignore: implementation_imports
-import 'package:nucleus/src/internal/internal.dart';
 
 part 'zio/deferred.dart';
 part 'zio/layer.dart';
