@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Add `refAtom` and `deferredAtom`
+
 ## 0.0.7
 
 - Use dynamic for errors

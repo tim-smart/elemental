@@ -17,6 +17,7 @@ export 'package:fpdart/fpdart.dart'
         TaskEither,
         TaskOption;
 
+export 'src/atoms.dart';
 export 'src/deferred.dart';
 export 'src/layer.dart';
 export 'src/ref.dart';
