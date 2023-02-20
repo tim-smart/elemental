@@ -12,14 +12,9 @@ class Runtime {
     Iterable<Layer> layers, {
     Logger? logger,
     LogLevel? logLevel,
-    List<AtomInitialValue> initialValues = const [],
-    Scheduler? scheduler,
+    AtomRegistry? registry,
   }) {
-    final registry = AtomRegistry(
-      scheduler: scheduler,
-      initialValues: initialValues,
-    );
-    final runtime = Runtime(registry);
+    final runtime = Runtime(registry ?? AtomRegistry());
 
     return ZIO
         .collectPar([

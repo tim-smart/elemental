@@ -1,3 +1,7 @@
+## 0.0.19
+
+- `Runtime.withLayers` takes an optional `registry`
+
 ## 0.0.18
 
 - `Layer.replace` returns another `Layer`
