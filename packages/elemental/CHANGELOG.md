@@ -1,3 +1,7 @@
+## 0.0.14
+
+- Release scope even on defects
+
 ## 0.0.13
 
 - Add `option` to `OptionRIO`

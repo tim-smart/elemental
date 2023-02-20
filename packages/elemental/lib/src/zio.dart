@@ -300,7 +300,7 @@ class ZIO<R, E, A> {
 
   EIO<E, A> provide(R env) {
     final zio = env is ScopeMixin && !env.scopeClosable
-        ? tap((_) => env.closeScope.lift())
+        ? zipLeftDefect(env.closeScope.lift())
         : this;
     return ZIO.from((_) => zio._run(env));
   }
@@ -341,6 +341,15 @@ class ZIO<R, E, A> {
       ZIO.collectPar([this, zio]).map((a) => resolve(a[0] as A, a[1] as B));
 
   ZIO<R, E, A> zipLeft<X>(ZIO<R, E, X> zio) => tap((a) => zio);
+
+  ZIO<R, E, A> zipLeftDefect<X>(ZIO<R, E, X> zio) => ZIO.from(
+        (env) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env),
+          onSuccess: (ea) => zio._run(env).flatMap((ex) => ea),
+          onError: (e, s) =>
+              zio._run(env).flatMap((ex) => Error.throwWithStackTrace(e, s)),
+        ).flatMap(identity),
+      );
 
   ZIO<R, E, B> zipRight<B>(ZIO<R, E, B> zio) => flatMap((a) => zio);
 
