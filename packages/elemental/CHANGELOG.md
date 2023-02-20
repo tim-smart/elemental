@@ -1,3 +1,7 @@
+## 0.0.18
+
+- `Layer.replace` returns another `Layer`
+
 ## 0.0.17
 
 - `Runtime`

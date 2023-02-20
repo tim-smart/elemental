@@ -10,6 +10,8 @@ class Runtime {
 
   static EIO<dynamic, Runtime> withLayers(
     Iterable<Layer> layers, {
+    Logger? logger,
+    LogLevel? logLevel,
     List<AtomInitialValue> initialValues = const [],
     Scheduler? scheduler,
   }) {
@@ -20,7 +22,11 @@ class Runtime {
     final runtime = Runtime(registry);
 
     return ZIO
-        .collectPar(layers.map((layer) => layer.getOrBuild))
+        .collectPar([
+          if (logger != null) loggerLayer.replace(ZIO.succeed(logger)),
+          if (logLevel != null) logLevelLayer.replace(ZIO.succeed(logLevel)),
+          ...layers,
+        ].map((layer) => layer.getOrBuild))
         .withRuntime(runtime)
         .as(runtime);
   }
@@ -33,11 +39,6 @@ class Runtime {
 
   IO<Unit> get dispose => IO(() => _disposed = true)
       .zipRight(registry.get(_layerScopeAtom).closeScope);
-
-  IO<Unit> withLogger(Logger logger) => loggerLayer.replace(IO.succeed(logger));
-
-  IO<Unit> withLogLevel(LogLevel level) =>
-      logLevelLayer.replace(IO.succeed(level));
 
   FutureOr<Either<E, A>> run<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
