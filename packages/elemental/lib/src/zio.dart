@@ -176,8 +176,8 @@ class ZIO<R, E, A> {
 
   ZIO<R, E, Unit> get asUnit => as(fpdart.unit);
 
-  ZIO<R, E, A> catchError(
-    ZIO<R, E, A> Function(E e) f,
+  ZIO<R, E2, A> catchError<E2>(
+    ZIO<R, E2, A> Function(E e) f,
   ) =>
       ZIO.from(
         (env) => this._run(env).flatMap((ea) => ea.match(
@@ -228,6 +228,17 @@ class ZIO<R, E, A> {
       matchSync(orElse, identity);
 
   RIO<R, A?> get getOrNull => matchSync((e) => null, identity);
+
+  RIO<R, Unit> get ignore => matchSync((e) => fpdart.unit, (a) => fpdart.unit);
+
+  // TODO: Refactor so logger is a dependency
+  RIO<R, Unit> get ignoreLogged => match(
+        (e) => ZIO(() {
+          print(e);
+          return fpdart.unit;
+        }),
+        (a) => ZIO.succeed(fpdart.unit),
+      );
 
   ZIO<R, E, B> map<B>(
     B Function(A a) f,
