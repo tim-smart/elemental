@@ -11,7 +11,7 @@ AtomWithParent<A, Atom<Ref<A>>> _refAtomWrap<A>(Atom<Ref<A>> atom) =>
         get.setSelf(a);
       }).cancel);
 
-      return ref.get.runSync(get.registry);
+      return ref.unsafeGet();
     });
 
 ReadOnlyAtom<Ref<A>> refAtomOnly<A>(A a) => atom((get) {

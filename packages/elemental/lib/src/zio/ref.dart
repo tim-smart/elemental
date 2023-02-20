@@ -23,7 +23,7 @@ class Ref<A> {
 
   IO<A> get get => IO(() => _value);
 
-  A get unsafeGet => _value;
+  A unsafeGet() => _value;
 
   IO<Unit> set(A a) => IO(() {
         _value = a;
