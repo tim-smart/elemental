@@ -245,6 +245,18 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.from((env) => this._run(env).flatMapFOr((ea) => ea.flatMap(f)));
 
+  ZIO<R, E, B> flatMapEnv<B>(
+    ZIO<R, E, B> Function(A a, R env) f,
+  ) =>
+      ZIO.from(
+        (env) => this._run(env).flatMapFOr(
+              (ea) => ea.match(
+                (e) => Either.left(e),
+                (a) => f(a, env)._run(env),
+              ),
+            ),
+      );
+
   ZIO<R, E, B> flatMapNullableOrFail<B>(
     B? Function(A a) f,
     E Function(A a) onNull,
@@ -262,6 +274,12 @@ class ZIO<R, E, A> {
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
       flatMap((a) => ZIO.tryCatch(() => f(a), onThrow));
+
+  ZIO<R, E, B> flatMapThrowableEnv<B>(
+    FutureOr<B> Function(A a, R env) f,
+    E Function(dynamic error, StackTrace stack) onThrow,
+  ) =>
+      flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow));
 
   RIO<R, A> getOrElse(
     A Function(E e) orElse,
@@ -344,6 +362,11 @@ class ZIO<R, E, A> {
     ZIO<R, E, X> Function(A a) f,
   ) =>
       flatMap((a) => f(a).as(a));
+
+  ZIO<R, E, A> tapEnv<X>(
+    ZIO<R, E, X> Function(A a, R env) f,
+  ) =>
+      flatMapEnv((a, env) => f(a, env).as(a));
 
   ZIO<R, E, A> tapError<X>(
     ZIO<R, E, X> Function(E e) f,
