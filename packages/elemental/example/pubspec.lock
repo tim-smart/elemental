@@ -87,7 +87,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.10"
+    version: "0.0.15"
   fast_immutable_collections:
     dependency: transitive
     description:
@@ -409,4 +409,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=3.0.0-239.0.dev <4.0.0"
+  dart: ">=2.19.0 <3.0.0"

@@ -17,7 +17,7 @@ FutureOr<B> fromThrowable<A, B>(
 }
 
 extension FlatMapExtension<A> on FutureOr<A> {
-  FutureOr<B> flatMap<B>(FutureOr<B> Function(A a) f) {
+  FutureOr<B> flatMapFOr<B>(FutureOr<B> Function(A a) f) {
     if (this is Future) {
       return (this as Future<A>).then(f);
     }
