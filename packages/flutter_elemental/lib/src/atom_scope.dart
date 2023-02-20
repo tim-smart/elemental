@@ -3,11 +3,18 @@ import 'package:flutter_elemental/flutter_elemental.dart';
 
 Future<AtomScope> atomScopeWithLayers(
   Iterable<Layer> layers, {
+  Logger? logger,
+  LogLevel? logLevel,
   List<AtomInitialValue> initialValues = const [],
   Key? key,
   required Widget child,
-}) =>
-    Layer.buildAll(
-      layers,
-      initialValues: initialValues,
-    ).map((r) => AtomScope.withRegistry(r, key: key, child: child)).runFuture();
+}) {
+  final scope = AtomScope(initialValues: initialValues, child: child);
+
+  return Runtime.withLayers(
+    layers,
+    registry: scope.registry,
+    logger: logger,
+    logLevel: logLevel,
+  ).as(scope).runFuture();
+}

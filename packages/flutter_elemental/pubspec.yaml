@@ -1,6 +1,6 @@
 name: flutter_elemental
 description: Use the package elemental with Flutter.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/tim-smart/nucleus
 
 environment:
@@ -8,7 +8,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  elemental: ^0.0.2
+  elemental: ^0.0.19
   flutter:
     sdk: flutter
   flutter_nucleus: ^0.3.5
