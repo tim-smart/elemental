@@ -374,11 +374,6 @@ extension ZIORunExt<E, A> on EIO<E, A> {
 
   FutureOr<A> call() => runFutureOr();
 
-  A runSync() => runSyncEither().match(
-        (e) => throw e as Object,
-        identity,
-      );
-
   Either<E, A> runSyncEither() {
     final result = run();
     if (result is Future) {
@@ -386,6 +381,10 @@ extension ZIORunExt<E, A> on EIO<E, A> {
     }
     return result;
   }
+}
+
+extension IORunSyncExt<A> on IO<A> {
+  A runSync() => runSyncEither().toNullable()!;
 }
 
 extension IOLiftExt<A> on IO<A> {

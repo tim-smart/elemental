@@ -1,3 +1,7 @@
+## 0.0.15
+
+- Only allow `runSync` on `IO`
+
 ## 0.0.14
 
 - Release scope even on defects
