@@ -20,6 +20,12 @@ typedef RIO<R, A> = ZIO<R, Never, A>;
 /// Represents an operation that can fail, with no requirements
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
 
+/// Represents an operation that represent an optional value
+typedef OptionIO<R, A> = ZIO<NoEnv, None<Never>, A>;
+
+/// Represents an operation that represent an optional value
+typedef OptionRIO<R, A> = ZIO<R, None<Never>, A>;
+
 /// Represents a [ZIO] with a [Scope]
 typedef SZIO<E, A> = ZIO<Scope, E, A>;
 
@@ -417,7 +423,7 @@ extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
   EIO<E, A> get scoped => provide(Scope());
 }
 
-extension ZIONoneExt<R, A> on ZIO<R, None<Never>, A> {
+extension ZIONoneExt<R, A> on OptionRIO<R, A> {
   ZIO<R, None<Never>, A> filter(
     bool Function(A a) predicate,
   ) =>
@@ -432,4 +438,9 @@ extension ZIONoneExt<R, A> on ZIO<R, None<Never>, A> {
     Option<B> Function(A a) f,
   ) =>
       flatMapOptionOrFail(f, (a) => None());
+
+  RIO<R, Option<A>> get option => matchSync(
+        (a) => Option.none(),
+        Option.of,
+      );
 }

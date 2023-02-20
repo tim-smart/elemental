@@ -1,3 +1,7 @@
+## 0.0.13
+
+- Add `option` to `OptionRIO`
+
 ## 0.0.12
 
 - Add compose and pipe
