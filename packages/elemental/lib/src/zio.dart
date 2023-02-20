@@ -93,6 +93,12 @@ class ZIO<R, E, A> {
 
   static RIO<R, R> env<R>() => ZIO.from((env, r) => Either.right(env));
 
+  static RIO<R, A> envWith<R, A>(A Function(R env) f) => ZIO.env<R>().map(f);
+
+  factory ZIO.envWithZIO(ZIO<R, E, A> Function(R env) f) => ZIO.from(
+        (env, r) => f(env)._run(env, r),
+      );
+
   factory ZIO.fromEither(Either<E, A> ea) => ZIO.from((_, r) => ea);
 
   static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>

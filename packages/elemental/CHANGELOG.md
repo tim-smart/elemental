@@ -1,3 +1,7 @@
+## 0.0.20
+
+- `ZIO.envWith*`
+
 ## 0.0.19
 
 - `Runtime.withLayers` takes an optional `registry`
