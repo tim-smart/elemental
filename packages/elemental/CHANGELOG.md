@@ -1,3 +1,7 @@
+## 0.0.12
+
+- Add compose and pipe
+
 ## 0.0.11
 
 - Add refAtomWithStorage

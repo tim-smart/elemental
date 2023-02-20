@@ -3,6 +3,8 @@ export 'package:fast_immutable_collections/fast_immutable_collections.dart'
 export 'package:nucleus/nucleus.dart';
 export 'package:fpdart/fpdart.dart'
     hide
+        ComposeOnFunction1,
+        ComposeOnFunction2,
         IO,
         IOEither,
         IORef,
@@ -19,6 +21,7 @@ export 'package:fpdart/fpdart.dart'
 
 export 'src/atoms.dart';
 export 'src/deferred.dart';
+export 'src/function.dart';
 export 'src/layer.dart';
 export 'src/ref.dart';
 export 'src/scope.dart';
