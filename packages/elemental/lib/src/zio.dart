@@ -11,9 +11,6 @@ class NoEnv {
 /// Represents an operation that cant fail, with no requirements
 typedef IO<A> = ZIO<NoEnv, Never, A>;
 
-/// Represents a IO with a [Scope]
-typedef SIO<A> = ZIO<Scope, Never, A>;
-
 /// Represents an operation that cant fail, with [R] requirements
 typedef RIO<R, A> = ZIO<R, Never, A>;
 
@@ -21,13 +18,10 @@ typedef RIO<R, A> = ZIO<R, Never, A>;
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
 
 /// Represents an operation that represent an optional value
-typedef OptionIO<R, A> = ZIO<NoEnv, None<Never>, A>;
+typedef IOOption<R, A> = ZIO<NoEnv, None<Never>, A>;
 
 /// Represents an operation that represent an optional value
-typedef OptionRIO<R, A> = ZIO<R, None<Never>, A>;
-
-/// Represents a [ZIO] with a [Scope]
-typedef SZIO<E, A> = ZIO<Scope, E, A>;
+typedef RIOOption<R, A> = ZIO<R, None<Never>, A>;
 
 // Do notation helpers
 typedef _DoAdapter<R, E> = FutureOr<A> Function<A>(ZIO<R, E, A> zio);
@@ -178,9 +172,36 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.from((_) => f().flatMap(Either.right));
 
+  ZIO<R, E, A> always(ZIO<R, E, A> zio) => ZIO.from(
+        (env) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env),
+          onSuccess: (ea) => zio._run(env),
+          onError: (e, s) => zio._run(env),
+        ).flatMap(identity),
+      );
+
+  ZIO<R, E, A> alwaysIgnore<X>(ZIO<R, E, X> zio) => ZIO.from(
+        (env) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env),
+          onSuccess: (ea) => zio._run(env).flatMap((ex) => ea),
+          onError: (e, s) =>
+              zio._run(env).flatMap((ex) => Error.throwWithStackTrace(e, s)),
+        ).flatMap(identity),
+      );
+
   ZIO<R, E, B> as<B>(B b) => map((_) => b);
 
   ZIO<R, E, Unit> get asUnit => as(fpdart.unit);
+
+  ZIO<R, E, A> catchDefect(
+          ZIO<R, E, A> Function(dynamic error, StackTrace stack) f) =>
+      ZIO.from(
+        (env) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env),
+          onSuccess: identity,
+          onError: (e, s) => f(e, s)._run(env),
+        ).flatMap(identity),
+      );
 
   ZIO<R, E2, A> catchError<E2>(
     ZIO<R, E2, A> Function(E e) f,
@@ -239,11 +260,11 @@ class ZIO<R, E, A> {
 
   // TODO: Refactor so logger is a dependency
   RIO<R, Unit> get ignoreLogged => match(
-        (e) => ZIO(() {
+        (e) => RIO(() {
           print(e);
           return fpdart.unit;
         }),
-        (a) => ZIO.succeed(fpdart.unit),
+        (a) => RIO.succeed(fpdart.unit),
       );
 
   ZIO<R, E, B> map<B>(
@@ -300,7 +321,7 @@ class ZIO<R, E, A> {
 
   EIO<E, A> provide(R env) {
     final zio = env is ScopeMixin && !env.scopeClosable
-        ? zipLeftDefect(env.closeScope.lift())
+        ? alwaysIgnore(env.closeScope.lift())
         : this;
     return ZIO.from((_) => zio._run(env));
   }
@@ -308,12 +329,12 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> tap<X>(
     ZIO<R, E, X> Function(A a) f,
   ) =>
-      ZIO.from(
-        (env) => _run(env).flatMap((ea) => ea.match(
-              (e) => Either.left(e),
-              (a) => f(a)._run(env).flatMap((ex) => ex.map((x) => a)),
-            )),
-      );
+      flatMap((a) => f(a).as(a));
+
+  ZIO<R, E, A> tapError<X>(
+    ZIO<R, E, X> Function(E e) f,
+  ) =>
+      catchError((e) => f(e).zipRight(ZIO.fail(e)));
 
   ZIO<R, E, A> tapEither<X>(
     ZIO<R, E, X> Function(Either<E, A> ea) f,
@@ -341,15 +362,6 @@ class ZIO<R, E, A> {
       ZIO.collectPar([this, zio]).map((a) => resolve(a[0] as A, a[1] as B));
 
   ZIO<R, E, A> zipLeft<X>(ZIO<R, E, X> zio) => tap((a) => zio);
-
-  ZIO<R, E, A> zipLeftDefect<X>(ZIO<R, E, X> zio) => ZIO.from(
-        (env) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
-          () => _run(env),
-          onSuccess: (ea) => zio._run(env).flatMap((ex) => ea),
-          onError: (e, s) =>
-              zio._run(env).flatMap((ex) => Error.throwWithStackTrace(e, s)),
-        ).flatMap(identity),
-      );
 
   ZIO<R, E, B> zipRight<B>(ZIO<R, E, B> zio) => flatMap((a) => zio);
 
@@ -431,7 +443,7 @@ extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
   EIO<E, A> get scoped => provide(Scope());
 }
 
-extension ZIONoneExt<R, A> on OptionRIO<R, A> {
+extension ZIONoneExt<R, A> on RIOOption<R, A> {
   ZIO<R, None<Never>, A> filter(
     bool Function(A a) predicate,
   ) =>

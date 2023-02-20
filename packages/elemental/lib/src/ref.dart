@@ -10,7 +10,7 @@ class Ref<A> {
         (ref) => IO(() => ref._controller?.close()).asUnit,
       );
 
-  static SIO<Ref<A>> makeScope<A>(A a) =>
+  static RIO<Scope, Ref<A>> makeScope<A>(A a) =>
       IO(() => Ref.unsafeMake(a)).acquireRelease(
         (ref) => IO(() => ref._controller?.close()).asUnit,
       );
