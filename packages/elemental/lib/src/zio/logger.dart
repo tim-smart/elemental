@@ -6,15 +6,15 @@ enum LogLevel {
   warn(2, "WARN"),
   error(3, "ERROR");
 
-  const LogLevel(this.priority, this.label);
+  const LogLevel(this.level, this.label);
 
-  final int priority;
+  final int level;
   final String label;
 
-  operator <(LogLevel other) => priority < other.priority;
-  operator <=(LogLevel other) => priority <= other.priority;
-  operator >(LogLevel other) => priority > other.priority;
-  operator >=(LogLevel other) => priority >= other.priority;
+  operator <(LogLevel other) => level < other.level;
+  operator <=(LogLevel other) => level <= other.level;
+  operator >(LogLevel other) => level > other.level;
+  operator >=(LogLevel other) => level >= other.level;
 }
 
 final logLevelLayer = Layer(IO.succeed(LogLevel.info));
