@@ -1,3 +1,9 @@
+## 0.0.16
+
+- \*Env combinators
+- defect combinators
+- flatMap2
+
 ## 0.0.15
 
 - Only allow `runSync` on `IO`
