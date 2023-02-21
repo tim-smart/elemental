@@ -1,3 +1,7 @@
+## 0.0.45
+
+- Better defect detection
+
 ## 0.0.44
 
 - add `either`
