@@ -1,3 +1,7 @@
+## 0.0.35
+
+- Add tryCatchOption
+
 ## 0.0.34
 
 - Update function parameter names to _

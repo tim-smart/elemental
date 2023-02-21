@@ -220,6 +220,10 @@ class ZIO<R, E, A> {
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       tryCatch(f, onError).lift();
+  static IOOption<A> tryCatchOption<A>(
+    FutureOr<A> Function() f,
+  ) =>
+      tryCatch(f, (error, stack) => None());
 
   factory ZIO.tryCatchEnv(
     FutureOr<A> Function(R env) f,
