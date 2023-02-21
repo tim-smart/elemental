@@ -1,3 +1,7 @@
+## 0.0.30
+
+- Log to stderr
+
 ## 0.0.29
 
 - Add extract helpers for Maps
