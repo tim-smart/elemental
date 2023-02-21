@@ -1,26 +1,5 @@
 part of '../zio.dart';
 
-abstract class Cause<E> {
-  const Cause();
-}
-
-class Failure<E> extends Cause<E> {
-  const Failure(this.error);
-  final E error;
-}
-
-class Defect<E> extends Cause<E> {
-  const Defect(this.error, this.stackTrace);
-  final dynamic error;
-  final StackTrace stackTrace;
-}
-
-class Interrupted<E> extends Cause<E> {
-  const Interrupted();
-}
-
-typedef Exit<E, A> = Either<Cause<E>, A>;
-
 class Runtime {
   Runtime._(this.registry);
 
@@ -66,18 +45,11 @@ class Runtime {
     Deferred<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
-    final signal = interruptionSignal ?? _defaultSignal;
-    return fromThrowable<Either<E, A>, Exit<E, A>>(
-      () => zio._run(NoEnv(), registry, signal),
-      onSuccess: (_) => _.mapLeft(Failure.new),
-      onError: (error, stackTrace) {
-        if (error is Interrupted) {
-          return Either.left(Interrupted());
-        }
-        return Either.left(Defect(error, stackTrace));
-      },
-      interruptionSignal: signal,
-    );
+    try {
+      return zio._run(NoEnv(), registry, interruptionSignal ?? _defaultSignal);
+    } catch (error, stack) {
+      return Either.left(Defect(error, stack));
+    }
   }
 
   Future<A> runFuture<E, A>(
@@ -114,20 +86,32 @@ class Runtime {
     );
   }
 
-  Exit<E, A> runSyncExit<E, A>(EIO<E, A> zio) {
+  /// Try to run the ZIO synchronously, throwing a [Future] if it is asynchronous.
+  Exit<E, A> runSyncExit<E, A>(
+    EIO<E, A> zio, {
+    Deferred<Unit>? interruptionSignal,
+  }) {
     assert(!_disposed, 'Runtime has been disposed');
-    final signal = Deferred<Unit>();
-    final result = run(zio, interruptionSignal: signal);
+    final result = run(zio, interruptionSignal: interruptionSignal);
     if (result is Future) {
-      signal.complete(unit).runSyncExit();
-      throw Interrupted();
+      throw result;
     }
     return result;
   }
 
-  A runSync<A>(IO<A> zio) {
+  /// Try to run the ZIO synchronously, throwing a [Future] if it is asynchronous.
+  A runSync<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
-    return runSyncExit(zio).toNullable()!;
+
+    final signal = Deferred<Unit>();
+    final exit = run(zio, interruptionSignal: signal);
+
+    if (exit is Future) {
+      signal.complete(unit).runSync();
+      throw Interrupted<E>();
+    }
+
+    return exit.getOrElse((l) => throw l);
   }
 }
 

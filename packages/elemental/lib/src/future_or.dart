@@ -2,10 +2,8 @@ import 'dart:async';
 
 import 'package:elemental/elemental.dart';
 
-FutureOr<B> fromThrowable<A, B>(
+FutureOr<Exit<E, A>> fromThrowableNoI<E, A>(
   FutureOr<A> Function() f, {
-  required B Function(A a) onSuccess,
-  required B Function(dynamic error, StackTrace stackTrace) onError,
   Deferred<Unit>? interruptionSignal,
 }) {
   if (interruptionSignal?.unsafeCompleted == true) {
@@ -15,31 +13,47 @@ FutureOr<B> fromThrowable<A, B>(
   try {
     final a = f();
     if (a is Future) {
-      return (a as Future<A>).then((_) {
-        if (interruptionSignal?.unsafeCompleted == true) {
-          throw Interrupted();
-        }
-        return onSuccess(_);
-      }, onError: onError);
+      return (a as Future<A>).then(
+        (_) {
+          if (interruptionSignal?.unsafeCompleted == true) {
+            throw Interrupted();
+          }
+          return Either.right(_);
+        },
+        onError: (error, stack) => Either.left(Defect(error, stack)),
+      );
     }
-    return onSuccess(a);
+    return Either.right(a);
   } catch (err, stack) {
-    return onError(err, stack);
+    return Either.left(Defect(err, stack));
   }
 }
 
+FutureOr<Exit<E, A>> fromThrowable<E, A>(
+  FutureOr<A> Function() f, {
+  required Deferred<Unit> interruptionSignal,
+}) =>
+    fromThrowableNoI(f, interruptionSignal: interruptionSignal);
+
 extension FlatMapExtension<A> on FutureOr<A> {
+  FutureOr<B> flatMapFOrNoI<B>(FutureOr<B> Function(A exit) f) {
+    if (this is Future) {
+      return (this as Future<A>).then(f);
+    }
+    return f(this as A);
+  }
+
   FutureOr<B> flatMapFOr<B>(
-    FutureOr<B> Function(A a) f, {
-    Deferred<Unit>? interruptionSignal,
+    FutureOr<B> Function(A exit) f, {
+    required Deferred<Unit> interruptionSignal,
   }) {
-    if (interruptionSignal?.unsafeCompleted == true) {
+    if (interruptionSignal.unsafeCompleted == true) {
       throw Interrupted();
     }
 
     if (this is Future) {
       return (this as Future<A>).then((_) {
-        if (interruptionSignal?.unsafeCompleted == true) {
+        if (interruptionSignal.unsafeCompleted == true) {
           throw Interrupted();
         }
 
