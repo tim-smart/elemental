@@ -19,13 +19,19 @@ enum LogLevel {
 
 final logLevelLayer = Layer(IO.succeed(LogLevel.info));
 
+void _printStderr(String message) => stderr.writeln(message);
+
 class Logger {
+  Logger([this._print = _printStderr]);
+
+  final void Function(String message) _print;
+
   IO<Unit> log(LogLevel level, String message) =>
       IO.layer(logLevelLayer).flatMap(
             (currentLevel) => level < currentLevel
                 ? IO.unit
                 : IO(() {
-                    print("${level.label}: $message");
+                    _print("${level.label}: $message");
                     return unit;
                   }),
           );
