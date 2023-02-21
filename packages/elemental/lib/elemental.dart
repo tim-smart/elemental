@@ -21,4 +21,5 @@ export 'package:fpdart/fpdart.dart'
 
 export 'src/atoms.dart';
 export 'src/function.dart';
+export 'src/map_option.dart';
 export 'src/zio.dart';

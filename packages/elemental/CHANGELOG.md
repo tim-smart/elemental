@@ -1,3 +1,7 @@
+## 0.0.29
+
+- Add extract helpers for Maps
+
 ## 0.0.28
 
 - unitF -> unitLift
