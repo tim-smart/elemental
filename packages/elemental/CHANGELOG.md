@@ -1,3 +1,8 @@
+## 0.0.22
+
+- Add `liftError` to `EIO`
+- Reduce use of `factory`
+
 ## 0.0.21
 
 - Add `unsafeGet` to `Ref`
