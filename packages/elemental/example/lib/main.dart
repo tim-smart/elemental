@@ -36,15 +36,17 @@ class Todos {
 
   final Dio dio;
 
-  TodosIO<IList<Map<String, dynamic>>> get list => TodosIO.tryCatch(
+  TodosIO<IList<Todo>> get list => ZIO
+      .tryCatch(
         () => dio.get<List<dynamic>>('/todos'),
         (error, stack) => TodosDioError(error),
       )
-          .flatMapNullableOrFail(
-            (response) => response.data,
-            (response) => ListTodosError(),
-          )
-          .map((todos) => todos.cast<Todo>().toIList());
+      .liftError<TodosError>()
+      .flatMapNullableOrFail(
+        (response) => response.data,
+        (response) => ListTodosError(),
+      )
+      .map((todos) => todos.cast<Todo>().toIList());
 }
 
 // We can turn our service into a Layer, which wraps the nucleus dependency

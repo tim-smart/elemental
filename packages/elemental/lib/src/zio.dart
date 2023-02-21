@@ -57,12 +57,12 @@ class ZIO<R, E, A> {
 
   factory ZIO(A Function() f) => ZIO.from((_, r) => Either.right(f()));
 
-  factory ZIO.syncEnv(A Function(R env) f) =>
+  static RIO<R, A> syncEnv<R, A>(A Function(R env) f) =>
       ZIO.from((env, r) => Either.right(f(env)));
 
-  factory ZIO.succeed(A a) => ZIO.fromEither(Either.right(a));
+  static IO<A> succeed<A>(A a) => ZIO.fromEither(Either.right(a));
 
-  factory ZIO.fail(E e) => ZIO.fromEither(Either.left(e));
+  static EIO<E, Never> fail<E>(E e) => ZIO.fromEither(Either.left(e));
 
   static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
       ZIO.traverseIterable<R, E, ZIO<R, E, A>, A>(
@@ -99,7 +99,7 @@ class ZIO<R, E, A> {
         (env, r) => f(env)._run(env, r),
       );
 
-  factory ZIO.fromEither(Either<E, A> ea) => ZIO.from((_, r) => ea);
+  static EIO<E, A> fromEither<E, A>(Either<E, A> ea) => ZIO.from((_, r) => ea);
 
   static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
       ZIO.fromEither(oa.match(
@@ -107,7 +107,7 @@ class ZIO<R, E, A> {
         Either.right,
       ));
 
-  factory ZIO.fromOptionOrFail(
+  static EIO<E, A> fromOptionOrFail<E, A>(
     Option<A> oa,
     E Function() onNone,
   ) =>
@@ -129,24 +129,20 @@ class ZIO<R, E, A> {
 
   static IO<Unit> log(LogLevel level, String message) =>
       layer(loggerLayer).flatMap((log) => log.log(level, message));
-
   static IO<Unit> logDebug(String message) => log(LogLevel.debug, message);
   static IO<Unit> logInfo(String message) => log(LogLevel.info, message);
   static IO<Unit> logWarn(String message) => log(LogLevel.warn, message);
   static IO<Unit> logError(String message) => log(LogLevel.error, message);
 
-  factory ZIO.sleep(Duration duration) =>
+  static IO<Unit> sleep(Duration duration) =>
       ZIO.unsafeFuture(() => Future.delayed(duration));
-
-  factory ZIO.microtask(A Function() f) =>
-      ZIO.unsafeFuture(() => Future.microtask(f));
 
   static ZIO<R, E, IList<B>> traverseIterable<R, E, A, B>(
     Iterable<A> iterable,
     ZIO<R, E, B> Function(A a) f,
   ) =>
       iterable.map((a) => f(a)).fold(
-            ZIO.succeed(IList<B>()),
+            ZIO.succeed(IList<B>()).lift(),
             (acc, zio) => acc.zipWith(zio, (a, B b) => a.add(b)),
           );
 
@@ -172,7 +168,7 @@ class ZIO<R, E, A> {
         },
       );
 
-  factory ZIO.tryCatch(
+  static EIO<E, A> tryCatch<E, A>(
     FutureOr<A> Function() f,
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
@@ -250,7 +246,7 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E, A> delay(Duration duration) =>
-      ZIO<R, E, A>.sleep(duration).zipRight(this);
+      ZIO.sleep(duration).lift<R, E>().zipRight(this);
 
   ZIO<R, E, A> filterOrFail(
     bool Function(A a) predicate,
@@ -320,13 +316,13 @@ class ZIO<R, E, A> {
     FutureOr<B> Function(A a) f,
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
-      flatMap((a) => ZIO.tryCatch(() => f(a), onThrow));
+      flatMap((a) => ZIO.tryCatch(() => f(a), onThrow).lift());
 
   ZIO<R, E, B> flatMapThrowableEnv<B>(
     FutureOr<B> Function(A a, R env) f,
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
-      flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow));
+      flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow).lift());
 
   RIO<R, A> getOrElse(
     A Function(E e) orElse,
@@ -342,7 +338,7 @@ class ZIO<R, E, A> {
             .layer(loggerLayer)
             .flatMap((logger) => logger.warn("$e"))
             .lift(),
-        (a) => ZIO.succeed(fpdart.unit),
+        (a) => ZIO.succeed(fpdart.unit).lift(),
       );
 
   ZIO<R, E, B> map<B>(
@@ -425,7 +421,7 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> tapError<X>(
     ZIO<R, E, X> Function(E e) f,
   ) =>
-      catchError((e) => f(e).zipRight(ZIO.fail(e)));
+      catchError((e) => f(e).zipRight(ZIO.fail(e).lift()));
 
   ZIO<R, E, A> tapEither<X>(
     ZIO<R, E, X> Function(Either<E, A> ea) f,
@@ -494,6 +490,7 @@ extension IOLiftExt<A> on IO<A> {
 
 extension EIOLiftExt<E extends Object?, A> on EIO<E, A> {
   ZIO<R, E, A> lift<R>() => ZIO.from((_, r) => _run(NoEnv(), r));
+  EIO<E2, A> liftError<E2>() => mapError((e) => e as E2);
 }
 
 extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
