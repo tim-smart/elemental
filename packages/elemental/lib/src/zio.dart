@@ -116,7 +116,7 @@ class ZIO<R, E, A> {
         Either.right,
       ));
 
-  static IO<AtomRegistry> get registry => ZIO.from((_, r) => Either.right(r));
+  static final IO<AtomRegistry> registry = ZIO.from((_, r) => Either.right(r));
 
   static IO<A> service<A>(Atom<A> atom) =>
       ZIO.from((_, r) => Either.right(r.get(atom)));
@@ -192,7 +192,7 @@ class ZIO<R, E, A> {
         ),
       );
 
-  static IO<Unit> unit() => ZIO.succeed(fpdart.unit);
+  static final unit = ZIO.succeed(fpdart.unit);
 
   /// Creates a ZIO from a [Future].
   ///

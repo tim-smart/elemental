@@ -1,3 +1,7 @@
+## 0.0.24
+
+- Make `unit` final
+
 ## 0.0.23
 
 - Add lift to RIO
