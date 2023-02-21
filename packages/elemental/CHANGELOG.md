@@ -1,3 +1,7 @@
+## 0.0.44
+
+- add `either`
+
 ## 0.0.43
 
 - add interruption support

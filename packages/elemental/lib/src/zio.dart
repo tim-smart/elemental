@@ -55,8 +55,8 @@ class ZIO<R, E, A> {
 
   static final defaultRegistry = AtomRegistry();
 
-  final FutureOr<Either<E, A>> Function(
-      R env, AtomRegistry r, Deferred<Unit> cancel) _run;
+  final FutureOr<Either<E, A>> Function(R env, AtomRegistry r, Deferred<Unit> c)
+      _run;
 
   // Constructors
 
@@ -291,6 +291,12 @@ class ZIO<R, E, A> {
 
   ZIO<R, E, A> delay(Duration duration) =>
       ZIO.sleep<R, E>(duration).zipRight(this);
+
+  RIO<R, Either<E, A>> get either =>
+      ZIO.from((env, r, c) => _run(env, r, c).flatMapFOr(
+            (ea) => Either.right(ea),
+            interruptionSignal: c,
+          ));
 
   ZIO<R, E, A> filterOrFail(
     bool Function(A _) predicate,
