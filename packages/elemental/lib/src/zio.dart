@@ -26,7 +26,7 @@ typedef RIO<R, A> = ZIO<R, Never, A>;
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
 
 /// Represents an operation that represent an optional value
-typedef IOOption<R, A> = ZIO<NoEnv, None<Never>, A>;
+typedef IOOption<A> = ZIO<NoEnv, None<Never>, A>;
 
 /// Represents an operation that represent an optional value
 typedef RIOOption<R, A> = ZIO<R, None<Never>, A>;
