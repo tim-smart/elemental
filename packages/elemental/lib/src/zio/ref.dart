@@ -38,20 +38,20 @@ class Ref<A> {
         return old;
       });
 
-  IO<Unit> update(A Function(A) f) => IO(() {
+  IO<Unit> update(A Function(A _) f) => IO(() {
         _value = f(_value);
         _controller?.add(_value);
         return unit;
       });
 
-  IO<A> getAndUpdate(A Function(A) f) => IO(() {
+  IO<A> getAndUpdate(A Function(A _) f) => IO(() {
         final old = _value;
         _value = f(_value);
         _controller?.add(_value);
         return old;
       });
 
-  IO<A> updateAndGet(A Function(A) f) => IO(() {
+  IO<A> updateAndGet(A Function(A _) f) => IO(() {
         _value = f(_value);
         _controller?.add(_value);
         return _value;

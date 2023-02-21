@@ -1,6 +1,6 @@
 name: elemental
 description: A toolkit for writing software in dart
-version: 0.0.33
+version: 0.0.34
 homepage: https://github.com/tim-smart/nucleus
 
 environment:

@@ -1,7 +1,5 @@
 part of '../zio.dart';
 
-typedef GetLayer = EIO<E, A> Function<E, A>(Layer<E, A> layer);
-
 final _layerScopeAtom = atom((get) => Scope.closable());
 
 class Layer<E, Service> {

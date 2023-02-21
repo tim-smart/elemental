@@ -175,7 +175,7 @@ class ZIO<R, E, A> {
 
   static ZIO<R, E, IList<B>> traverseIterable<R, E, A, B>(
     Iterable<A> iterable,
-    ZIO<R, E, B> Function(A a) f,
+    ZIO<R, E, B> Function(A _) f,
   ) =>
       iterable.map((a) => f(a)).fold(
             ZIO.succeed(IList<B>()).lift(),
@@ -184,7 +184,7 @@ class ZIO<R, E, A> {
 
   static ZIO<R, E, IList<B>> traverseIterablePar<R, E, A, B>(
     Iterable<A> iterable,
-    ZIO<R, E, B> Function(A a) f,
+    ZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from(
         (env, r) {
@@ -282,7 +282,7 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E2, A> catchError<E2>(
-    ZIO<R, E2, A> Function(E e) f,
+    ZIO<R, E2, A> Function(E _) f,
   ) =>
       ZIO.from(
         (env, r) => this._run(env, r).flatMapFOr((ea) => ea.match(
@@ -295,13 +295,13 @@ class ZIO<R, E, A> {
       ZIO.sleep(duration).lift<R, E>().zipRight(this);
 
   ZIO<R, E, A> filterOrFail(
-    bool Function(A a) predicate,
-    E Function(A a) onFalse,
+    bool Function(A _) predicate,
+    E Function(A _) onFalse,
   ) =>
       flatMapEither((a) => Either.fromPredicate(a, predicate, onFalse));
 
   ZIO<R, E, B> flatMap<B>(
-    ZIO<R, E, B> Function(A a) f,
+    ZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from(
         (env, r) => _run(env, r).flatMapFOr(
@@ -313,17 +313,17 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E, Tuple2<A, B>> flatMap2<B>(
-    ZIO<R, E, B> Function(A a) f,
+    ZIO<R, E, B> Function(A _) f,
   ) =>
       flatMap((a) => f(a).map((b) => tuple2(a, b)));
 
   ZIO<R, E, B> flatMapEither<B>(
-    Either<E, B> Function(A a) f,
+    Either<E, B> Function(A _) f,
   ) =>
       ZIO.from((env, r) => this._run(env, r).flatMapFOr((ea) => ea.flatMap(f)));
 
   ZIO<R, E, B> flatMapEnv<B>(
-    ZIO<R, E, B> Function(A a, R env) f,
+    ZIO<R, E, B> Function(A _, R env) f,
   ) =>
       ZIO.from(
         (env, r) => this._run(env, r).flatMapFOr(
@@ -335,7 +335,7 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E, B> flatMapRegistry<B>(
-    ZIO<R, E, B> Function(A a, AtomRegistry r) f,
+    ZIO<R, E, B> Function(A _, AtomRegistry r) f,
   ) =>
       ZIO.from(
         (env, r) => this._run(env, r).flatMapFOr(
@@ -347,31 +347,31 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E, B> flatMapNullableOrFail<B>(
-    B? Function(A a) f,
-    E Function(A a) onNull,
+    B? Function(A _) f,
+    E Function(A _) onNull,
   ) =>
       flatMapEither((a) => Either.fromNullable(f(a), () => onNull(a)));
 
   ZIO<R, E, B> flatMapOptionOrFail<B>(
-    Option<B> Function(A a) f,
-    E Function(A a) onNone,
+    Option<B> Function(A _) f,
+    E Function(A _) onNone,
   ) =>
       flatMapEither((a) => Either.fromOption(f(a), () => onNone(a)));
 
   ZIO<R, E, B> flatMapThrowable<B>(
-    FutureOr<B> Function(A a) f,
+    FutureOr<B> Function(A _) f,
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
       flatMap((a) => ZIO.tryCatch(() => f(a), onThrow).lift());
 
   ZIO<R, E, B> flatMapThrowableEnv<B>(
-    FutureOr<B> Function(A a, R env) f,
+    FutureOr<B> Function(A _, R env) f,
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
       flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow).lift());
 
   RIO<R, A> getOrElse(
-    A Function(E e) orElse,
+    A Function(E _) orElse,
   ) =>
       matchSync(orElse, identity);
 
@@ -388,18 +388,18 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E, B> map<B>(
-    B Function(A a) f,
+    B Function(A _) f,
   ) =>
       ZIO.from((env, r) => this._run(env, r).flatMapFOr((ea) => ea.map(f)));
 
   ZIO<R, E2, A> mapError<E2>(
-    E2 Function(E e) f,
+    E2 Function(E _) f,
   ) =>
       ZIO.from((env, r) => this._run(env, r).flatMapFOr((ea) => ea.mapLeft(f)));
 
   ZIO<R, E2, B> match<E2, B>(
-    ZIO<R, E2, B> Function(E e) onError,
-    ZIO<R, E2, B> Function(A a) onSuccess,
+    ZIO<R, E2, B> Function(E _) onError,
+    ZIO<R, E2, B> Function(A _) onSuccess,
   ) =>
       ZIO.from(
         (env, r) => this._run(env, r).flatMapFOr((ea) => ea.match(
@@ -409,8 +409,8 @@ class ZIO<R, E, A> {
       );
 
   RIO<R, B> matchSync<B>(
-    B Function(E e) onError,
-    B Function(A a) onSuccess,
+    B Function(E _) onError,
+    B Function(A _) onSuccess,
   ) =>
       ZIO.from(
         (env, r) => this._run(env, r).flatMapFOr((ea) => ea.match(
@@ -450,27 +450,27 @@ class ZIO<R, E, A> {
       ZIO.from((env, _) => _run(env, runtime.registry));
 
   ZIO<R, E, A> tap<X>(
-    ZIO<R, E, X> Function(A a) f,
+    ZIO<R, E, X> Function(A _) f,
   ) =>
       flatMap((a) => f(a).as(a));
 
   ZIO<R, E, A> tapEnv<X>(
-    ZIO<R, E, X> Function(A a, R env) f,
+    ZIO<R, E, X> Function(A _, R env) f,
   ) =>
       flatMapEnv((a, env) => f(a, env).as(a));
 
   ZIO<R, E, A> tapRegistry<X>(
-    ZIO<R, E, X> Function(A a, AtomRegistry r) f,
+    ZIO<R, E, X> Function(A _, AtomRegistry r) f,
   ) =>
       flatMapRegistry((a, r) => f(a, r).as(a));
 
   ZIO<R, E, A> tapError<X>(
-    ZIO<R, E, X> Function(E e) f,
+    ZIO<R, E, X> Function(E _) f,
   ) =>
       catchError((e) => f(e).zipRight(ZIO.fail(e).lift()));
 
   ZIO<R, E, A> tapEither<X>(
-    ZIO<R, E, X> Function(Either<E, A> ea) f,
+    ZIO<R, E, X> Function(Either<E, A> _) f,
   ) =>
       ZIO.from(
         (env, r) => _run(env, r).flatMapFOr(
@@ -500,7 +500,7 @@ class ZIO<R, E, A> {
 
   ZIO<R, E, B> zipRight<B>(ZIO<R, E, B> zio) => flatMap((a) => zio);
 
-  ZIO<R, E, C> zipWith<B, C>(ZIO<R, E, B> zio, C Function(A, B) resolve) =>
+  ZIO<R, E, C> zipWith<B, C>(ZIO<R, E, B> zio, C Function(A a, B b) resolve) =>
       flatMap((a) => zio.map((b) => resolve(a, b)));
 }
 
@@ -543,7 +543,7 @@ extension RIOLiftExt<R extends Object?, A> on RIO<R, A> {
 
 extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
   ZIO<R, E, A> acquireRelease(
-    IO<Unit> Function(A a) release,
+    IO<Unit> Function(A _) release,
   ) =>
       tap((a) => addFinalizer(release(a)));
 
@@ -557,7 +557,7 @@ extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
   ZIO<R, E, A> ask<R>() => ZIO.from((R env, r) => _run(NoEnv(), r));
 
   ZIO<Scope, E, A> acquireRelease(
-    IO<Unit> Function(A a) release,
+    IO<Unit> Function(A _) release,
   ) =>
       ask<Scope>().tap((a) => addFinalizer(release(a)));
 
@@ -574,17 +574,17 @@ extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
 
 extension ZIONoneExt<R, A> on RIOOption<R, A> {
   ZIO<R, None<Never>, A> filter(
-    bool Function(A a) predicate,
+    bool Function(A _) predicate,
   ) =>
       filterOrFail(predicate, (a) => None());
 
   ZIO<R, None<Never>, B> flatMapNullable<B>(
-    B? Function(A a) f,
+    B? Function(A _) f,
   ) =>
       flatMapNullableOrFail(f, (a) => None());
 
   ZIO<R, None<Never>, B> flatMapOption<B>(
-    Option<B> Function(A a) f,
+    Option<B> Function(A _) f,
   ) =>
       flatMapOptionOrFail(f, (a) => None());
 

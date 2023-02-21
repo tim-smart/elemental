@@ -1,3 +1,7 @@
+## 0.0.34
+
+- Update function parameter names to _
+
 ## 0.0.33
 
 - Add discard variants to collect
