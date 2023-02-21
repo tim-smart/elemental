@@ -590,3 +590,11 @@ extension ZIOIterableExt<R, E, A> on Iterable<ZIO<R, E, A>> {
   ZIO<R, E, IList<A>> collect() => ZIO.collect(this);
   ZIO<R, E, IList<A>> collectPar() => ZIO.collectPar(this);
 }
+
+extension ZIOEitherExt<E, A> on Either<E, A> {
+  ZIO<NoEnv, E, A> toZIO() => ZIO.fromEither(this);
+}
+
+extension ZIOOptionExt<A> on Option<A> {
+  ZIO<NoEnv, None<Never>, A> toZIO() => ZIO.fromOption(this);
+}

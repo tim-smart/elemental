@@ -1,3 +1,7 @@
+## 0.0.31
+
+- Add `toZIO` to Option and Either
+
 ## 0.0.30
 
 - Log to stderr
