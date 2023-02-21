@@ -380,6 +380,11 @@ class ZIO<R, E, A> {
   ) =>
       flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow));
 
+  ZIO<R, E, Never> get forever {
+    ZIO<R, E, Never> loop() => flatMap((_) => loop());
+    return loop();
+  }
+
   RIO<R, A> getOrElse(
     A Function(E _) orElse,
   ) =>
@@ -464,8 +469,27 @@ class ZIO<R, E, A> {
     return ZIO.from((_, r, c) => zio._run(env, r, c));
   }
 
-  ZIO<R, E, A> withRuntime(Runtime runtime) =>
-      ZIO.from((env, r, c) => _run(env, runtime.registry, c));
+  ZIO<R, E, A> repeatN(int n) =>
+      flatMap((_) => n > 0 ? repeatN(n - 1) : ZIO.succeed(_));
+
+  ZIO<R, E, A> repeatWhile(
+    bool Function(A _) predicate,
+  ) =>
+      flatMap((_) => predicate(_) ? repeatWhile(predicate) : ZIO.succeed(_));
+
+  ZIO<R, E, A> repeatZIO(ZIO<R, E, bool> Function(E _) f) => flatMap(
+      (_) => f(_).flatMap((retry) => retry ? repeatZIO(f) : ZIO.succeed(_)));
+
+  ZIO<R, E, A> retryN(int n) =>
+      catchError((_) => n > 0 ? retryN(n - 1) : ZIO.fail(_));
+
+  ZIO<R, E, A> retryWhile(
+    bool Function(E _) predicate,
+  ) =>
+      catchError((_) => predicate(_) ? retryWhile(predicate) : ZIO.fail(_));
+
+  ZIO<R, E, A> retryZIO(ZIO<R, E, bool> Function(E _) f) => catchError(
+      (_) => f(_).flatMap((retry) => retry ? retryZIO(f) : ZIO.fail(_)));
 
   ZIO<R, E, A> tap<X>(
     ZIO<R, E, X> Function(A _) f,
@@ -499,6 +523,9 @@ class ZIO<R, E, A> {
           interruptionSignal: c,
         ),
       );
+
+  ZIO<R, E, A> withRuntime(Runtime runtime) =>
+      ZIO.from((env, r, c) => _run(env, runtime.registry, c));
 
   ZIO<R, E, Tuple2<A, B>> zip<B>(ZIO<R, E, B> zio) =>
       zipWith(zio, (a, B b) => tuple2(a, b));
