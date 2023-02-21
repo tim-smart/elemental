@@ -35,6 +35,9 @@ class Runtime {
   IO<Unit> get dispose => IO(() => _disposed = true)
       .zipRight(registry.get(_layerScopeAtom).closeScope);
 
+  EIO<E, Unit> provideLayer<E, A>(Layer<E, A> layer) =>
+      layer.getOrBuild.withRuntime(this).asUnit;
+
   FutureOr<Either<E, A>> run<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
     return zio._run(NoEnv(), registry);
