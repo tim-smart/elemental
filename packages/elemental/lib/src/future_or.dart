@@ -6,9 +6,9 @@ FutureOr<B> fromThrowable<A, B>(
   FutureOr<A> Function() f, {
   required B Function(A a) onSuccess,
   required B Function(dynamic error, StackTrace stackTrace) onError,
-  required Deferred<Unit> interruptionSignal,
+  Deferred<Unit>? interruptionSignal,
 }) {
-  if (interruptionSignal.unsafeCompleted) {
+  if (interruptionSignal?.unsafeCompleted == true) {
     throw Interrupted();
   }
 
@@ -16,7 +16,7 @@ FutureOr<B> fromThrowable<A, B>(
     final a = f();
     if (a is Future) {
       return (a as Future<A>).then((_) {
-        if (interruptionSignal.unsafeCompleted) {
+        if (interruptionSignal?.unsafeCompleted == true) {
           throw Interrupted();
         }
         return onSuccess(_);
@@ -31,15 +31,15 @@ FutureOr<B> fromThrowable<A, B>(
 extension FlatMapExtension<A> on FutureOr<A> {
   FutureOr<B> flatMapFOr<B>(
     FutureOr<B> Function(A a) f, {
-    required Deferred<Unit> interruptionSignal,
+    Deferred<Unit>? interruptionSignal,
   }) {
-    if (interruptionSignal.unsafeCompleted) {
+    if (interruptionSignal?.unsafeCompleted == true) {
       throw Interrupted();
     }
 
     if (this is Future) {
       return (this as Future<A>).then((_) {
-        if (interruptionSignal.unsafeCompleted) {
+        if (interruptionSignal?.unsafeCompleted == true) {
           throw Interrupted();
         }
 

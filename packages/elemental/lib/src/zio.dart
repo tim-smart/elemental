@@ -239,24 +239,22 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> always(ZIO<R, E, A> zio) => ZIO.from(
         (env, r, c) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
           () => _run(env, r, c),
-          onSuccess: (ea) => zio._run(env, r, c),
-          onError: (e, s) => zio._run(env, r, c),
-          interruptionSignal: c,
+          onSuccess: (ea) => zio._run(env, r, Deferred()),
+          onError: (e, s) => zio._run(env, r, Deferred()),
         ).flatMapFOr(identity, interruptionSignal: c),
       );
 
   ZIO<R, E, A> alwaysIgnore<X>(ZIO<R, E, X> zio) => ZIO.from(
         (env, r, c) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
           () => _run(env, r, c),
-          onSuccess: (ea) => zio._run(env, r, c).flatMapFOr(
+          onSuccess: (ea) => zio._run(env, r, Deferred()).flatMapFOr(
                 (ex) => ea,
                 interruptionSignal: c,
               ),
-          onError: (e, s) => zio._run(env, r, c).flatMapFOr(
+          onError: (e, s) => zio._run(env, r, Deferred()).flatMapFOr(
                 (ex) => Error.throwWithStackTrace(e, s),
                 interruptionSignal: c,
               ),
-          interruptionSignal: c,
         ).flatMapFOr(identity, interruptionSignal: c),
       );
 
