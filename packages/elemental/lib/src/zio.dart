@@ -101,10 +101,10 @@ class ZIO<R, E, A> {
       ));
 
   static RIO<R, R> env<R>() => ZIO.from((env, r) => Either.right(env));
-  static ZIO<R, E, R> envLift<R, E>() => env();
+  static ZIO<R, E, R> envLift<R, E>() => env<R>().lift();
 
   static RIO<R, A> envWith<R, A>(A Function(R env) f) => ZIO.env<R>().map(f);
-  factory ZIO.envWithLift(A Function(R env) f) => envWith(f);
+  factory ZIO.envWithLift(A Function(R env) f) => envWith(f).lift();
 
   factory ZIO.envWithZIO(ZIO<R, E, A> Function(R env) f) => ZIO.from(
         (env, r) => f(env)._run(env, r),

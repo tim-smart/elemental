@@ -1,3 +1,7 @@
+## 0.0.39
+
+- Add missing lift()
+
 ## 0.0.38
 
 - Fix lifting
