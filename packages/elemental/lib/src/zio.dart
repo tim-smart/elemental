@@ -493,6 +493,11 @@ extension EIOLiftExt<E extends Object?, A> on EIO<E, A> {
   EIO<E2, A> liftError<E2>() => mapError((e) => e as E2);
 }
 
+extension RIOLiftExt<R extends Object?, A> on RIO<R, A> {
+  ZIO<R, E, A> lift<E>() => ZIO.from(_run);
+  ZIO<R, E, A> liftError<E>() => ZIO.from(_run);
+}
+
 extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
   ZIO<R, E, A> acquireRelease(
     IO<Unit> Function(A a) release,

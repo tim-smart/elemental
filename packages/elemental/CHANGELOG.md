@@ -1,3 +1,7 @@
+## 0.0.23
+
+- Add lift to RIO
+
 ## 0.0.22
 
 - Add `liftError` to `EIO`
