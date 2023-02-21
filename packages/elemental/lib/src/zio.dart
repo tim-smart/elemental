@@ -56,13 +56,17 @@ class ZIO<R, E, A> {
   // Constructors
 
   factory ZIO(A Function() f) => ZIO.from((_, r) => Either.right(f()));
+  static IO<A> sync<A>(A Function() f) => ZIO.from((_, r) => Either.right(f()));
 
   static RIO<R, A> syncEnv<R, A>(A Function(R env) f) =>
       ZIO.from((env, r) => Either.right(f(env)));
+  factory ZIO.syncEnvLift(A Function(R env) f) => syncEnv(f);
 
   static IO<A> succeed<A>(A a) => ZIO.fromEither(Either.right(a));
+  factory ZIO.succeedLift(A a) => succeed(a).lift();
 
   static EIO<E, Never> fail<E>(E e) => ZIO.fromEither(Either.left(e));
+  factory ZIO.failLift(E e) => fail(e).lift();
 
   static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
       ZIO.traverseIterable<R, E, ZIO<R, E, A>, A>(
@@ -88,24 +92,26 @@ class ZIO<R, E, A> {
         },
       ));
 
-  static ZIO<R, E, A> Function<A>(DoFunction<R, E, A> f) makeDo<R, E>() =>
-      <A>(f) => ZIO.Do(f);
-
   static RIO<R, R> env<R>() => ZIO.from((env, r) => Either.right(env));
+  static ZIO<R, E, R> envLift<R, E>() => env();
 
   static RIO<R, A> envWith<R, A>(A Function(R env) f) => ZIO.env<R>().map(f);
+  factory ZIO.envWithLift(A Function(R env) f) => envWith(f);
 
   factory ZIO.envWithZIO(ZIO<R, E, A> Function(R env) f) => ZIO.from(
         (env, r) => f(env)._run(env, r),
       );
 
   static EIO<E, A> fromEither<E, A>(Either<E, A> ea) => ZIO.from((_, r) => ea);
+  factory ZIO.fromEitherLift(Either<E, A> ea) => ZIO.from((_, r) => ea);
 
   static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
       ZIO.fromEither(oa.match(
         () => Either.left(None()),
         Either.right,
       ));
+  static ZIO<R, None<Never>, A> fromOptionLift<R, A>(Option<A> oa) =>
+      fromOption(oa).lift();
 
   static EIO<E, A> fromOptionOrFail<E, A>(
     Option<A> oa,
@@ -115,27 +121,48 @@ class ZIO<R, E, A> {
         () => Either.left(onNone()),
         Either.right,
       ));
+  factory ZIO.fromOptionOrFailLift(Option<A> oa, E Function() onNone) =>
+      fromOptionOrFail(oa, onNone).lift();
 
   static final IO<AtomRegistry> registry = ZIO.from((_, r) => Either.right(r));
 
   static IO<A> service<A>(Atom<A> atom) =>
       ZIO.from((_, r) => Either.right(r.get(atom)));
+  static ZIO<R, E, A> serviceLift<R, E, A>(Atom<A> atom) =>
+      service(atom).lift();
 
   static EIO<E, A> layer<E, A>(Layer<E, A> layer) =>
       ZIO.from((env, r) => r.get(layer._stateAtom).match(
             () => layer.getOrBuild._run(env, r),
             Either.right,
           ));
+  static ZIO<R, E, A> layerLift<R, E, A>(Layer<E, A> ea) => layer(ea).lift();
 
   static IO<Unit> log(LogLevel level, String message) =>
       layer(loggerLayer).flatMap((log) => log.log(level, message));
+  static ZIO<R, E, Unit> logLift<R, E>(LogLevel level, String message) =>
+      log(level, message).lift();
+
   static IO<Unit> logDebug(String message) => log(LogLevel.debug, message);
+  static ZIO<R, E, Unit> logDebugLift<R, E>(String message) =>
+      logDebug(message).lift();
+
   static IO<Unit> logInfo(String message) => log(LogLevel.info, message);
+  static ZIO<R, E, Unit> logInfoLift<R, E>(String message) =>
+      logInfo(message).lift();
+
   static IO<Unit> logWarn(String message) => log(LogLevel.warn, message);
+  static ZIO<R, E, Unit> logWarnLift<R, E>(String message) =>
+      logWarn(message).lift();
+
   static IO<Unit> logError(String message) => log(LogLevel.error, message);
+  static ZIO<R, E, Unit> logErrorLift<R, E>(String message) =>
+      logError(message).lift();
 
   static IO<Unit> sleep(Duration duration) =>
       ZIO.unsafeFuture(() => Future.delayed(duration));
+  static ZIO<R, E, Unit> sleepLift<R, E>(Duration duration) =>
+      sleep(duration).lift();
 
   static ZIO<R, E, IList<B>> traverseIterable<R, E, A, B>(
     Iterable<A> iterable,
@@ -179,6 +206,11 @@ class ZIO<R, E, A> {
           onError: (error, stack) => Either.left(onError(error, stack)),
         ),
       );
+  factory ZIO.tryCatchLift(
+    FutureOr<A> Function() f,
+    E Function(dynamic error, StackTrace stackTrace) onError,
+  ) =>
+      tryCatch(f, onError).lift();
 
   factory ZIO.tryCatchEnv(
     FutureOr<A> Function(R env) f,
@@ -193,14 +225,19 @@ class ZIO<R, E, A> {
       );
 
   static final unit = ZIO.succeed(fpdart.unit);
+  static ZIO<R, E, Unit> unitF<R, E>() => unit.lift();
 
   /// Creates a ZIO from a [Future].
   ///
   /// **This can be unsafe** because it will throw an error if the future fails.
-  factory ZIO.unsafeFuture(
-    FutureOr<A> Function() f,
-  ) =>
+  static IO<A> unsafeFuture<A>(FutureOr<A> Function() f) =>
       ZIO.from((_, r) => f().flatMapFOr(Either.right));
+
+  /// Creates a ZIO from a [Future].
+  ///
+  /// **This can be unsafe** because it will throw an error if the future fails.
+  factory ZIO.unsafeFutureLift(FutureOr<A> Function() f) =>
+      unsafeFuture(f).lift();
 
   ZIO<R, E, A> always(ZIO<R, E, A> zio) => ZIO.from(
         (env, r) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(

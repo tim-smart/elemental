@@ -1,3 +1,7 @@
+## 0.0.27
+
+- Add Lift variants of constructors
+
 ## 0.0.26
 
 - Add Iterable extension
