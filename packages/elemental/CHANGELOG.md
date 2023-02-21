@@ -1,3 +1,7 @@
+## 0.0.43
+
+- add interruption support
+
 ## 0.0.42
 
 - Add back tryCatchOption
