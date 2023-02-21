@@ -212,6 +212,11 @@ class ZIO<R, E, A> {
         ),
       );
 
+  static IOOption<A> tryCatchOption<A>(
+    FutureOr<A> Function() f,
+  ) =>
+      ZIO.tryCatch(f, (_, s) => None());
+
   static final unitIO = IO.succeed(fpdart.unit);
   static ZIO<R, E, Unit> unit<R, E>() => ZIO.succeed(fpdart.unit);
 

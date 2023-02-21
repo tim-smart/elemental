@@ -1,3 +1,7 @@
+## 0.0.42
+
+- Add back tryCatchOption
+
 ## 0.0.41
 
 - Revert to factories and remove *Lift constructors
