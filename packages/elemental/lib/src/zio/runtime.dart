@@ -1,5 +1,26 @@
 part of '../zio.dart';
 
+abstract class Cause<E> {
+  const Cause();
+}
+
+class Failure<E> extends Cause<E> {
+  const Failure(this.error);
+  final E error;
+}
+
+class Defect<E> extends Cause<E> {
+  const Defect(this.error, this.stackTrace);
+  final dynamic error;
+  final StackTrace stackTrace;
+}
+
+class Interrupted<E> extends Cause<E> {
+  const Interrupted();
+}
+
+typedef Exit<E, A> = Either<Cause<E>, A>;
+
 class Runtime {
   Runtime._(this.registry);
 
@@ -32,50 +53,81 @@ class Runtime {
   bool _disposed = false;
   bool get disposed => _disposed;
 
+  static final _defaultSignal = Deferred<Unit>();
+
   IO<Unit> get dispose => IO(() => _disposed = true)
       .zipRight(registry.get(_layerScopeAtom).closeScope);
 
   EIO<E, Unit> provideLayer<E, A>(Layer<E, A> layer) =>
       layer.getOrBuild.withRuntime(this).asUnit;
 
-  FutureOr<Either<E, A>> run<E, A>(EIO<E, A> zio) {
+  FutureOr<Exit<E, A>> run<E, A>(
+    EIO<E, A> zio, {
+    Deferred<Unit>? interruptionSignal,
+  }) {
     assert(!_disposed, 'Runtime has been disposed');
-    return zio._run(NoEnv(), registry);
+    final signal = interruptionSignal ?? _defaultSignal;
+    return fromThrowable<Either<E, A>, Exit<E, A>>(
+      () => zio._run(NoEnv(), registry, signal),
+      onSuccess: (_) => _.mapLeft(Failure.new),
+      onError: (error, stackTrace) {
+        if (error is Interrupted) {
+          return Either.left(Interrupted());
+        }
+        return Either.left(Defect(error, stackTrace));
+      },
+      interruptionSignal: signal,
+    );
   }
 
-  Future<A> runFuture<E, A>(EIO<E, A> zio) {
+  Future<A> runFuture<E, A>(
+    EIO<E, A> zio, {
+    Deferred<Unit>? interruptionSignal,
+  }) {
     assert(!_disposed, 'Runtime has been disposed');
-    return Future.value(run(zio)).then((ea) => ea.match(
-          (e) => throw e as Object,
-          identity,
-        ));
+    return Future.value(run(zio, interruptionSignal: interruptionSignal))
+        .then((ea) => ea.match(
+              (e) => throw e,
+              identity,
+            ));
   }
 
-  Future<Either<E, A>> runFutureEither<E, A>(EIO<E, A> zio) {
+  Future<Exit<E, A>> runFutureExit<E, A>(
+    EIO<E, A> zio, {
+    Deferred<Unit>? interruptionSignal,
+  }) {
     assert(!_disposed, 'Runtime has been disposed');
-    return Future.value(run(zio));
+    return Future.value(run(zio, interruptionSignal: interruptionSignal));
   }
 
-  FutureOr<A> runFutureOr<E, A>(EIO<E, A> zio) {
+  FutureOr<A> runFutureOr<E, A>(
+    EIO<E, A> zio, {
+    Deferred<Unit>? interruptionSignal,
+  }) {
     assert(!_disposed, 'Runtime has been disposed');
-    return run(zio).flatMapFOr((ea) => ea.match(
-          (e) => throw e as Object,
-          identity,
-        ));
+    return run(zio, interruptionSignal: interruptionSignal).flatMapFOr(
+      (ea) => ea.match(
+        (e) => throw e,
+        identity,
+      ),
+      interruptionSignal: _defaultSignal,
+    );
   }
 
-  Either<E, A> runSyncEither<E, A>(EIO<E, A> zio) {
+  Exit<E, A> runSyncExit<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
-    final result = run(zio);
+    final signal = Deferred<Unit>();
+    final result = run(zio, interruptionSignal: signal);
     if (result is Future) {
-      throw result;
+      signal.complete(unit).runSyncExit();
+      throw Interrupted();
     }
     return result;
   }
 
   A runSync<A>(IO<A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
-    return runSyncEither(zio).toNullable()!;
+    return runSyncExit(zio).toNullable()!;
   }
 }
 

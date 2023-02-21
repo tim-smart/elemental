@@ -7,6 +7,7 @@ class Deferred<A> {
   final _completer = Completer<A>.sync();
 
   IO<bool> get completed => IO(_value.isSome);
+  bool get unsafeCompleted => _value.isSome();
 
   IO<A> get await => _value.match(
         () => IO.unsafeFuture(() => _completer.future),

@@ -1,7 +1,7 @@
 import 'package:elemental/elemental.dart';
 
 FutureAtom<A> deferredAtom<A>(Deferred<A> deferred) =>
-    futureAtom((get) => deferred.await.runFuture(get.registry));
+    futureAtom((get) => deferred.await.runFuture(registry: get.registry));
 
 AtomWithParent<A, Atom<Ref<A>>> _refAtomWrap<A>(Atom<Ref<A>> atom) =>
     atomWithParent(atom, (get, parent) {
@@ -35,7 +35,7 @@ ReadOnlyAtom<Ref<A>> refAtomWithStorageOnly<A>(
     atomWithStorage<Ref<A>, A>((get, read, write) {
       final scope = Scope.closable();
       get.onDispose(() {
-        scope.closeScope.run(get.registry);
+        scope.closeScope.run(registry: get.registry);
       });
 
       final ref = Ref.makeScope(read() ?? defaultValue)

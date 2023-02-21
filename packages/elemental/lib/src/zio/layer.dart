@@ -26,13 +26,13 @@ class Layer<E, Service> {
   late final Atom<Service> atom;
 
   EIO<E, Service> get getOrBuild => ZIO.from(
-        (env, r) => r.get(_stateAtom).match(
+        (env, r, c) => r.get(_stateAtom).match(
               () => r
                   .get(_makeAtom)
                   .tap((service) => IO(() {
                         r.set(_stateAtom, Option.of(service));
                       }).lift())
-                  ._run(env, r),
+                  ._run(env, r, c),
               Either.right,
             ),
       );

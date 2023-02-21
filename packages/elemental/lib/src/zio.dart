@@ -33,11 +33,15 @@ typedef RIOOption<R, A> = ZIO<R, None<Never>, A>;
 // Do notation helpers
 typedef _DoAdapter<R, E> = FutureOr<A> Function<A>(ZIO<R, E, A> zio);
 
-_DoAdapter<R, E> _doAdapter<R, E>(R env, AtomRegistry r) =>
-    <A>(zio) => zio._run(env, r).flatMapFOr((ea) => ea.match(
-          (e) => Future.error(Left<E, A>(e)),
-          identity,
-        ));
+_DoAdapter<R, E> _doAdapter<R, E>(
+        R env, AtomRegistry r, Deferred<Unit> cancel) =>
+    <A>(zio) => zio._run(env, r, cancel).flatMapFOr(
+          (ea) => ea.match(
+            (e) => Future.error(Left<E, A>(e)),
+            identity,
+          ),
+          interruptionSignal: cancel,
+        );
 
 typedef DoFunction<R, E, A> = FutureOr<A> Function(
   // ignore: library_private_types_in_public_api
@@ -51,14 +55,15 @@ class ZIO<R, E, A> {
 
   static final defaultRegistry = AtomRegistry();
 
-  final FutureOr<Either<E, A>> Function(R env, AtomRegistry r) _run;
+  final FutureOr<Either<E, A>> Function(
+      R env, AtomRegistry r, Deferred<Unit> cancel) _run;
 
   // Constructors
 
-  factory ZIO(A Function() f) => ZIO.from((_, r) => Either.right(f()));
+  factory ZIO(A Function() f) => ZIO.from((_, r, c) => Either.right(f()));
 
   factory ZIO.syncEnv(A Function(R env) f) =>
-      ZIO.from((env, r) => Either.right(f(env)));
+      ZIO.from((env, r, c) => Either.right(f(env)));
 
   factory ZIO.succeed(A a) => ZIO.fromEither(Either.right(a));
 
@@ -85,26 +90,28 @@ class ZIO<R, E, A> {
       collectPar(zios).asUnit;
 
   // ignore: non_constant_identifier_names
-  factory ZIO.Do(DoFunction<R, E, A> f) => ZIO.from((env, r) => fromThrowable(
-        () => f(_doAdapter(env, r), env),
-        onSuccess: Either.right,
-        onError: (e, s) {
-          if (e is Left) {
-            return e as Left<E, A>;
-          }
-          throw e;
-        },
-      ));
+  factory ZIO.Do(DoFunction<R, E, A> f) =>
+      ZIO.from((env, r, c) => fromThrowable(
+            () => f(_doAdapter(env, r, c), env),
+            onSuccess: Either.right,
+            onError: (e, s) {
+              if (e is Left) {
+                return e as Left<E, A>;
+              }
+              throw e;
+            },
+            interruptionSignal: c,
+          ));
 
-  static RIO<R, R> env<R>() => ZIO.from((env, r) => Either.right(env));
+  static RIO<R, R> env<R>() => ZIO.from((env, r, c) => Either.right(env));
 
   factory ZIO.envWith(A Function(R env) f) => ZIO.env<R>().map(f);
 
   factory ZIO.envWithZIO(ZIO<R, E, A> Function(R env) f) => ZIO.from(
-        (env, r) => f(env)._run(env, r),
+        (env, r, c) => f(env)._run(env, r, c),
       );
 
-  factory ZIO.fromEither(Either<E, A> ea) => ZIO.from((_, r) => ea);
+  factory ZIO.fromEither(Either<E, A> ea) => ZIO.from((_, r, c) => ea);
 
   static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
       ZIO.fromEither(oa.match(
@@ -121,14 +128,15 @@ class ZIO<R, E, A> {
         Either.right,
       ));
 
-  static final IO<AtomRegistry> registry = ZIO.from((_, r) => Either.right(r));
+  static final IO<AtomRegistry> registry =
+      ZIO.from((_, r, c) => Either.right(r));
 
   factory ZIO.service(Atom<A> atom) =>
-      ZIO.from((_, r) => Either.right(r.get(atom)));
+      ZIO.from((_, r, c) => Either.right(r.get(atom)));
 
   factory ZIO.layer(Layer<E, A> layer) =>
-      ZIO.from((env, r) => r.get(layer._stateAtom).match(
-            () => layer.getOrBuild._run(NoEnv(), r),
+      ZIO.from((env, r, c) => r.get(layer._stateAtom).match(
+            () => layer.getOrBuild._run(NoEnv(), r, c),
             Either.right,
           ));
 
@@ -171,9 +179,9 @@ class ZIO<R, E, A> {
     ZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from(
-        (env, r) {
+        (env, r, c) {
           final results =
-              iterable.map((a) => f(a)._run(env, r)).toList(growable: false);
+              iterable.map((a) => f(a)._run(env, r, c)).toList(growable: false);
           final hasFuture = results.any((eb) => eb is Future);
 
           if (!hasFuture) {
@@ -193,10 +201,11 @@ class ZIO<R, E, A> {
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       ZIO.from(
-        (env, r) => fromThrowable(
+        (env, r, c) => fromThrowable(
           f,
           onSuccess: Either.right,
           onError: (error, stack) => Either.left(onError(error, stack)),
+          interruptionSignal: c,
         ),
       );
 
@@ -205,10 +214,11 @@ class ZIO<R, E, A> {
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       ZIO.from(
-        (env, r) => fromThrowable(
+        (env, r, c) => fromThrowable(
           () => f(env),
           onSuccess: Either.right,
           onError: (error, stack) => Either.left(onError(error, stack)),
+          interruptionSignal: c,
         ),
       );
 
@@ -223,25 +233,31 @@ class ZIO<R, E, A> {
   /// Creates a ZIO from a [Future].
   ///
   /// **This can be unsafe** because it will throw an error if the future fails.
-  factory ZIO.unsafeFuture(FutureOr<A> Function() f) =>
-      ZIO.from((_, r) => f().flatMapFOr(Either.right));
+  factory ZIO.unsafeFuture(FutureOr<A> Function() f) => ZIO
+      .from((_, r, c) => f().flatMapFOr(Either.right, interruptionSignal: c));
 
   ZIO<R, E, A> always(ZIO<R, E, A> zio) => ZIO.from(
-        (env, r) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
-          () => _run(env, r),
-          onSuccess: (ea) => zio._run(env, r),
-          onError: (e, s) => zio._run(env, r),
-        ).flatMapFOr(identity),
+        (env, r, c) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env, r, c),
+          onSuccess: (ea) => zio._run(env, r, c),
+          onError: (e, s) => zio._run(env, r, c),
+          interruptionSignal: c,
+        ).flatMapFOr(identity, interruptionSignal: c),
       );
 
   ZIO<R, E, A> alwaysIgnore<X>(ZIO<R, E, X> zio) => ZIO.from(
-        (env, r) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
-          () => _run(env, r),
-          onSuccess: (ea) => zio._run(env, r).flatMapFOr((ex) => ea),
-          onError: (e, s) => zio
-              ._run(env, r)
-              .flatMapFOr((ex) => Error.throwWithStackTrace(e, s)),
-        ).flatMapFOr(identity),
+        (env, r, c) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env, r, c),
+          onSuccess: (ea) => zio._run(env, r, c).flatMapFOr(
+                (ex) => ea,
+                interruptionSignal: c,
+              ),
+          onError: (e, s) => zio._run(env, r, c).flatMapFOr(
+                (ex) => Error.throwWithStackTrace(e, s),
+                interruptionSignal: c,
+              ),
+          interruptionSignal: c,
+        ).flatMapFOr(identity, interruptionSignal: c),
       );
 
   ZIO<R, E, B> as<B>(B b) => map((_) => b);
@@ -252,21 +268,25 @@ class ZIO<R, E, A> {
     ZIO<R, E, A> Function(dynamic error, StackTrace stack) f,
   ) =>
       ZIO.from(
-        (env, r) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
-          () => _run(env, r),
+        (env, r, c) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
+          () => _run(env, r, c),
           onSuccess: identity,
-          onError: (e, s) => f(e, s)._run(env, r),
-        ).flatMapFOr(identity),
+          onError: (e, s) => f(e, s)._run(env, r, c),
+          interruptionSignal: c,
+        ).flatMapFOr(identity, interruptionSignal: c),
       );
 
   ZIO<R, E2, A> catchError<E2>(
     ZIO<R, E2, A> Function(E _) f,
   ) =>
       ZIO.from(
-        (env, r) => this._run(env, r).flatMapFOr((ea) => ea.match(
-              (e) => f(e)._run(env, r),
-              (a) => Either.right(a),
-            )),
+        (env, r, c) => this._run(env, r, c).flatMapFOr(
+              (ea) => ea.match(
+                (e) => f(e)._run(env, r, c),
+                (a) => Either.right(a),
+              ),
+              interruptionSignal: c,
+            ),
       );
 
   ZIO<R, E, A> delay(Duration duration) =>
@@ -282,11 +302,12 @@ class ZIO<R, E, A> {
     ZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from(
-        (env, r) => _run(env, r).flatMapFOr(
+        (env, r, c) => _run(env, r, c).flatMapFOr(
           (ea) => ea.match(
             (e) => Either.left(e),
-            (a) => f(a)._run(env, r),
+            (a) => f(a)._run(env, r, c),
           ),
+          interruptionSignal: c,
         ),
       );
 
@@ -298,17 +319,23 @@ class ZIO<R, E, A> {
   ZIO<R, E, B> flatMapEither<B>(
     Either<E, B> Function(A _) f,
   ) =>
-      ZIO.from((env, r) => _run(env, r).flatMapFOr((ea) => ea.flatMap(f)));
+      ZIO.from(
+        (env, r, c) => _run(env, r, c).flatMapFOr(
+          (ea) => ea.flatMap(f),
+          interruptionSignal: c,
+        ),
+      );
 
   ZIO<R, E, B> flatMapEnv<B>(
     ZIO<R, E, B> Function(A _, R env) f,
   ) =>
       ZIO.from(
-        (env, r) => _run(env, r).flatMapFOr(
+        (env, r, c) => _run(env, r, c).flatMapFOr(
           (ea) => ea.match(
             (e) => Either.left(e),
-            (a) => f(a, env)._run(env, r),
+            (a) => f(a, env)._run(env, r, c),
           ),
+          interruptionSignal: c,
         ),
       );
 
@@ -316,11 +343,12 @@ class ZIO<R, E, A> {
     ZIO<R, E, B> Function(A _, AtomRegistry r) f,
   ) =>
       ZIO.from(
-        (env, r) => _run(env, r).flatMapFOr(
+        (env, r, c) => _run(env, r, c).flatMapFOr(
           (ea) => ea.match(
             (e) => Either.left(e),
-            (a) => f(a, r)._run(env, r),
+            (a) => f(a, r)._run(env, r, c),
           ),
+          interruptionSignal: c,
         ),
       );
 
@@ -363,22 +391,31 @@ class ZIO<R, E, A> {
   ZIO<R, E, B> map<B>(
     B Function(A _) f,
   ) =>
-      ZIO.from((env, r) => this._run(env, r).flatMapFOr((ea) => ea.map(f)));
+      ZIO.from((env, r, c) => this._run(env, r, c).flatMapFOr(
+            (ea) => ea.map(f),
+            interruptionSignal: c,
+          ));
 
   ZIO<R, E2, A> mapError<E2>(
     E2 Function(E _) f,
   ) =>
-      ZIO.from((env, r) => this._run(env, r).flatMapFOr((ea) => ea.mapLeft(f)));
+      ZIO.from((env, r, c) => this._run(env, r, c).flatMapFOr(
+            (ea) => ea.mapLeft(f),
+            interruptionSignal: c,
+          ));
 
   ZIO<R, E2, B> match<E2, B>(
     ZIO<R, E2, B> Function(E _) onError,
     ZIO<R, E2, B> Function(A _) onSuccess,
   ) =>
       ZIO.from(
-        (env, r) => this._run(env, r).flatMapFOr((ea) => ea.match(
-              (e) => onError(e)._run(env, r),
-              (a) => onSuccess(a)._run(env, r),
-            )),
+        (env, r, c) => this._run(env, r, c).flatMapFOr(
+              (ea) => ea.match(
+                (e) => onError(e)._run(env, r, c),
+                (a) => onSuccess(a)._run(env, r, c),
+              ),
+              interruptionSignal: c,
+            ),
       );
 
   RIO<R, B> matchSync<B>(
@@ -386,41 +423,45 @@ class ZIO<R, E, A> {
     B Function(A _) onSuccess,
   ) =>
       ZIO.from(
-        (env, r) => this._run(env, r).flatMapFOr((ea) => ea.match(
-              (e) => Either.right(onError(e)),
-              (a) => Either.right(onSuccess(a)),
-            )),
+        (env, r, c) => this._run(env, r, c).flatMapFOr(
+              (ea) => ea.match(
+                (e) => Either.right(onError(e)),
+                (a) => Either.right(onSuccess(a)),
+              ),
+              interruptionSignal: c,
+            ),
       );
 
   IO<ZIO<R, E, A>> get memoize => IO(() {
         final deferred = Deferred<Either<E, A>>();
         var executed = false;
 
-        return ZIO.from((env, r) {
+        return ZIO.from((env, r, c) {
           if (executed) {
             return deferred.await
                 .lift<R, E>()
                 .flatMapEither(identity)
-                ._run(env, r);
+                ._run(env, r, c);
           }
 
           executed = true;
-          return tapEither((ea) => deferred.complete(ea).lift())._run(env, r);
+          return tapEither((ea) => deferred.complete(ea).lift())
+              ._run(env, r, c);
         });
       });
 
   ZIO<R, E, A> get microtask =>
-      ZIO.from((env, r) => Future.microtask(() => _run(env, r)));
+      ZIO.from((env, r, c) => Future.microtask(() => _run(env, r, c)));
 
   EIO<E, A> provide(R env) {
     final zio = env is ScopeMixin && !env.scopeClosable
         ? alwaysIgnore(env.closeScope.lift())
         : this;
-    return ZIO.from((_, r) => zio._run(env, r));
+    return ZIO.from((_, r, c) => zio._run(env, r, c));
   }
 
   ZIO<R, E, A> withRuntime(Runtime runtime) =>
-      ZIO.from((env, _) => _run(env, runtime.registry));
+      ZIO.from((env, r, c) => _run(env, runtime.registry, c));
 
   ZIO<R, E, A> tap<X>(
     ZIO<R, E, X> Function(A _) f,
@@ -446,8 +487,12 @@ class ZIO<R, E, A> {
     ZIO<R, E, X> Function(Either<E, A> _) f,
   ) =>
       ZIO.from(
-        (env, r) => _run(env, r).flatMapFOr(
-          (ea) => f(ea)._run(env, r).flatMapFOr((ex) => ea),
+        (env, r, c) => _run(env, r, c).flatMapFOr(
+          (ea) => f(ea)._run(env, r, c).flatMapFOr(
+                (ex) => ea,
+                interruptionSignal: c,
+              ),
+          interruptionSignal: c,
         ),
       );
 
@@ -478,20 +523,44 @@ class ZIO<R, E, A> {
 }
 
 extension ZIORunExt<E, A> on EIO<E, A> {
-  FutureOr<Either<E, A>> run([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).run(this);
+  FutureOr<Exit<E, A>> run({
+    AtomRegistry? registry,
+    Deferred<Unit>? interruptionSignal,
+  }) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).run(
+        this,
+        interruptionSignal: interruptionSignal,
+      );
 
-  Future<A> runFuture([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFuture(this);
+  Future<A> runFuture({
+    AtomRegistry? registry,
+    Deferred<Unit>? interruptionSignal,
+  }) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFuture(
+        this,
+        interruptionSignal: interruptionSignal,
+      );
 
-  Future<Either<E, A>> runFutureEither([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureEither(this);
+  Future<Exit<E, A>> runFutureExit({
+    AtomRegistry? registry,
+    Deferred<Unit>? interruptionSignal,
+  }) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureExit(
+        this,
+        interruptionSignal: interruptionSignal,
+      );
 
-  FutureOr<A> runFutureOr([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureOr(this);
+  FutureOr<A> runFutureOr({
+    AtomRegistry? registry,
+    Deferred<Unit>? interruptionSignal,
+  }) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureOr(
+        this,
+        interruptionSignal: interruptionSignal,
+      );
 
-  Either<E, A> runSyncEither([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runSyncEither(this);
+  Exit<E, A> runSyncExit({AtomRegistry? registry}) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runSyncExit(this);
 }
 
 extension IORunSyncExt<A> on IO<A> {
@@ -527,7 +596,7 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
 }
 
 extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
-  ZIO<R, E, A> ask<R>() => ZIO.from((R env, r) => _run(NoEnv(), r));
+  ZIO<R, E, A> ask<R>() => ZIO.from((R env, r, c) => _run(NoEnv(), r, c));
 
   ZIO<Scope, E, A> acquireRelease(
     IO<Unit> Function(A _) release,
