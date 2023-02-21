@@ -530,18 +530,18 @@ extension IORunSyncExt<A> on IO<A> {
 }
 
 extension IOLiftExt<A> on IO<A> {
-  ZIO<R, E, A> lift<R, E>() => ZIO.from((_, r) => _run(NoEnv(), r));
-  EIO<E, A> liftError<E>() => ZIO.from((_, r) => _run(NoEnv(), r));
+  ZIO<R, E, A> lift<R, E>() => ask<R>().mapError((_) => _ as E);
+  EIO<E, A> liftError<E>() => lift<NoEnv, E>();
 }
 
 extension EIOLiftExt<E extends Object?, A> on EIO<E, A> {
-  ZIO<R, E, A> lift<R>() => ZIO.from((_, r) => _run(NoEnv(), r));
+  ZIO<R, E, A> lift<R>() => ask<R>();
   EIO<E2, A> liftError<E2>() => mapError((e) => e as E2);
 }
 
 extension RIOLiftExt<R extends Object?, A> on RIO<R, A> {
-  ZIO<R, E, A> lift<E>() => ZIO.from(_run);
-  ZIO<R, E, A> liftError<E>() => ZIO.from(_run);
+  ZIO<R, E, A> lift<E>() => mapError((_) => _ as E);
+  ZIO<R, E, A> liftError<E>() => lift<E>();
 }
 
 extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
