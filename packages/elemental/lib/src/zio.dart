@@ -547,3 +547,8 @@ extension ZIONoneExt<R, A> on RIOOption<R, A> {
         Option.of,
       );
 }
+
+extension ZIOIterableExt<R, E, A> on Iterable<ZIO<R, E, A>> {
+  ZIO<R, E, IList<A>> collect() => ZIO.collect(this);
+  ZIO<R, E, IList<A>> collectPar() => ZIO.collectPar(this);
+}

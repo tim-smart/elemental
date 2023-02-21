@@ -1,3 +1,7 @@
+## 0.0.26
+
+- Add Iterable extension
+
 ## 0.0.25
 
 - Fix `unit` usage
