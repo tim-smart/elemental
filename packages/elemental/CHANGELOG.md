@@ -1,3 +1,7 @@
+## 0.0.28
+
+- unitF -> unitLift
+
 ## 0.0.27
 
 - Add Lift variants of constructors

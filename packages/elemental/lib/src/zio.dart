@@ -225,7 +225,7 @@ class ZIO<R, E, A> {
       );
 
   static final unit = ZIO.succeed(fpdart.unit);
-  static ZIO<R, E, Unit> unitF<R, E>() => unit.lift();
+  static ZIO<R, E, Unit> unitLift<R, E>() => unit.lift();
 
   /// Creates a ZIO from a [Future].
   ///

@@ -38,7 +38,7 @@ class Ref<A> {
         return old;
       });
 
-  IO<Unit> update<R, E>(A Function(A) f) => IO(() {
+  IO<Unit> update(A Function(A) f) => IO(() {
         _value = f(_value);
         _controller?.add(_value);
         return unit;
