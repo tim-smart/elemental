@@ -1,3 +1,7 @@
+## 0.0.32
+
+- Add `toZIOOrFail` to Option
+
 ## 0.0.31
 
 - Add `toZIO` to Option and Either

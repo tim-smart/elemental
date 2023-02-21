@@ -597,4 +597,6 @@ extension ZIOEitherExt<E, A> on Either<E, A> {
 
 extension ZIOOptionExt<A> on Option<A> {
   ZIO<NoEnv, None<Never>, A> toZIO() => ZIO.fromOption(this);
+  ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
+      ZIO.fromOptionOrFail(this, onNone);
 }
