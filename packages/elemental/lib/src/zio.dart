@@ -56,17 +56,13 @@ class ZIO<R, E, A> {
   // Constructors
 
   factory ZIO(A Function() f) => ZIO.from((_, r) => Either.right(f()));
-  static IO<A> sync<A>(A Function() f) => ZIO.from((_, r) => Either.right(f()));
 
-  static RIO<R, A> syncEnv<R, A>(A Function(R env) f) =>
+  factory ZIO.syncEnv(A Function(R env) f) =>
       ZIO.from((env, r) => Either.right(f(env)));
-  factory ZIO.syncEnvLift(A Function(R env) f) => syncEnv(f);
 
-  static IO<A> succeed<A>(A a) => ZIO.fromEither(Either.right(a));
-  factory ZIO.succeedLift(A a) => succeed(a).lift();
+  factory ZIO.succeed(A a) => ZIO.fromEither(Either.right(a));
 
-  static EIO<E, Never> fail<E>(E e) => ZIO.fromEither(Either.left(e));
-  factory ZIO.failLift(E e) => fail(e).lift();
+  factory ZIO.fail(E e) => ZIO.fromEither(Either.left(e));
 
   static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
       ZIO.traverseIterable<R, E, ZIO<R, E, A>, A>(
@@ -101,27 +97,22 @@ class ZIO<R, E, A> {
       ));
 
   static RIO<R, R> env<R>() => ZIO.from((env, r) => Either.right(env));
-  static ZIO<R, E, R> envLift<R, E>() => env<R>().lift();
 
-  static RIO<R, A> envWith<R, A>(A Function(R env) f) => ZIO.env<R>().map(f);
-  factory ZIO.envWithLift(A Function(R env) f) => envWith(f).lift();
+  factory ZIO.envWith(A Function(R env) f) => ZIO.env<R>().map(f);
 
   factory ZIO.envWithZIO(ZIO<R, E, A> Function(R env) f) => ZIO.from(
         (env, r) => f(env)._run(env, r),
       );
 
-  static EIO<E, A> fromEither<E, A>(Either<E, A> ea) => ZIO.from((_, r) => ea);
-  factory ZIO.fromEitherLift(Either<E, A> ea) => ZIO.from((_, r) => ea);
+  factory ZIO.fromEither(Either<E, A> ea) => ZIO.from((_, r) => ea);
 
   static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
       ZIO.fromEither(oa.match(
         () => Either.left(None()),
         Either.right,
       ));
-  static ZIO<R, None<Never>, A> fromOptionLift<R, A>(Option<A> oa) =>
-      fromOption(oa).lift();
 
-  static EIO<E, A> fromOptionOrFail<E, A>(
+  factory ZIO.fromOptionOrFail(
     Option<A> oa,
     E Function() onNone,
   ) =>
@@ -129,55 +120,49 @@ class ZIO<R, E, A> {
         () => Either.left(onNone()),
         Either.right,
       ));
-  factory ZIO.fromOptionOrFailLift(Option<A> oa, E Function() onNone) =>
-      fromOptionOrFail(oa, onNone).lift();
 
   static final IO<AtomRegistry> registry = ZIO.from((_, r) => Either.right(r));
 
-  static IO<A> service<A>(Atom<A> atom) =>
+  factory ZIO.service(Atom<A> atom) =>
       ZIO.from((_, r) => Either.right(r.get(atom)));
-  static ZIO<R, E, A> serviceLift<R, E, A>(Atom<A> atom) =>
-      service(atom).lift();
 
-  static EIO<E, A> layer<E, A>(Layer<E, A> layer) =>
+  factory ZIO.layer(Layer<E, A> layer) =>
       ZIO.from((env, r) => r.get(layer._stateAtom).match(
-            () => layer.getOrBuild._run(env, r),
+            () => layer.getOrBuild._run(NoEnv(), r),
             Either.right,
           ));
-  static ZIO<R, E, A> layerLift<R, E, A>(Layer<E, A> ea) => layer(ea).lift();
 
-  static IO<Unit> log(LogLevel level, String message) =>
-      layer(loggerLayer).flatMap((log) => log.log(level, message));
-  static ZIO<R, E, Unit> logLift<R, E>(LogLevel level, String message) =>
-      log(level, message).lift();
+  static ZIO<R, E, Unit> log<R, E>(LogLevel level, String message) =>
+      RIO<R, Logger>.layer(loggerLayer)
+          .flatMap((log) => log.log(level, message).lift());
+  static IO<Unit> logIO(LogLevel level, String message) => log(level, message);
 
-  static IO<Unit> logDebug(String message) => log(LogLevel.debug, message);
-  static ZIO<R, E, Unit> logDebugLift<R, E>(String message) =>
-      logDebug(message).lift();
+  static ZIO<R, E, Unit> logDebug<R, E>(String message) =>
+      log(LogLevel.debug, message);
+  static IO<Unit> logDebugIO(String message) => logDebug(message);
 
-  static IO<Unit> logInfo(String message) => log(LogLevel.info, message);
-  static ZIO<R, E, Unit> logInfoLift<R, E>(String message) =>
-      logInfo(message).lift();
+  static ZIO<R, E, Unit> logInfo<R, E>(String message) =>
+      log(LogLevel.info, message);
+  static IO<Unit> logInfoIO(String message) => logInfo(message);
 
-  static IO<Unit> logWarn(String message) => log(LogLevel.warn, message);
-  static ZIO<R, E, Unit> logWarnLift<R, E>(String message) =>
-      logWarn(message).lift();
+  static ZIO<R, E, Unit> logWarn<R, E>(String message) =>
+      log(LogLevel.warn, message);
+  static IO<Unit> logWarnIO(String message) => logWarn(message);
 
-  static IO<Unit> logError(String message) => log(LogLevel.error, message);
-  static ZIO<R, E, Unit> logErrorLift<R, E>(String message) =>
-      logError(message).lift();
+  static IO<Unit> logErrorIO(String message) => logError(message);
+  static ZIO<R, E, Unit> logError<R, E>(String message) =>
+      log(LogLevel.error, message);
 
-  static IO<Unit> sleep(Duration duration) =>
+  static ZIO<R, E, Unit> sleep<R, E>(Duration duration) =>
       ZIO.unsafeFuture(() => Future.delayed(duration, () => fpdart.unit));
-  static ZIO<R, E, Unit> sleepLift<R, E>(Duration duration) =>
-      sleep(duration).lift();
+  static IO<Unit> sleepIO(Duration duration) => sleep(duration);
 
   static ZIO<R, E, IList<B>> traverseIterable<R, E, A, B>(
     Iterable<A> iterable,
     ZIO<R, E, B> Function(A _) f,
   ) =>
       iterable.map((a) => f(a)).fold(
-            ZIO.succeed(IList<B>()).lift(),
+            ZIO.succeed(IList<B>()),
             (acc, zio) => acc.zipWith(zio, (a, B b) => a.add(b)),
           );
 
@@ -203,7 +188,7 @@ class ZIO<R, E, A> {
         },
       );
 
-  static EIO<E, A> tryCatch<E, A>(
+  factory ZIO.tryCatch(
     FutureOr<A> Function() f,
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
@@ -214,15 +199,6 @@ class ZIO<R, E, A> {
           onError: (error, stack) => Either.left(onError(error, stack)),
         ),
       );
-  factory ZIO.tryCatchLift(
-    FutureOr<A> Function() f,
-    E Function(dynamic error, StackTrace stackTrace) onError,
-  ) =>
-      tryCatch(f, onError).lift();
-  static IOOption<A> tryCatchOption<A>(
-    FutureOr<A> Function() f,
-  ) =>
-      tryCatch(f, (error, stack) => None());
 
   factory ZIO.tryCatchEnv(
     FutureOr<A> Function(R env) f,
@@ -236,20 +212,14 @@ class ZIO<R, E, A> {
         ),
       );
 
-  static final unit = ZIO.succeed(fpdart.unit);
-  static ZIO<R, E, Unit> unitLift<R, E>() => unit.lift();
+  static final unitIO = IO.succeed(fpdart.unit);
+  static ZIO<R, E, Unit> unit<R, E>() => ZIO.succeed(fpdart.unit);
 
   /// Creates a ZIO from a [Future].
   ///
   /// **This can be unsafe** because it will throw an error if the future fails.
-  static IO<A> unsafeFuture<A>(FutureOr<A> Function() f) =>
+  factory ZIO.unsafeFuture(FutureOr<A> Function() f) =>
       ZIO.from((_, r) => f().flatMapFOr(Either.right));
-
-  /// Creates a ZIO from a [Future].
-  ///
-  /// **This can be unsafe** because it will throw an error if the future fails.
-  factory ZIO.unsafeFutureLift(FutureOr<A> Function() f) =>
-      unsafeFuture(f).lift();
 
   ZIO<R, E, A> always(ZIO<R, E, A> zio) => ZIO.from(
         (env, r) => fromThrowable<Either<E, A>, FutureOr<Either<E, A>>>(
@@ -295,7 +265,7 @@ class ZIO<R, E, A> {
       );
 
   ZIO<R, E, A> delay(Duration duration) =>
-      ZIO.sleep(duration).lift<R, E>().zipRight(this);
+      ZIO.sleep<R, E>(duration).zipRight(this);
 
   ZIO<R, E, A> filterOrFail(
     bool Function(A _) predicate,
@@ -323,30 +293,30 @@ class ZIO<R, E, A> {
   ZIO<R, E, B> flatMapEither<B>(
     Either<E, B> Function(A _) f,
   ) =>
-      ZIO.from((env, r) => this._run(env, r).flatMapFOr((ea) => ea.flatMap(f)));
+      ZIO.from((env, r) => _run(env, r).flatMapFOr((ea) => ea.flatMap(f)));
 
   ZIO<R, E, B> flatMapEnv<B>(
     ZIO<R, E, B> Function(A _, R env) f,
   ) =>
       ZIO.from(
-        (env, r) => this._run(env, r).flatMapFOr(
-              (ea) => ea.match(
-                (e) => Either.left(e),
-                (a) => f(a, env)._run(env, r),
-              ),
-            ),
+        (env, r) => _run(env, r).flatMapFOr(
+          (ea) => ea.match(
+            (e) => Either.left(e),
+            (a) => f(a, env)._run(env, r),
+          ),
+        ),
       );
 
   ZIO<R, E, B> flatMapRegistry<B>(
     ZIO<R, E, B> Function(A _, AtomRegistry r) f,
   ) =>
       ZIO.from(
-        (env, r) => this._run(env, r).flatMapFOr(
-              (ea) => ea.match(
-                (e) => Either.left(e),
-                (a) => f(a, r)._run(env, r),
-              ),
-            ),
+        (env, r) => _run(env, r).flatMapFOr(
+          (ea) => ea.match(
+            (e) => Either.left(e),
+            (a) => f(a, r)._run(env, r),
+          ),
+        ),
       );
 
   ZIO<R, E, B> flatMapNullableOrFail<B>(
@@ -365,13 +335,13 @@ class ZIO<R, E, A> {
     FutureOr<B> Function(A _) f,
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
-      flatMap((a) => ZIO.tryCatch(() => f(a), onThrow).lift());
+      flatMap((a) => ZIO.tryCatch(() => f(a), onThrow));
 
   ZIO<R, E, B> flatMapThrowableEnv<B>(
     FutureOr<B> Function(A _, R env) f,
     E Function(dynamic error, StackTrace stack) onThrow,
   ) =>
-      flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow).lift());
+      flatMapEnv((a, env) => ZIO.tryCatch(() => f(a, env), onThrow));
 
   RIO<R, A> getOrElse(
     A Function(E _) orElse,
@@ -382,13 +352,8 @@ class ZIO<R, E, A> {
 
   RIO<R, Unit> get ignore => matchSync((e) => fpdart.unit, (a) => fpdart.unit);
 
-  RIO<R, Unit> get ignoreLogged => match(
-        (e) => ZIO
-            .layer(loggerLayer)
-            .flatMap((logger) => logger.warn("$e"))
-            .lift(),
-        (a) => ZIO.succeed(fpdart.unit).lift(),
-      );
+  RIO<R, Unit> get ignoreLogged =>
+      tapError((_) => logWarn(_.toString())).ignore;
 
   ZIO<R, E, B> map<B>(
     B Function(A _) f,
@@ -470,7 +435,7 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> tapError<X>(
     ZIO<R, E, X> Function(E _) f,
   ) =>
-      catchError((e) => f(e).zipRight(ZIO.fail(e).lift()));
+      catchError((e) => f(e).zipRight(ZIO.fail(e)));
 
   ZIO<R, E, A> tapEither<X>(
     ZIO<R, E, X> Function(Either<E, A> _) f,

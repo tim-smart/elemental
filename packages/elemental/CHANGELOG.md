@@ -1,3 +1,7 @@
+## 0.0.41
+
+- Revert to factories and remove *Lift constructors
+
 ## 0.0.40
 
 - Fix sleep return type

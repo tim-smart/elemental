@@ -9,8 +9,8 @@ class Deferred<A> {
   IO<bool> get completed => IO(_value.isSome);
 
   IO<A> get await => _value.match(
-        () => ZIO.unsafeFuture(() => _completer.future),
-        (value) => ZIO.succeed(value),
+        () => IO.unsafeFuture(() => _completer.future),
+        (value) => IO.succeed(value),
       );
 
   IO<Unit> complete<R, E>(A value) => _value.match(
@@ -19,6 +19,6 @@ class Deferred<A> {
           _completer.complete(value);
           return unit;
         }),
-        (_) => IO.unit,
+        (_) => IO.unitIO,
       );
 }

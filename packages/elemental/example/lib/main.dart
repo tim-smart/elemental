@@ -36,17 +36,15 @@ class Todos {
 
   final Dio dio;
 
-  TodosIO<IList<Todo>> get list => ZIO
-      .tryCatch(
+  TodosIO<IList<Todo>> get list => TodosIO.tryCatch(
         () => dio.get<List<dynamic>>('/todos'),
         (error, stack) => TodosDioError(error),
       )
-      .liftError<TodosError>()
-      .flatMapNullableOrFail(
-        (response) => response.data,
-        (response) => ListTodosError(),
-      )
-      .map((todos) => todos.cast<Todo>().toIList());
+          .flatMapNullableOrFail(
+            (response) => response.data,
+            (response) => ListTodosError(),
+          )
+          .map((todos) => todos.cast<Todo>().toIList());
 }
 
 // We can turn our service into a Layer, which wraps the nucleus dependency
@@ -55,13 +53,11 @@ final dioAtom = atom(
   (get) => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/')),
 );
 
-final todosLayer = Layer(ZIO.service(dioAtom).map((dio) => Todos(dio)));
+final todosLayer = Layer(IO.service(dioAtom).map((dio) => Todos(dio)));
 
 Future<void> main() async {
-  final listTodos = ZIO
-      .layer(todosLayer)
+  final listTodos = TodosIO.layer(todosLayer)
       .zipLeft(ZIO.logInfo('Fetching todos...'))
-      .liftError<TodosError>()
       .flatMap((todos) => todos.list);
 
   final todos = await listTodos.run();

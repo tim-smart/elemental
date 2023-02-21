@@ -29,7 +29,7 @@ class Logger {
   IO<Unit> log(LogLevel level, String message) =>
       IO.layer(logLevelLayer).flatMap(
             (currentLevel) => level < currentLevel
-                ? IO.unit
+                ? IO.unitIO
                 : IO(() {
                     _print("${level.label}: $message");
                     return unit;
