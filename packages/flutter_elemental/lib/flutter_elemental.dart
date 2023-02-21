@@ -4,3 +4,4 @@ export 'package:elemental/elemental.dart';
 export 'package:flutter_nucleus/flutter_nucleus.dart';
 
 export 'src/atom_scope.dart';
+export 'src/logger.dart';

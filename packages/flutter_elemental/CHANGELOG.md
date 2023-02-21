@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Add logger that uses stdout
+
 ## 0.0.3
 
 - Fix use `key` param when building `AtomScope`
