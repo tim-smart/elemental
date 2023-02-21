@@ -545,6 +545,11 @@ class ZIO<R, E, A> {
   ) =>
       catchError((e) => f(e).zipRight(ZIO.fail(e)));
 
+  ZIO<R, E, A> tapErrorCause<X>(
+    ZIO<R, E, X> Function(Cause<E> _) f,
+  ) =>
+      catchCause((e) => f(e).zipRight(ZIO.failCause(e)));
+
   ZIO<R, E, A> tapEither<X>(
     ZIO<R, E, X> Function(Either<E, A> _) f,
   ) =>
