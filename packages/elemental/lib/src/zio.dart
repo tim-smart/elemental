@@ -9,6 +9,7 @@ part 'zio/layer.dart';
 part 'zio/logger.dart';
 part 'zio/ref.dart';
 part 'zio/runtime.dart';
+part 'zio/schedule.dart';
 part 'zio/scope.dart';
 
 class NoEnv {
@@ -469,6 +470,19 @@ class ZIO<R, E, A> {
     return ZIO.from((_, r, c) => zio._run(env, r, c));
   }
 
+  ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
+      schedule.driver.lift<R, E>().flatMap((driver) {
+        ZIO<R, E, A> loop() => flatMap((a) => driver.next(a).match(
+              (e) => e.match(
+                () => ZIO.succeed(a),
+                (e) => ZIO.fail(e),
+              ),
+              (_) => loop(),
+            ));
+
+        return loop();
+      });
+
   ZIO<R, E, A> repeatN(int n) =>
       flatMap((_) => n > 0 ? repeatN(n - 1) : ZIO.succeed(_));
 
@@ -477,8 +491,18 @@ class ZIO<R, E, A> {
   ) =>
       flatMap((_) => predicate(_) ? repeatWhile(predicate) : ZIO.succeed(_));
 
-  ZIO<R, E, A> repeatZIO(ZIO<R, E, bool> Function(E _) f) => flatMap(
-      (_) => f(_).flatMap((retry) => retry ? repeatZIO(f) : ZIO.succeed(_)));
+  ZIO<R, E, A> retry<O>(Schedule<R, E, E, O> schedule) =>
+      schedule.driver.lift<R, E>().flatMap((driver) {
+        ZIO<R, E, A> loop() => catchError((error) => driver.next(error).match(
+              (e) => e.match(
+                () => ZIO.fail(error),
+                (e) => ZIO.fail(e),
+              ),
+              (_) => loop(),
+            ));
+
+        return loop();
+      });
 
   ZIO<R, E, A> retryN(int n) =>
       catchError((_) => n > 0 ? retryN(n - 1) : ZIO.fail(_));
@@ -487,9 +511,6 @@ class ZIO<R, E, A> {
     bool Function(E _) predicate,
   ) =>
       catchError((_) => predicate(_) ? retryWhile(predicate) : ZIO.fail(_));
-
-  ZIO<R, E, A> retryZIO(ZIO<R, E, bool> Function(E _) f) => catchError(
-      (_) => f(_).flatMap((retry) => retry ? retryZIO(f) : ZIO.fail(_)));
 
   ZIO<R, E, A> tap<X>(
     ZIO<R, E, X> Function(A _) f,

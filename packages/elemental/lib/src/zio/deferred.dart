@@ -3,6 +3,8 @@ part of '../zio.dart';
 class Deferred<A> {
   Deferred();
 
+  Deferred.completed(A value) : _value = Option.of(value);
+
   Option<A> _value = Option.none();
   final _completer = Completer<A>.sync();
 
