@@ -1,3 +1,7 @@
+## 0.0.46
+
+- `tapErrorCause`
+
 ## 0.0.45
 
 - Better defect detection
