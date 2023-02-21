@@ -1,3 +1,7 @@
+## 0.0.36
+
+- Drop dart:io dependency
+
 ## 0.0.35
 
 - Add tryCatchOption
