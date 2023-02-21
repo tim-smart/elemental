@@ -168,7 +168,7 @@ class ZIO<R, E, A> {
       logError(message).lift();
 
   static IO<Unit> sleep(Duration duration) =>
-      ZIO.unsafeFuture(() => Future.delayed(duration));
+      ZIO.unsafeFuture(() => Future.delayed(duration, () => fpdart.unit));
   static ZIO<R, E, Unit> sleepLift<R, E>(Duration duration) =>
       sleep(duration).lift();
 

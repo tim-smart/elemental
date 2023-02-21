@@ -1,3 +1,7 @@
+## 0.0.40
+
+- Fix sleep return type
+
 ## 0.0.39
 
 - Add missing lift()
