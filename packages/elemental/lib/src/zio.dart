@@ -471,9 +471,6 @@ extension ZIORunExt<E, A> on EIO<E, A> {
   FutureOr<A> runFutureOr([AtomRegistry? registry]) =>
       (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureOr(this);
 
-  FutureOr<A> call([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureOr(this);
-
   Either<E, A> runSyncEither([AtomRegistry? registry]) =>
       (registry?.zioRuntime ?? Runtime.defaultRuntime).runSyncEither(this);
 }

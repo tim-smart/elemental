@@ -19,6 +19,6 @@ class Deferred<A> {
           _completer.complete(value);
           return unit;
         }),
-        (_) => IO.unit(),
+        (_) => IO.unit,
       );
 }

@@ -1,3 +1,7 @@
+## 0.0.25
+
+- Fix `unit` usage
+
 ## 0.0.24
 
 - Make `unit` final
