@@ -75,11 +75,19 @@ class ZIO<R, E, A> {
         identity,
       );
 
+  static ZIO<R, E, Unit> collectDiscard<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
+      collect(zios).asUnit;
+
   static ZIO<R, E, IList<A>> collectPar<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
       ZIO.traverseIterablePar<R, E, ZIO<R, E, A>, A>(
         zios,
         identity,
       );
+
+  static ZIO<R, E, Unit> collectParDiscard<R, E, A>(
+    Iterable<ZIO<R, E, A>> zios,
+  ) =>
+      collectPar(zios).asUnit;
 
   // ignore: non_constant_identifier_names
   factory ZIO.Do(DoFunction<R, E, A> f) => ZIO.from((env, r) => fromThrowable(
@@ -588,7 +596,9 @@ extension ZIONoneExt<R, A> on RIOOption<R, A> {
 
 extension ZIOIterableExt<R, E, A> on Iterable<ZIO<R, E, A>> {
   ZIO<R, E, IList<A>> collect() => ZIO.collect(this);
+  ZIO<R, E, Unit> collectDiscard() => ZIO.collectDiscard(this);
   ZIO<R, E, IList<A>> collectPar() => ZIO.collectPar(this);
+  ZIO<R, E, Unit> collectParDiscard() => ZIO.collectParDiscard(this);
 }
 
 extension ZIOEitherExt<E, A> on Either<E, A> {

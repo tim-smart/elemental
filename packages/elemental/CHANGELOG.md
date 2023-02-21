@@ -1,3 +1,7 @@
+## 0.0.33
+
+- Add discard variants to collect
+
 ## 0.0.32
 
 - Add `toZIOOrFail` to Option
