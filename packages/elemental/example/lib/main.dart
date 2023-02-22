@@ -49,13 +49,17 @@ class Todos {
 
 // We can turn our service into a Layer, which wraps the nucleus dependency
 // management tool.
-final dioAtom = atom(
-  (get) => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/')),
+final dioLayer = Layer.memoize(
+  IO(() => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/'))),
 );
 
-final todosLayer = Layer(IO.service(dioAtom).map((dio) => Todos(dio)));
+final todosLayer = Layer(IO.layer(dioLayer).map((dio) => Todos(dio)));
 
 Future<void> main() async {
+  IO.layer(dioLayer).runSync();
+  IO.layer(dioLayer).runSync();
+  IO.layer(dioLayer).runSync();
+
   final listTodos = TodosIO.layer(todosLayer)
       .zipLeft(ZIO.logInfo('Fetching todos...'))
       .flatMap((todos) => todos.list);

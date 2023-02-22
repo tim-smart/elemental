@@ -10,10 +10,13 @@ mixin ScopeMixin {
         return unit;
       });
 
-  IO<Unit> get closeScope => IO.collectPar(_scopeFinalizers).zipRight(IO(() {
+  ZIO<R, E, Unit> closeScope<R, E>() =>
+      IO.collectPar(_scopeFinalizers).zipRight(IO(() {
         _scopeFinalizers.clear();
         return unit;
-      }));
+      })).lift();
+
+  late final IO<Unit> closeScopeIO = closeScope();
 }
 
 class Scope with ScopeMixin {

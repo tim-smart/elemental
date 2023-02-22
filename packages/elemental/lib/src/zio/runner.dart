@@ -1,34 +1,7 @@
-import 'dart:async';
+part of '../zio.dart';
 
-import 'package:elemental/elemental.dart';
-
-extension ZIOAtomContextExt on AtomContext {
-  FutureOr<Exit<E, A>> runZIO<E, A>(
-    EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
-  }) =>
-      registry.zioRuntime.run(zio, interruptionSignal: interrupt);
-
-  Future<Exit<E, A>> runZIOFuture<E, A>(
-    EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
-  }) =>
-      registry.zioRuntime.runFuture(zio, interruptionSignal: interrupt);
-
-  Future<A> runZIOFutureOrThrow<E, A>(
-    EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
-  }) =>
-      registry.zioRuntime.runFutureOrThrow(zio, interruptionSignal: interrupt);
-
-  FutureOr<A> runZIOOrThrow<E, A>(
-    EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
-  }) =>
-      registry.zioRuntime.runOrThrow(zio, interruptionSignal: interrupt);
-
-  ZIORunner<E, A> makeZIORunner<E, A>(EIO<E, A> zio) =>
-      registry.zioRuntime.runSyncOrThrow(ZIORunner.make(zio));
+extension EIORunnerExt<E, A> on EIO<E, A> {
+  IO<ZIORunner<E, A>> get runner => ZIORunner.make(this);
 }
 
 class ZIORunner<E, A> {
@@ -42,8 +15,8 @@ class ZIORunner<E, A> {
       value: Option.none(),
       loading: false,
     ))
-        .flatMap2((_) => ZIO.registry.lift())
-        .map((a) => ZIORunner._(a.second.zioRuntime, zio, scope, a.first))
+        .flatMap2((_) => ZIO.runtime())
+        .map((a) => ZIORunner._(a.second, zio, scope, a.first))
         .provide(scope);
   }
 
@@ -57,19 +30,14 @@ class ZIORunner<E, A> {
   Stream<ZIORunnerState<E, A>> get stream => _ref.stream;
 
   late final _run = _ref
-      .update((s) => s.copyWith(loading: true))
-      .liftError<E>()
+      .update<NoEnv, E>((s) => s.copyWith(loading: true))
       .zipRight(_zio)
-      .tapExit((_) => _deferred!.complete(_).lift())
-      .tapEither(
-        (_) => _ref
-            .update((s) => s.copyWith(
-                  loading: false,
-                  value: _.toOption(),
-                  error: _.swap().toOption(),
-                ))
-            .lift(),
-      );
+      .tapExit(_deferred!.complete)
+      .tapEither((_) => _ref.update((s) => s.copyWith(
+            loading: false,
+            value: _.toOption(),
+            error: _.swap().toOption(),
+          )));
 
   FutureOr<Exit<E, A>> run() {
     if (_deferred == null || _deferred!.unsafeCompleted) {
@@ -78,12 +46,16 @@ class ZIORunner<E, A> {
     }
 
     return _runtime.runOrThrow(
-      _deferred!.await,
+      _deferred!.awaitIO,
       interruptionSignal: _interrupt,
     );
   }
 
-  void dispose() => _scope.closeScope.run();
+  Future<A> runOrThrow() =>
+      Future.sync(run).then((value) => value.getOrElse((l) => throw l));
+
+  void dispose() =>
+      _interrupt.completeIO(unit).zipRight(_scope.closeScopeIO).run();
 }
 
 class ZIORunnerState<E, A> {

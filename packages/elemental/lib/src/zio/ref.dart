@@ -21,39 +21,45 @@ class Ref<A> {
     return _controller!.stream;
   }
 
-  IO<A> get get => IO(() => _value);
+  ZIO<R, E, A> get<R, E>() => ZIO(() => _value);
+  IO<A> get getIO => get();
 
   A unsafeGet() => _value;
 
-  IO<Unit> set(A a) => IO(() {
+  ZIO<R, E, Unit> set<R, E>(A a) => ZIO(() {
         _value = a;
         _controller?.add(_value);
         return unit;
       });
+  IO<Unit> setIO(A a) => set(a);
 
-  IO<A> getAndSet(A a) => IO(() {
+  ZIO<R, E, A> getAndSet<R, E>(A a) => ZIO(() {
         final old = _value;
         _value = a;
         _controller?.add(_value);
         return old;
       });
+  IO<A> getAndSetIO(A a) => getAndSet(a);
 
-  IO<Unit> update(A Function(A _) f) => IO(() {
+  ZIO<R, E, Unit> update<R, E>(A Function(A _) f) => ZIO(() {
         _value = f(_value);
         _controller?.add(_value);
         return unit;
       });
+  IO<Unit> updateIO(A Function(A _) f) => update(f);
 
-  IO<A> getAndUpdate(A Function(A _) f) => IO(() {
+  ZIO<R, E, A> getAndUpdate<R, E>(A Function(A _) f) => ZIO(() {
         final old = _value;
         _value = f(_value);
         _controller?.add(_value);
         return old;
       });
+  IO<A> getAndUpdateIO(A Function(A _) f) => getAndUpdate(f);
 
-  IO<A> updateAndGet(A Function(A _) f) => IO(() {
+  ZIO<R, E, A> updateAndGet<R, E>(A Function(A _) f) => ZIO(() {
         _value = f(_value);
         _controller?.add(_value);
         return _value;
       });
+  IO<A> updateAndGetIO(A Function(A _) f) => updateAndGet(f);
 }

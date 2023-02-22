@@ -11,17 +11,21 @@ class Deferred<A> {
   IO<bool> get completed => IO(_value.isSome);
   bool get unsafeCompleted => _value.isSome();
 
-  IO<A> get await => _value.match(
-        () => IO.unsafeFuture(() => _completer.future),
-        (value) => IO.succeed(value),
-      );
+  ZIO<R, E, A> await<R, E>() => ZIO.from((ctx) {
+        return _value.match(
+          () => _completer.future.then(Exit.right),
+          (value) => Exit.right(value),
+        );
+      });
+  late final IO<A> awaitIO = await();
 
-  IO<Unit> complete<R, E>(A value) => _value.match(
-        () => IO(() {
+  ZIO<R, E, Unit> complete<R, E>(A value) => ZIO(() => _value.match(
+        () {
           _value = Option.of(value);
           _completer.complete(value);
           return unit;
-        }),
-        (_) => IO.unitIO,
-      );
+        },
+        (_) => unit,
+      ));
+  IO<Unit> completeIO(A value) => complete(value);
 }

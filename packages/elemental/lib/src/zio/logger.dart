@@ -27,6 +27,9 @@ class Logger {
 
   final void Function(String message) _print;
 
+  static String annotationsToString(Map<String, dynamic> annotations) =>
+      annotations.entries.map((e) => '${e.key}="${e.value}"').join(' ');
+
   IO<Unit> log(
     LogLevel level,
     String message, {
@@ -36,7 +39,9 @@ class Logger {
             (currentLevel) => level < currentLevel
                 ? IO.unitIO
                 : IO(() {
-                    _print("${level.label}: $message");
+                    _print(
+                      'level=${level.label} message="$message"${annotations.isEmpty ? "" : " ${annotationsToString(annotations)}"}',
+                    );
                     return unit;
                   }),
           );

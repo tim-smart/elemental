@@ -1,56 +1,51 @@
 part of '../zio.dart';
 
 class Runtime {
-  Runtime._(this.registry);
-
-  factory Runtime(AtomRegistry registry) =>
-      _runtimes.putIfAbsent(registry, () => Runtime._(registry));
-
-  static final _runtimes = <AtomRegistry, Runtime>{};
-
   static EIO<dynamic, Runtime> withLayers(
     Iterable<Layer> layers, {
     Logger? logger,
     LogLevel? logLevel,
-    AtomRegistry? registry,
   }) {
-    final runtime = Runtime(registry ?? AtomRegistry());
+    final runtime = Runtime();
 
-    return ZIO
-        .collectPar([
-          if (logger != null) loggerLayer.replace(ZIO.succeed(logger)),
-          if (logLevel != null) logLevelLayer.replace(ZIO.succeed(logLevel)),
-          ...layers,
-        ].map((layer) => layer.getOrBuild))
-        .withRuntime(runtime)
-        .as(runtime);
+    return [
+      if (logger != null) loggerLayer.replace(ZIO.succeed(logger)),
+      if (logLevel != null) logLevelLayer.replace(ZIO.succeed(logLevel)),
+      ...layers,
+    ]
+        .map((layer) => runtime._layers.access<NoEnv, dynamic, dynamic>(layer))
+        .collectParDiscard
+        .as(runtime)
+        .withRuntime(runtime);
   }
 
-  static var defaultRuntime = Runtime(AtomRegistry());
+  static var defaultRuntime = Runtime();
 
-  final AtomRegistry registry;
+  final _scopes = <ScopeMixin>[];
+  late final _layers = _LayerContext((scope) => _scopes.add(scope));
+
   bool _disposed = false;
   bool get disposed => _disposed;
 
   static final _defaultSignal = Deferred<Unit>();
 
   IO<Unit> get dispose => IO(() => _disposed = true)
-      .zipRight(registry.get(_layerScopeAtom).closeScope);
-
-  EIO<E, Unit> provideLayer<E, A>(Layer<E, A> layer) =>
-      layer.getOrBuild.withRuntime(this).asUnit;
+      .zipRight(_scopes.map((s) => s.closeScopeIO).collectParDiscard);
 
   FutureOr<Exit<E, A>> run<E, A>(
     EIO<E, A> zio, {
     Deferred<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
+
+    final context = ZIOContext(
+      runtime: this,
+      env: const NoEnv(),
+      signal: interruptionSignal ?? Deferred(),
+    );
+
     try {
-      return zio._run(
-        const NoEnv(),
-        registry,
-        interruptionSignal ?? _defaultSignal,
-      );
+      return zio.alwaysIgnore(context.close())._run(context);
     } catch (error, stack) {
       return Either.left(Defect(error, stack));
     }
@@ -111,14 +106,10 @@ class Runtime {
     final exit = run(zio, interruptionSignal: signal);
 
     if (exit is Future) {
-      signal.complete(unit).runSyncOrThrow();
+      signal.completeIO(unit).runSyncOrThrow();
       throw Interrupted<E>();
     }
 
     return exit.getOrElse((l) => throw l);
   }
-}
-
-extension ZIOAtomRegistryExt on AtomRegistry {
-  Runtime get zioRuntime => Runtime(this);
 }

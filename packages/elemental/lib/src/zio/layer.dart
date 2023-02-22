@@ -1,54 +1,74 @@
 part of '../zio.dart';
 
-final _layerScopeAtom = atom((get) => Scope.closable());
-
 class Layer<E, Service> {
-  Layer._(ZIO<Scope, E, Service> make)
-      : _makeAtom = ReadOnlyAtom(
-          (get) => make.provide(get(_layerScopeAtom)).memoize.runSyncOrThrow(),
-        ).keepAlive(),
-        _stateAtom = StateAtom(Option<Service>.none()).keepAlive() {
-    atom = ReadOnlyAtom(
-      (get) => get(_stateAtom).match(
-        () => throw StateError('Layer not built'),
-        identity,
-      ),
-    ).keepAlive();
+  Layer._({
+    required ZIO<Scope, E, Service> make,
+    bool scoped = false,
+    bool memoized = false,
+    Symbol? tag,
+  })  : tag = tag ?? Symbol("Layer(${make.hashCode})"),
+        _make = make,
+        _scoped = scoped,
+        _memoized = memoized;
+
+  /// A [Layer] constructs a service, and is only built once per [ZIO]
+  /// execution.
+  factory Layer(EIO<E, Service> make) => Layer._(make: make.lift());
+
+  /// A [Layer] that has scoped resources.
+  factory Layer.scoped(ZIO<Scope, E, Service> make) =>
+      Layer._(make: make, scoped: true);
+
+  /// A [Layer] that is only built once per [Runtime].
+  factory Layer.memoize(EIO<E, Service> make) =>
+      Layer._(make: make.lift(), memoized: true);
+
+  /// A [Layer] that is only built once per [Runtime], with scoped resources.
+  factory Layer.memoizeScoped(ZIO<Scope, E, Service> make) {
+    return Layer._(make: make, memoized: true, scoped: true);
   }
 
-  Layer._withAtoms(this._makeAtom, this._stateAtom, this.atom);
+  // ignore: prefer_const_constructors
+  final Symbol tag;
 
-  factory Layer(EIO<E, Service> make) => Layer._(make.lift());
-  factory Layer.scoped(ZIO<Scope, E, Service> make) => Layer._(make);
+  final ZIO<Scope, E, Service> _make;
+  final bool _memoized;
+  final bool _scoped;
 
-  late final ReadOnlyAtom<EIO<E, Service>> _makeAtom;
-  final WritableAtom<Option<Service>, Option<Service>> _stateAtom;
-  late final Atom<Service> atom;
-
-  EIO<E, Service> get getOrBuild => ZIO.from(
-        (env, r, c) => r.get(_stateAtom).match(
-              () => r
-                  .get(_makeAtom)
-                  .tap((service) => IO(() {
-                        r.set(_stateAtom, Option.of(service));
-                      }).lift())
-                  ._run(env, r, c),
-              Either.right,
-            ),
-      );
-
-  Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._withAtoms(
-        ReadOnlyAtom((get) => build.memoize.runSyncOrThrow()),
-        _stateAtom,
-        atom,
+  Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._(
+        tag: tag,
+        make: build.lift(),
+        scoped: _scoped,
+        memoized: _memoized,
       );
 
   Layer<E2, Service> replaceScoped<E2>(ZIO<Scope, E2, Service> build) =>
-      Layer._withAtoms(
-        ReadOnlyAtom(
-          (get) => build.provide(get(_layerScopeAtom)).memoize.runSyncOrThrow(),
-        ),
-        _stateAtom,
-        atom,
+      Layer._(
+        tag: tag,
+        make: build,
+        scoped: _scoped,
+        memoized: _memoized,
       );
+}
+
+class _LayerContext {
+  _LayerContext(this._registerScope);
+
+  final void Function(ScopeMixin scope) _registerScope;
+  final layers = HashMap<Symbol, EIO<dynamic, dynamic>>();
+
+  ZIO<R, E, A> access<R, E, A>(Layer<E, A> layer) {
+    final build = layers.putIfAbsent(layer.tag, () {
+      final scope = Scope.closable();
+      final build = layer._make.provide(scope).memoize.runSyncOrThrow();
+
+      if (layer._scoped) {
+        _registerScope(scope);
+      }
+
+      return build;
+    }) as EIO<E, A>;
+
+    return build.lift();
+  }
 }
