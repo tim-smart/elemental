@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Add BuildContext extension
+
 ## 0.0.4
 
 - Add logger that uses stdout
