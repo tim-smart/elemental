@@ -146,6 +146,12 @@ class ZIO<R, E, A> {
 
   factory ZIO.fromExit(Exit<E, A> ea) => ZIO.from((_, r, c) => ea);
 
+  static IOOption<A> fromNullable<A>(A? a) =>
+      ZIO.fromOption(Option.fromNullable(a));
+
+  factory ZIO.fromNullableOrFail(A? a, E Function() onNull) =>
+      ZIO.fromOptionOrFail(Option.fromNullable(a), onNull);
+
   static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
       ZIO.fromEither(oa.match(
         () => Either.left(None()),

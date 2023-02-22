@@ -34,7 +34,7 @@ ZIO<NoEnv, Never, String> greeting(String name) => ZIO(() => "Hello $name!")
 
 // Note `ZIO<NoEnv, Never, String>` can be shortened to `IO<String>`.
 
-// Here we create a simple wrapped around `print`
+// Here we create a simple wrapper around `print`
 IO<Unit> log(String message) => IO(() => print(message)).asUnit;
 
 // And compose them together!

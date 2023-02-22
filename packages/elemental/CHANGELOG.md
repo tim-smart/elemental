@@ -1,3 +1,7 @@
+## 0.0.52
+
+- `fromNullable*`
+
 ## 0.0.51
 
 - Add const `unit`
