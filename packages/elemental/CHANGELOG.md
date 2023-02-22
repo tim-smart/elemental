@@ -1,3 +1,7 @@
+## 0.0.49
+
+- Add back atoms
+
 ## 0.0.48
 
 - Add AtomContext helpers
