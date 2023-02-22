@@ -627,6 +627,19 @@ class ZIO<R, E, A> {
         ),
       );
 
+  ZIO<R, E, A> tapExit<X>(
+    ZIO<R, E, X> Function(Exit<E, A> _) f,
+  ) =>
+      ZIO.from(
+        (env, r, c) => _run(env, r, c).flatMapFOr(
+          (exit) => f(exit)._run(env, r, c).flatMapFOr(
+                (fExit) => fExit.flatMapExit((_) => exit),
+                interruptionSignal: c,
+              ),
+          interruptionSignal: c,
+        ),
+      );
+
   ZIO<R, E, A> withRuntime(Runtime runtime) =>
       ZIO.from((env, r, c) => _run(env, runtime.registry, c));
 
@@ -666,7 +679,16 @@ extension ZIORunExt<E, A> on EIO<E, A> {
         interruptionSignal: interruptionSignal,
       );
 
-  Future<A> runFuture({
+  Future<A> runFutureOrThrow({
+    AtomRegistry? registry,
+    Deferred<Unit>? interruptionSignal,
+  }) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureOrThrow(
+        this,
+        interruptionSignal: interruptionSignal,
+      );
+
+  Future<Exit<E, A>> runFuture({
     AtomRegistry? registry,
     Deferred<Unit>? interruptionSignal,
   }) =>
@@ -675,29 +697,26 @@ extension ZIORunExt<E, A> on EIO<E, A> {
         interruptionSignal: interruptionSignal,
       );
 
-  Future<Exit<E, A>> runFutureExit({
+  FutureOr<A> runOrThrow({
     AtomRegistry? registry,
     Deferred<Unit>? interruptionSignal,
   }) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureExit(
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runOrThrow(
         this,
         interruptionSignal: interruptionSignal,
       );
 
-  FutureOr<A> runFutureOr({
+  Exit<E, A> runSync({
     AtomRegistry? registry,
     Deferred<Unit>? interruptionSignal,
   }) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runFutureOr(
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runSync(
         this,
         interruptionSignal: interruptionSignal,
       );
 
-  Exit<E, A> runSyncExit({AtomRegistry? registry}) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runSyncExit(this);
-
-  A runSync([AtomRegistry? registry]) =>
-      (registry?.zioRuntime ?? Runtime.defaultRuntime).runSync(this);
+  A runSyncOrThrow([AtomRegistry? registry]) =>
+      (registry?.zioRuntime ?? Runtime.defaultRuntime).runSyncOrThrow(this);
 }
 
 extension IOLiftExt<A> on IO<A> {

@@ -52,7 +52,7 @@ class Runtime {
     }
   }
 
-  Future<A> runFuture<E, A>(
+  Future<A> runFutureOrThrow<E, A>(
     EIO<E, A> zio, {
     Deferred<Unit>? interruptionSignal,
   }) {
@@ -64,7 +64,7 @@ class Runtime {
             ));
   }
 
-  Future<Exit<E, A>> runFutureExit<E, A>(
+  Future<Exit<E, A>> runFuture<E, A>(
     EIO<E, A> zio, {
     Deferred<Unit>? interruptionSignal,
   }) {
@@ -72,7 +72,7 @@ class Runtime {
     return Future.value(run(zio, interruptionSignal: interruptionSignal));
   }
 
-  FutureOr<A> runFutureOr<E, A>(
+  FutureOr<A> runOrThrow<E, A>(
     EIO<E, A> zio, {
     Deferred<Unit>? interruptionSignal,
   }) {
@@ -87,7 +87,7 @@ class Runtime {
   }
 
   /// Try to run the ZIO synchronously, throwing a [Future] if it is asynchronous.
-  Exit<E, A> runSyncExit<E, A>(
+  Exit<E, A> runSync<E, A>(
     EIO<E, A> zio, {
     Deferred<Unit>? interruptionSignal,
   }) {
@@ -100,14 +100,14 @@ class Runtime {
   }
 
   /// Try to run the ZIO synchronously, throwing a [Future] if it is asynchronous.
-  A runSync<E, A>(EIO<E, A> zio) {
+  A runSyncOrThrow<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
 
     final signal = Deferred<Unit>();
     final exit = run(zio, interruptionSignal: signal);
 
     if (exit is Future) {
-      signal.complete(unit).runSync();
+      signal.complete(unit).runSyncOrThrow();
       throw Interrupted<E>();
     }
 

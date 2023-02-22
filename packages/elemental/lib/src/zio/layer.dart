@@ -5,7 +5,7 @@ final _layerScopeAtom = atom((get) => Scope.closable());
 class Layer<E, Service> {
   Layer._(ZIO<Scope, E, Service> make)
       : _makeAtom = ReadOnlyAtom(
-          (get) => make.provide(get(_layerScopeAtom)).memoize.runSync(),
+          (get) => make.provide(get(_layerScopeAtom)).memoize.runSyncOrThrow(),
         ).keepAlive(),
         _stateAtom = StateAtom(Option<Service>.none()).keepAlive() {
     atom = ReadOnlyAtom(
@@ -38,7 +38,7 @@ class Layer<E, Service> {
       );
 
   Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._withAtoms(
-        ReadOnlyAtom((get) => build.memoize.runSync()),
+        ReadOnlyAtom((get) => build.memoize.runSyncOrThrow()),
         _stateAtom,
         atom,
       );
@@ -46,7 +46,7 @@ class Layer<E, Service> {
   Layer<E2, Service> replaceScoped<E2>(ZIO<Scope, E2, Service> build) =>
       Layer._withAtoms(
         ReadOnlyAtom(
-          (get) => build.provide(get(_layerScopeAtom)).memoize.runSync(),
+          (get) => build.provide(get(_layerScopeAtom)).memoize.runSyncOrThrow(),
         ),
         _stateAtom,
         atom,
