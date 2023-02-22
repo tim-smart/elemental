@@ -16,5 +16,5 @@ Future<AtomScope> atomScopeWithLayers(
     registry: scope.registry,
     logger: logger,
     logLevel: logLevel,
-  ).as(scope).runFuture();
+  ).as(scope).runFutureOrThrow();
 }
