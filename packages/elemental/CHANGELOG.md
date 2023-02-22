@@ -1,3 +1,7 @@
+## 0.0.50
+
+- export atoms
+
 ## 0.0.49
 
 - Add back atoms

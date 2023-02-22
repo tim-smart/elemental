@@ -19,6 +19,7 @@ export 'package:fpdart/fpdart.dart'
         TaskEither,
         TaskOption;
 
+export 'src/atoms.dart';
 export 'src/atom_context.dart';
 export 'src/function.dart';
 export 'src/map_option.dart';
