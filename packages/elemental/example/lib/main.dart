@@ -60,7 +60,7 @@ Future<void> main() async {
       .zipLeft(ZIO.logInfo('Fetching todos...'))
       .flatMap((todos) => todos.list);
 
-  final todos = listTodos.run();
+  final todos = await listTodos.runOrThrow();
 
   print(todos);
 }

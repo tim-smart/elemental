@@ -1,3 +1,7 @@
+## 0.0.51
+
+- Add const `unit`
+
 ## 0.0.50
 
 - export atoms

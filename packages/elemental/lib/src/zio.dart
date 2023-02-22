@@ -60,9 +60,17 @@ typedef ZIORunFn<R, E, A> = FutureOr<Exit<E, A>> Function(
   Deferred<Unit> c,
 );
 
+// For the const unit
+FutureOr<Exit<E, Unit>> _kZioUnit<R, E>(
+  R env,
+  AtomRegistry r,
+  Deferred<Unit> c,
+) =>
+    Exit.right(unit);
+
 /// Represents an operation that can fail with requirements
 class ZIO<R, E, A> {
-  ZIO.from(this._unsafeRun);
+  const ZIO.from(this._unsafeRun);
 
   final FutureOr<Exit<E, A>> Function(
     R env,
@@ -81,8 +89,6 @@ class ZIO<R, E, A> {
       return Exit.left(Defect(err, stack));
     }
   }
-
-  static final defaultRegistry = AtomRegistry();
 
   // Constructors
 
@@ -299,8 +305,8 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.tryCatch(f, (_, s) => None());
 
-  static final unitIO = IO.succeed(fpdart.unit);
-  static ZIO<R, E, Unit> unit<R, E>() => ZIO.succeed(fpdart.unit);
+  static const unitIO = IO.from(_kZioUnit);
+  static ZIO<R, E, Unit> unit<R, E>() => ZIO.from(_kZioUnit);
 
   /// Creates a ZIO from a [Future].
   ///
