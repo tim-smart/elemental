@@ -19,6 +19,7 @@ enum LogLevel {
 
 final logLevelLayer = Layer(IO.succeed(LogLevel.info));
 
+// ignore: avoid_print
 void _printStdout(String message) => print(message);
 
 class Logger {

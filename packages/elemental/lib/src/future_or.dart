@@ -8,7 +8,7 @@ FutureOr<Exit<E, A>> fromThrowableNoI<E, A>(
   Deferred<Unit>? interruptionSignal,
 }) {
   if (interruptionSignal?.unsafeCompleted == true) {
-    throw Interrupted();
+    throw const Interrupted();
   }
 
   try {
@@ -17,7 +17,7 @@ FutureOr<Exit<E, A>> fromThrowableNoI<E, A>(
       return (a as Future<A>).then(
         (_) {
           if (interruptionSignal?.unsafeCompleted == true) {
-            throw Interrupted();
+            throw const Interrupted();
           }
           return Either.right(_);
         },
@@ -64,13 +64,13 @@ extension FlatMapExtension<A> on FutureOr<A> {
     required Deferred<Unit> interruptionSignal,
   }) {
     if (interruptionSignal.unsafeCompleted == true) {
-      throw Interrupted();
+      throw const Interrupted();
     }
 
     if (this is Future) {
       return (this as Future<A>).then((_) {
         if (interruptionSignal.unsafeCompleted == true) {
-          throw Interrupted();
+          throw const Interrupted();
         }
 
         return f(_);

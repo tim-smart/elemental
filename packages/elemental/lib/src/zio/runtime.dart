@@ -46,7 +46,11 @@ class Runtime {
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     try {
-      return zio._run(NoEnv(), registry, interruptionSignal ?? _defaultSignal);
+      return zio._run(
+        const NoEnv(),
+        registry,
+        interruptionSignal ?? _defaultSignal,
+      );
     } catch (error, stack) {
       return Either.left(Defect(error, stack));
     }

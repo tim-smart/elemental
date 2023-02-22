@@ -14,12 +14,14 @@ class Schedule<R, E, I, O> {
 
   static Schedule<NoEnv, Never, dynamic, int> recursN<R, E, I>(int n) =>
       Schedule._(
-        (input, count) => n >= count ? ZIO.succeed(count) : ZIO.fail(None()),
+        (input, count) =>
+            n >= count ? ZIO.succeed(count) : ZIO.fail(const None()),
       );
 
   static Schedule<NoEnv, Never, I, int> recursWhile<I>(bool Function(I _) f) =>
       Schedule._(
-        (input, count) => f(input) ? ZIO.succeed(count) : ZIO.fail(None()),
+        (input, count) =>
+            f(input) ? ZIO.succeed(count) : ZIO.fail(const None()),
       );
 
   static Schedule<R, E, I, int> recursWhileZIO<R, E, I>(
@@ -27,7 +29,7 @@ class Schedule<R, E, I, O> {
   ) =>
       Schedule._(
         (input, count) => f(input).mapError(Option.of).flatMap(
-              (repeat) => repeat ? ZIO.succeed(count) : ZIO.fail(None()),
+              (repeat) => repeat ? ZIO.succeed(count) : ZIO.fail(const None()),
             ),
       );
 
@@ -51,7 +53,7 @@ class Schedule<R, E, I, O> {
 
   Schedule<R, E, I, O> times(int n) => Schedule._(
         (input, count) =>
-            n >= count ? _transform(input, count) : ZIO.fail(None()),
+            n >= count ? _transform(input, count) : ZIO.fail(const None()),
       );
 
   IO<ScheduleDriver<R, E, I, O>> get driver => IO(() => ScheduleDriver(this));

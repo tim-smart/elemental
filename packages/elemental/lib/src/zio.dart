@@ -15,6 +15,16 @@ part 'zio/scope.dart';
 
 class NoEnv {
   const NoEnv();
+
+  @override
+  String toString() => 'NoEnv()';
+}
+
+class NoValue {
+  const NoValue();
+
+  @override
+  String toString() => 'NoValue()';
 }
 
 /// Represents an operation that cant fail, with no requirements
@@ -27,10 +37,10 @@ typedef RIO<R, A> = ZIO<R, Never, A>;
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
 
 /// Represents an operation that represent an optional value
-typedef IOOption<A> = ZIO<NoEnv, None<Never>, A>;
+typedef IOOption<A> = ZIO<NoEnv, NoValue, A>;
 
 /// Represents an operation that represent an optional value
-typedef RIOOption<R, A> = ZIO<R, None<Never>, A>;
+typedef RIOOption<R, A> = ZIO<R, NoValue, A>;
 
 // Do notation helpers
 typedef _DoAdapter<R, E> = FutureOr<A> Function<A>(ZIO<R, E, A> zio);
@@ -152,9 +162,8 @@ class ZIO<R, E, A> {
   factory ZIO.fromNullableOrFail(A? a, E Function() onNull) =>
       ZIO.fromOptionOrFail(Option.fromNullable(a), onNull);
 
-  static EIO<None<Never>, A> fromOption<A>(Option<A> oa) =>
-      ZIO.fromEither(oa.match(
-        () => Either.left(None()),
+  static IOOption<A> fromOption<A>(Option<A> oa) => ZIO.fromEither(oa.match(
+        () => Either.left(const NoValue()),
         Either.right,
       ));
 
@@ -172,7 +181,7 @@ class ZIO<R, E, A> {
 
   factory ZIO.layer(Layer<E, A> layer) =>
       ZIO.from((env, r, c) => r.get(layer._stateAtom).match(
-            () => layer.getOrBuild._run(NoEnv(), r, c),
+            () => layer.getOrBuild._run(const NoEnv(), r, c),
             Either.right,
           ));
 
@@ -309,7 +318,7 @@ class ZIO<R, E, A> {
   static IOOption<A> tryCatchOption<A>(
     FutureOr<A> Function() f,
   ) =>
-      ZIO.tryCatch(f, (_, s) => None());
+      ZIO.tryCatch(f, (_, s) => const NoValue());
 
   static const unitIO = IO.from(_kZioUnit);
   static ZIO<R, E, Unit> unit<R, E>() => ZIO.from(_kZioUnit);
@@ -759,7 +768,7 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
 }
 
 extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
-  ZIO<R, E, A> ask<R>() => ZIO.from((R env, r, c) => _run(NoEnv(), r, c));
+  ZIO<R, E, A> ask<R>() => ZIO.from((R env, r, c) => _run(const NoEnv(), r, c));
 
   ZIO<Scope, E, A> acquireRelease(
     IO<Unit> Function(A _) release,
@@ -778,20 +787,20 @@ extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
 }
 
 extension ZIONoneExt<R, A> on RIOOption<R, A> {
-  ZIO<R, None<Never>, A> filter(
+  RIOOption<R, A> filter(
     bool Function(A _) predicate,
   ) =>
-      filterOrFail(predicate, (a) => None());
+      filterOrFail(predicate, (a) => const NoValue());
 
-  ZIO<R, None<Never>, B> flatMapNullable<B>(
+  RIOOption<R, B> flatMapNullable<B>(
     B? Function(A _) f,
   ) =>
-      flatMapNullableOrFail(f, (a) => None());
+      flatMapNullableOrFail(f, (a) => const NoValue());
 
-  ZIO<R, None<Never>, B> flatMapOption<B>(
+  RIOOption<R, B> flatMapOption<B>(
     Option<B> Function(A _) f,
   ) =>
-      flatMapOptionOrFail(f, (a) => None());
+      flatMapOptionOrFail(f, (a) => const NoValue());
 
   RIO<R, Option<A>> get option => matchSync(
         (a) => Option.none(),
@@ -811,7 +820,7 @@ extension ZIOEitherExt<E, A> on Either<E, A> {
 }
 
 extension ZIOOptionExt<A> on Option<A> {
-  ZIO<NoEnv, None<Never>, A> toZIO() => ZIO.fromOption(this);
+  IOOption<A> toZIO() => ZIO.fromOption(this);
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
 }
