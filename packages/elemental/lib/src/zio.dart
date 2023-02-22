@@ -809,18 +809,18 @@ extension ZIONoneExt<R, A> on RIOOption<R, A> {
 }
 
 extension ZIOIterableExt<R, E, A> on Iterable<ZIO<R, E, A>> {
-  ZIO<R, E, IList<A>> collect() => ZIO.collect(this);
-  ZIO<R, E, Unit> collectDiscard() => ZIO.collectDiscard(this);
-  ZIO<R, E, IList<A>> collectPar() => ZIO.collectPar(this);
-  ZIO<R, E, Unit> collectParDiscard() => ZIO.collectParDiscard(this);
+  ZIO<R, E, IList<A>> get collect => ZIO.collect(this);
+  ZIO<R, E, Unit> get collectDiscard => ZIO.collectDiscard(this);
+  ZIO<R, E, IList<A>> get collectPar => ZIO.collectPar(this);
+  ZIO<R, E, Unit> get collectParDiscard => ZIO.collectParDiscard(this);
 }
 
 extension ZIOEitherExt<E, A> on Either<E, A> {
-  ZIO<NoEnv, E, A> toZIO() => ZIO.fromEither(this);
+  ZIO<NoEnv, E, A> get toZIO => ZIO.fromEither(this);
 }
 
 extension ZIOOptionExt<A> on Option<A> {
-  IOOption<A> toZIO() => ZIO.fromOption(this);
+  IOOption<A> get toZIO => ZIO.fromOption(this);
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
 }
