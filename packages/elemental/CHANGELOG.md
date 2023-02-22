@@ -1,3 +1,7 @@
+## 0.0.48
+
+- Add AtomContext helpers
+
 ## 0.0.47
 
 - lift() fixes
