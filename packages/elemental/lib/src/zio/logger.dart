@@ -26,7 +26,11 @@ class Logger {
 
   final void Function(String message) _print;
 
-  IO<Unit> log(LogLevel level, String message) =>
+  IO<Unit> log(
+    LogLevel level,
+    String message, {
+    Map<String, dynamic> annotations = const {},
+  }) =>
       IO.layer(logLevelLayer).flatMap(
             (currentLevel) => level < currentLevel
                 ? IO.unitIO
@@ -36,10 +40,29 @@ class Logger {
                   }),
           );
 
-  IO<Unit> debug(String message) => log(LogLevel.debug, message);
-  IO<Unit> info(String message) => log(LogLevel.info, message);
-  IO<Unit> warn(String message) => log(LogLevel.warn, message);
-  IO<Unit> error(String message) => log(LogLevel.error, message);
+  IO<Unit> debug(
+    String message, {
+    Map<String, dynamic> annotations = const {},
+  }) =>
+      log(LogLevel.debug, message, annotations: annotations);
+
+  IO<Unit> info(
+    String message, {
+    Map<String, dynamic> annotations = const {},
+  }) =>
+      log(LogLevel.info, message, annotations: annotations);
+
+  IO<Unit> warn(
+    String message, {
+    Map<String, dynamic> annotations = const {},
+  }) =>
+      log(LogLevel.warn, message, annotations: annotations);
+
+  IO<Unit> error(
+    String message, {
+    Map<String, dynamic> annotations = const {},
+  }) =>
+      log(LogLevel.error, message, annotations: annotations);
 }
 
 final loggerLayer = Layer(IO(() => Logger()));

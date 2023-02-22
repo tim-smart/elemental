@@ -118,6 +118,13 @@ class ZIO<R, E, A> {
   factory ZIO.Do(DoFunction<R, E, A> f) =>
       ZIO.from((env, r, c) => fromThrowable(
             () => f(_doAdapter(env, r, c), env),
+            onError: (err, stack) {
+              if (err is Left<Cause<E>, A>) {
+                return err.value;
+              }
+
+              return Defect(err, stack);
+            },
             interruptionSignal: c,
           ));
 
@@ -157,33 +164,74 @@ class ZIO<R, E, A> {
             Either.right,
           ));
 
-  static ZIO<R, E, Unit> log<R, E>(LogLevel level, String message) =>
-      RIO<R, Logger>.layer(loggerLayer)
-          .flatMap((log) => log.log(level, message).lift());
+  static ZIO<R, E, Unit> log<R, E>(
+    LogLevel level,
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
+      ZIO<R, E, Logger>.layer(loggerLayer).flatMap(
+        (log) => log
+            .log(level, message, annotations: annotations ?? const {})
+            .lift(),
+      );
   static IO<Unit> logIO(LogLevel level, String message) => log(level, message);
 
-  static ZIO<R, E, Unit> logDebug<R, E>(String message) =>
+  static ZIO<R, E, Unit> logDebug<R, E>(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
       log(LogLevel.debug, message);
-  static IO<Unit> logDebugIO(String message) => logDebug(message);
 
-  static ZIO<R, E, Unit> logInfo<R, E>(String message) =>
+  static IO<Unit> logDebugIO(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
+      logDebug(message, annotations: annotations);
+
+  static ZIO<R, E, Unit> logInfo<R, E>(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
       log(LogLevel.info, message);
-  static IO<Unit> logInfoIO(String message) => logInfo(message);
 
-  static ZIO<R, E, Unit> logWarn<R, E>(String message) =>
+  static IO<Unit> logInfoIO(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
+      logInfo(message, annotations: annotations);
+
+  static ZIO<R, E, Unit> logWarn<R, E>(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
       log(LogLevel.warn, message);
-  static IO<Unit> logWarnIO(String message) => logWarn(message);
 
-  static IO<Unit> logErrorIO(String message) => logError(message);
-  static ZIO<R, E, Unit> logError<R, E>(String message) =>
+  static IO<Unit> logWarnIO(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
+      logWarn(message, annotations: annotations);
+
+  static ZIO<R, E, Unit> logError<R, E>(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
       log(LogLevel.error, message);
+
+  static IO<Unit> logErrorIO(
+    String message, {
+    Map<String, dynamic>? annotations,
+  }) =>
+      logError(message, annotations: annotations);
 
   static ZIO<R, E, Unit> sleep<R, E>(Duration duration) =>
       ZIO.unsafeFuture(() => Future.delayed(duration, () => fpdart.unit));
+
   static IO<Unit> sleepIO(Duration duration) => sleep(duration);
 
   factory ZIO.syncEither(Either<E, A> Function() f) =>
       ZIO.from((_, r, c) => f().toExit());
+
   factory ZIO.syncExit(Exit<E, A> Function() f) => ZIO.from((_, r, c) => f());
 
   static ZIO<R, E, IList<B>> traverseIterable<R, E, A, B>(
@@ -227,7 +275,11 @@ class ZIO<R, E, A> {
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       ZIO.from(
-        (env, r, c) => fromThrowable(f, interruptionSignal: c),
+        (env, r, c) => fromThrowable(
+          f,
+          interruptionSignal: c,
+          onError: (e, s) => Failure(onError(e, s)),
+        ),
       );
 
   factory ZIO.tryCatchEnv(
@@ -235,7 +287,11 @@ class ZIO<R, E, A> {
     E Function(dynamic error, StackTrace stackTrace) onError,
   ) =>
       ZIO.from(
-        (env, r, c) => fromThrowable(() => f(env), interruptionSignal: c),
+        (env, r, c) => fromThrowable(
+          () => f(env),
+          interruptionSignal: c,
+          onError: (e, s) => Failure(onError(e, s)),
+        ),
       );
 
   static IOOption<A> tryCatchOption<A>(
@@ -292,14 +348,19 @@ class ZIO<R, E, A> {
   ZIO<R, E2, A> catchDefect<E2>(
     ZIO<R, E2, A> Function(Defect<E> _) f,
   ) =>
-      _mapCauseFOr((env, r, c, _) =>
-          _ is Defect<E> ? f(_)._run(env, r, c) : Either.left(_.lift()));
+      _mapCauseFOr(
+        (env, r, c, _) =>
+            _ is Defect<E> ? f(_)._run(env, r, c) : Either.left(_.lift()),
+      );
 
   ZIO<R, E2, A> catchError<E2>(
     ZIO<R, E2, A> Function(E _) f,
   ) =>
-      _mapCauseFOr((env, r, c, _) =>
-          _ is Failure<E> ? f(_.error)._run(env, r, c) : Either.left(_.lift()));
+      _mapCauseFOr(
+        (env, r, c, _) => _ is Failure<E>
+            ? f(_.error)._run(env, r, c)
+            : Either.left(_.lift()),
+      );
 
   ZIO<R, E, A> delay(Duration duration) =>
       ZIO.sleep<R, E>(duration).zipRight(this);

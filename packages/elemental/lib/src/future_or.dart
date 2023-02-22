@@ -4,6 +4,7 @@ import 'package:elemental/elemental.dart';
 
 FutureOr<Exit<E, A>> fromThrowableNoI<E, A>(
   FutureOr<A> Function() f, {
+  required Cause<E> Function(dynamic error, StackTrace stack) onError,
   Deferred<Unit>? interruptionSignal,
 }) {
   if (interruptionSignal?.unsafeCompleted == true) {
@@ -20,20 +21,35 @@ FutureOr<Exit<E, A>> fromThrowableNoI<E, A>(
           }
           return Either.right(_);
         },
-        onError: (error, stack) => Either.left(Defect(error, stack)),
+        onError: (err, stack) {
+          try {
+            return Either.left(onError(err, stack));
+          } catch (err, stack) {
+            return Either.left(Defect(err, stack));
+          }
+        },
       );
     }
     return Either.right(a);
   } catch (err, stack) {
-    return Either.left(Defect(err, stack));
+    try {
+      return Either.left(onError(err, stack));
+    } catch (err, stack) {
+      return Either.left(Defect(err, stack));
+    }
   }
 }
 
 FutureOr<Exit<E, A>> fromThrowable<E, A>(
   FutureOr<A> Function() f, {
+  required Cause<E> Function(dynamic error, StackTrace stack) onError,
   required Deferred<Unit> interruptionSignal,
 }) =>
-    fromThrowableNoI(f, interruptionSignal: interruptionSignal);
+    fromThrowableNoI(
+      f,
+      onError: onError,
+      interruptionSignal: interruptionSignal,
+    );
 
 extension FlatMapExtension<A> on FutureOr<A> {
   FutureOr<B> flatMapFOrNoI<B>(FutureOr<B> Function(A exit) f) {

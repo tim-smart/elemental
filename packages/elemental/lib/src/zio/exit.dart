@@ -11,6 +11,9 @@ class Failure<E> extends Cause<E> {
 
   @override
   Cause<E2> lift<E2>() => throw UnimplementedError();
+
+  @override
+  String toString() => 'Failure($error)';
 }
 
 class Defect<E> extends Cause<E> {
@@ -19,14 +22,20 @@ class Defect<E> extends Cause<E> {
   final StackTrace stackTrace;
 
   @override
-  Cause<E2> lift<E2>() => this as Cause<E2>;
+  Cause<E2> lift<E2>() => Defect(error, stackTrace);
+
+  @override
+  String toString() => 'Defect($error, $stackTrace)';
 }
 
 class Interrupted<E> extends Cause<E> {
   const Interrupted();
 
   @override
-  Cause<E2> lift<E2>() => this as Cause<E2>;
+  Cause<E2> lift<E2>() => const Interrupted();
+
+  @override
+  String toString() => 'Interrupted()';
 }
 
 typedef Exit<E, A> = Either<Cause<E>, A>;

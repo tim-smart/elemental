@@ -1,3 +1,7 @@
+## 0.0.47
+
+- lift() fixes
+
 ## 0.0.46
 
 - `tapErrorCause`
