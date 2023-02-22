@@ -1,3 +1,9 @@
+## 0.0.53
+
+- lint fixes
+- NoValue type for IOOption
+- getters
+
 ## 0.0.52
 
 - `fromNullable*`

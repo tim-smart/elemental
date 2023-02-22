@@ -46,6 +46,10 @@ class Schedule<R, E, I, O> {
         (input, count) => _transform(input, count).flatMap(f),
       );
 
+  Schedule<R, E, I, I> get passthrough => Schedule._(
+        (input, count) => _transform(input, count).as(input),
+      );
+
   Schedule<R, E, I, O> tap<X>(ZIO<R, Option<E>, X> Function(O _) f) =>
       Schedule._(
         (input, count) => _transform(input, count).tap(f),
