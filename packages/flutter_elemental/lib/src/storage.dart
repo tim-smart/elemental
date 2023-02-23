@@ -1,20 +1,27 @@
 import 'package:flutter_elemental/flutter_elemental.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class StorageError {
-  const StorageError(this.error);
+class SharedPrefsError {
+  const SharedPrefsError(this.error);
   final dynamic error;
 }
 
-final sharedPrefsLayer = Layer.memoize(EIO.tryCatch(
+final sharedPrefsLayer = Layer(EIO.tryCatch(
   () => SharedPreferences.getInstance(),
-  (error, stack) => StorageError(error),
+  (error, stack) => SharedPrefsError(error),
 ));
 
-final storageLayer = Layer<StorageError, NucleusStorage>.memoize(
-  EIO.layer(sharedPrefsLayer).map((_) => SharedPrefsStorage(_)),
+/// A storage interface that can be implemented by different storage backends.
+///
+/// The default implementation uses [SharedPreferences].
+final storageLayer = Layer(
+  sharedPrefsLayer.accessWith<NucleusStorage>(SharedPrefsStorage.new),
 );
 
+/// A [NucleusStorage] implementation that uses [MemoryNucleusStorage].
+final memoryStorageLayer = storageLayer.replace(IO(MemoryNucleusStorage.new));
+
+/// A variant of [Ref], that stores its value in a [NucleusStorage].
 class StorageRef<A> extends Ref<A> {
   StorageRef._(
     A initialValue, {
@@ -45,13 +52,13 @@ class StorageRef<A> extends Ref<A> {
     return initialValue;
   }
 
-  static ZIO<R, StorageError, StorageRef<A>> make<R extends ScopeMixin, A>(
+  static ZIO<R, SharedPrefsError, StorageRef<A>> make<R extends ScopeMixin, A>(
     A initialValue, {
     required String key,
     required A Function(dynamic json) fromJson,
     required dynamic Function(A a) toJson,
   }) =>
-      ZIO<R, StorageError, NucleusStorage>.layer(storageLayer).map(
+      ZIO<R, SharedPrefsError, NucleusStorage>.layer(storageLayer).map(
         (storage) => StorageRef._(
           initialValue,
           storage: storage,
@@ -61,7 +68,7 @@ class StorageRef<A> extends Ref<A> {
         ),
       );
 
-  static ZIO<Scope, StorageError, StorageRef<A>> makeScope<A>(
+  static ZIO<Scope, SharedPrefsError, StorageRef<A>> makeScope<A>(
     A initialValue, {
     required String key,
     required A Function(dynamic json) fromJson,

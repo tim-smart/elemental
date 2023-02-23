@@ -6,7 +6,7 @@ import 'package:flutter_elemental/flutter_elemental.dart';
 extension ZIOBuildContextExt on BuildContext {
   FutureOr<Exit<E, A>> runZIO<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
+    DeferredIO<Unit>? interrupt,
   }) =>
       registry(listen: false)
           .get(runtimeAtom)
@@ -14,7 +14,7 @@ extension ZIOBuildContextExt on BuildContext {
 
   Future<Exit<E, A>> runZIOFuture<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
+    DeferredIO<Unit>? interrupt,
   }) =>
       registry(listen: false)
           .get(runtimeAtom)
@@ -22,7 +22,7 @@ extension ZIOBuildContextExt on BuildContext {
 
   Future<A> runZIOFutureOrThrow<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
+    DeferredIO<Unit>? interrupt,
   }) =>
       registry(listen: false)
           .get(runtimeAtom)
@@ -30,7 +30,7 @@ extension ZIOBuildContextExt on BuildContext {
 
   FutureOr<A> runZIOOrThrow<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interrupt,
+    DeferredIO<Unit>? interrupt,
   }) =>
       registry(listen: false)
           .get(runtimeAtom)

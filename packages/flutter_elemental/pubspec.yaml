@@ -8,7 +8,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  elemental: ^0.0.56
+  elemental: ^0.0.69
   flutter:
     sdk: flutter
   flutter_nucleus: ^0.3.5
