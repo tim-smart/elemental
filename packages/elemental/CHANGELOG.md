@@ -1,3 +1,8 @@
+## 0.0.67
+
+- log* accept Object?
+- Add `logOrElse`
+
 ## 0.0.66
 
 - Option.flatMapNullable

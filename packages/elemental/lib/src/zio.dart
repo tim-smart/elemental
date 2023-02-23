@@ -162,7 +162,7 @@ class ZIO<R, E, A> {
 
   static ZIO<R, E, Unit> log<R, E>(
     LogLevel level,
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       ZIO.from((ctx) => ctx
@@ -171,7 +171,7 @@ class ZIO<R, E, A> {
             (log) => log.log(
               level,
               DateTime.now(),
-              message,
+              message.toString(),
               annotations: {
                 ...annotations ?? {},
                 ...ctx.unsafeGetAndClearAnnotations(loggerAnnotationsSymbol),
@@ -180,52 +180,52 @@ class ZIO<R, E, A> {
           )
           ._run(ctx));
 
-  static IO<Unit> logIO(LogLevel level, String message) => log(level, message);
+  static IO<Unit> logIO(LogLevel level, Object? message) => log(level, message);
 
   static ZIO<R, E, Unit> logDebug<R, E>(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       log(LogLevel.debug, message, annotations: annotations);
 
   static IO<Unit> logDebugIO(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       logDebug(message, annotations: annotations);
 
   static ZIO<R, E, Unit> logInfo<R, E>(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       log(LogLevel.info, message, annotations: annotations);
 
   static IO<Unit> logInfoIO(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       logInfo(message, annotations: annotations);
 
   static ZIO<R, E, Unit> logWarn<R, E>(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       log(LogLevel.warn, message, annotations: annotations);
 
   static IO<Unit> logWarnIO(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       logWarn(message, annotations: annotations);
 
   static ZIO<R, E, Unit> logError<R, E>(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       log(LogLevel.error, message, annotations: annotations);
 
   static IO<Unit> logErrorIO(
-    String message, {
+    Object? message, {
     Map<String, dynamic>? annotations,
   }) =>
       logError(message, annotations: annotations);
@@ -476,8 +476,12 @@ class ZIO<R, E, A> {
 
   RIO<R, Unit> get ignore => matchSync((e) => fpdart.unit, (a) => fpdart.unit);
 
-  RIO<R, Unit> get ignoreLogged =>
-      tapError((_) => logWarn(_.toString())).ignore;
+  RIO<R, Unit> get ignoreLogged => tapError(logInfo).ignore;
+
+  RIO<R, A> logOrElse(
+    A Function(E _) orElse,
+  ) =>
+      tapError(logInfo).getOrElse(orElse);
 
   ZIO<R, E, B> map<B>(
     B Function(A _) f,
