@@ -2,6 +2,28 @@ import 'package:elemental/elemental.dart';
 
 final runtimeAtom = atom((get) => Runtime.defaultRuntime);
 
+AtomWithParent<Option<A>, Atom<Option<Ref<A>>>> zioRefAtom<A>(IO<Ref<A>> zio) =>
+    atomWithParent(
+      atom((get) {
+        get(runtimeAtom).run(
+          zio.flatMap(
+            (ref) => ZIO(() {
+              get.setSelf(Option.of(ref));
+            }),
+          ),
+        );
+
+        return get.self() ?? Option.none();
+      }),
+      (get, parent) => get(parent).match(Option.none, (ref) {
+        get.onDispose(ref.stream.listen((a) {
+          get.setSelf(Option.of(a));
+        }).cancel);
+
+        return Option.of(ref.unsafeGet());
+      }),
+    );
+
 AtomWithParent<A, Atom<Ref<A>>> _refAtomWrap<A>(Atom<Ref<A>> atom) =>
     atomWithParent(atom, (get, parent) {
       final ref = get(parent);
