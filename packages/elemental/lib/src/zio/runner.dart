@@ -27,6 +27,8 @@ class ZIORunner<E, A> {
   final _interrupt = Deferred<Unit>();
   Deferred<Exit<E, A>>? _deferred;
 
+  ZIORunnerState<E, A> get state => _ref.unsafeGet();
+
   Stream<ZIORunnerState<E, A>> get stream => _ref.stream;
 
   late final _run = _ref
@@ -35,7 +37,10 @@ class ZIORunner<E, A> {
       .tapExit(_deferred!.complete)
       .tapEither((_) => _ref.update((s) => s.copyWith(
             loading: false,
-            value: _.toOption(),
+            value: _.match(
+              (e) => s.value,
+              Option.of,
+            ),
             error: _.swap().toOption(),
           )));
 
