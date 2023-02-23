@@ -19,18 +19,31 @@ class Runtime {
         .withRuntime(runtime);
   }
 
+  // == defaults
+
   static var defaultRuntime = Runtime();
+  static final _defaultSignal = Deferred<Unit>();
+
+  // == scopes
 
   final _scopes = <ScopeMixin>[];
-  late final _layers = _LayerContext((scope) => _scopes.add(scope));
 
   bool _disposed = false;
   bool get disposed => _disposed;
 
-  static final _defaultSignal = Deferred<Unit>();
-
   IO<Unit> get dispose => IO(() => _disposed = true)
       .zipRight(_scopes.map((s) => s.closeScopeIO).collectParDiscard);
+
+  // == layers
+
+  late final _layers = _LayerContext((scope) => _scopes.add(scope));
+
+  IO<Unit> provideLayer(Layer layer) => IO(() {
+        _layers.unsafeProvide(layer);
+        return unit;
+      });
+
+  // == running zios
 
   FutureOr<Exit<E, A>> run<E, A>(
     EIO<E, A> zio, {

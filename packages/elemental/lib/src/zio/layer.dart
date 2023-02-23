@@ -71,4 +71,11 @@ class _LayerContext {
 
     return build.lift();
   }
+
+  void unsafeProvide(Layer layer) {
+    layers.remove(layer.tag);
+    access(layer);
+  }
+
+  bool unsafeHas(Layer layer) => layers.containsKey(layer.tag);
 }

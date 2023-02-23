@@ -544,6 +544,11 @@ class ZIO<R, E, A> {
     return ZIO.from((ctx) => zio._run(ctx.withEnv(env)));
   }
 
+  ZIO<R, E, A> provideLayer(Layer layer) => ZIO.from((ctx) {
+        ctx.unsafeProvideLayer(layer);
+        return _run(ctx);
+      });
+
   ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
       schedule.driver<R, E>().flatMap((driver) {
         ZIO<R, E, A> loop() => flatMap((a) => driver.next(a).match(
@@ -797,11 +802,4 @@ extension ZIOOptionExt<A> on Option<A> {
   IOOption<A> get toZIO => ZIO.fromOption(this);
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
-}
-
-void main(List<String> args) {
-  ZIO
-      .logInfoIO("Hello!")
-      .repeat(Schedule.fixed(const Duration(seconds: 1)).times(5).lift())
-      .run();
 }

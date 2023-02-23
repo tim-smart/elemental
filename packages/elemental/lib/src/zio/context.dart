@@ -5,9 +5,9 @@ class ZIOContext<R> {
     required this.runtime,
     required this.env,
     required this.signal,
-    this.scopes = const [],
+    List<ScopeMixin>? scopes,
     _LayerContext? layerContext,
-  }) {
+  }) : _scopes = scopes ?? [] {
     _layers = layerContext ?? _LayerContext(unsafeAddScope);
   }
 
@@ -26,7 +26,7 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        scopes: scopes,
+        scopes: _scopes,
         layerContext: _layers,
       );
 
@@ -36,7 +36,7 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        scopes: scopes,
+        scopes: _scopes,
         layerContext: _layers,
       );
 
@@ -44,35 +44,48 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: Deferred(),
-        scopes: scopes,
+        scopes: _scopes,
         layerContext: _layers,
       );
 
   // == scopes
 
-  final List<ScopeMixin> scopes;
+  final List<ScopeMixin> _scopes;
 
   IO<Unit> addScope(ScopeMixin scope) => IO(() {
         unsafeAddScope(scope);
         return unit;
       });
 
-  void unsafeAddScope(ScopeMixin scope) => scopes.add(scope);
+  void unsafeAddScope(ScopeMixin scope) => _scopes.add(scope);
 
-  ZIO<R2, E, Unit> close<R2, E>() => scopes.isEmpty
-      ? ZIO.unit()
-      : scopes.map((s) => s.closeScope<R2, E>()).collectParDiscard;
+  ZIO<R2, E, Unit> close<R2, E>() => ZIO.from(
+        (ctx) => _scopes.isEmpty
+            ? Exit.right(unit)
+            : _scopes
+                .map((s) => s.closeScope<R2, E>())
+                .collectParDiscard
+                ._run(ctx),
+      );
 
   // == layers
   late final _LayerContext _layers;
 
   ZIO<R2, E, A> accessLayer<R2, E, A>(Layer<E, A> layer) {
+    if (_layers.unsafeHas(layer)) {
+      return _layers.access(layer);
+    } else if (runtime._layers.unsafeHas(layer)) {
+      return runtime._layers.access(layer);
+    }
+
     if (layer._memoized) {
       return runtime._layers.access(layer);
     }
 
     return _layers.access(layer);
   }
+
+  void unsafeProvideLayer(Layer layer) => _layers.unsafeProvide(layer);
 
   // == annotations
   final _annotations = HashMap<Symbol, HashMap<String, dynamic>>();

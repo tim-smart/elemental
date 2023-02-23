@@ -47,17 +47,26 @@ class Todos {
           .map((todos) => todos.cast<Todo>().toIList());
 }
 
-// We can turn our service into a Layer, which wraps the nucleus dependency
-// management tool.
-final dioLayer = Layer.memoize(
-  IO(() => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/'))),
+// Here we create a Dio layer, which closes the Dio instance when finished.
+final dioLayer = Layer.scoped(
+  IO(
+    () => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/')),
+  ).acquireRelease(
+    (dio) => IO(() {
+      dio.close();
+      print("closed DIO");
+      return unit;
+    }),
+  ),
 );
 
+// We then use the Dio layer to create a Todos layer.
 final todosLayer = Layer(IO.layer(dioLayer).map((dio) => Todos(dio)));
 
 Future<void> main() async {
   final listTodos = TodosIO.layer(todosLayer)
       .zipLeft(ZIO.logInfo('Fetching todos...'))
+      .annotateLog("custom key", true) // You can add annotations to the log
       .flatMap((todos) => todos.list);
 
   final todos = await listTodos.runOrThrow();
