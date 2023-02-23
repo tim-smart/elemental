@@ -1,3 +1,7 @@
+## 0.0.57
+
+- `orDie`
+
 ## 0.0.56
 
 - Add unsafeValueDidChange to Ref

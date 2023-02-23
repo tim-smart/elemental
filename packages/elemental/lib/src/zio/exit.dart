@@ -3,6 +3,12 @@ part of '../zio.dart';
 abstract class Cause<E> {
   const Cause();
   Cause<E2> lift<E2>();
+
+  B when<B>({
+    required B Function(Failure<E> _) failure,
+    required B Function(Defect<E> _) defect,
+    required B Function(Interrupted<E> _) interrupted,
+  });
 }
 
 class Failure<E> extends Cause<E> {
@@ -11,6 +17,15 @@ class Failure<E> extends Cause<E> {
 
   @override
   Cause<E2> lift<E2>() => throw UnimplementedError();
+
+  @override
+  B when<B>({
+    required B Function(Failure<E> _) failure,
+    required B Function(Defect<E> _) defect,
+    required B Function(Interrupted<E> _) interrupted,
+  }) {
+    return failure(this);
+  }
 
   @override
   String toString() => 'Failure($error)';
@@ -25,6 +40,15 @@ class Defect<E> extends Cause<E> {
   Cause<E2> lift<E2>() => Defect(error, stackTrace);
 
   @override
+  B when<B>({
+    required B Function(Failure<E> _) failure,
+    required B Function(Defect<E> _) defect,
+    required B Function(Interrupted<E> _) interrupted,
+  }) {
+    return defect(this);
+  }
+
+  @override
   String toString() => 'Defect($error, $stackTrace)';
 }
 
@@ -33,6 +57,15 @@ class Interrupted<E> extends Cause<E> {
 
   @override
   Cause<E2> lift<E2>() => const Interrupted();
+
+  @override
+  B when<B>({
+    required B Function(Failure<E> _) failure,
+    required B Function(Defect<E> _) defect,
+    required B Function(Interrupted<E> _) interrupted,
+  }) {
+    return interrupted(this);
+  }
 
   @override
   String toString() => 'Interrupted()';

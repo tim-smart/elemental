@@ -538,6 +538,10 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> get microtask =>
       ZIO.from((ctx) => Future.microtask(() => _run(ctx)));
 
+  RIO<R, A> get orDie => _mapCauseFOr((ctx, _) => _ is Failure<E>
+      ? Exit.left(Defect(_, StackTrace.current))
+      : Exit.left(_.lift()));
+
   EIO<E, A> provide(R env) {
     final zio = env is ScopeMixin && !env.scopeClosable
         ? alwaysIgnore(env.closeScope())
