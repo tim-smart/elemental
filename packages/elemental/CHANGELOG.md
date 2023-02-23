@@ -1,3 +1,10 @@
+## 0.0.54
+
+- Drop `AtomRegistry` dependency
+- `Layer` improvements
+- Add `ZIOContext`
+- Improve `Schedule`
+
 ## 0.0.53
 
 - lint fixes
