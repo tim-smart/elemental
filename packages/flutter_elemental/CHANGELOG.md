@@ -1,3 +1,7 @@
+## 0.0.8
+
+- Update elemental
+
 ## 0.0.7
 
 - Add storage
