@@ -37,6 +37,11 @@ class Layer<E, Service> {
 
   EIO<E, Service> get access => ZIO.layer(this);
 
+  EIO<E, A> accessWith<A>(A Function(Service _) f) => access.map(f);
+
+  ZIO<R, E, A> accessWithZIO<R, A>(ZIO<R, E, A> Function(Service _) f) =>
+      ZIO<R, E, Service>.layer(this).flatMap(f);
+
   Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._(
         tag: tag,
         make: build.lift(),

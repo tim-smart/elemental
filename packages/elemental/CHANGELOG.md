@@ -1,3 +1,8 @@
+## 0.0.62
+
+- Improve zioRunAtomSync error
+- Add more access methods to Layer
+
 ## 0.0.61
 
 - Use broadcast stream for Ref
