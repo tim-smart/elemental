@@ -17,7 +17,7 @@ class Ref<A> {
 
   StreamController<A>? _controller;
   Stream<A> get stream {
-    _controller ??= StreamController(sync: true);
+    _controller ??= StreamController.broadcast(sync: true);
     return _controller!.stream;
   }
 
