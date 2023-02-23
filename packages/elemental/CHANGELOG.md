@@ -1,3 +1,8 @@
+## 0.0.65
+
+- Add error channel to Deferred
+- Add ZIOQueue
+
 ## 0.0.64
 
 - Improve layer API
