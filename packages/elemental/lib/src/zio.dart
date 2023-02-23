@@ -519,19 +519,16 @@ class ZIO<R, E, A> {
       );
 
   IO<ZIO<R, E, A>> get memoize => IO(() {
-        final deferred = Deferred<Exit<E, A>>();
+        final deferred = Deferred<E, A>();
         var executed = false;
 
         return ZIO<R, E, A>.from((ctx) {
           if (executed) {
-            return deferred
-                .await<R, E>()
-                ._run(ctx)
-                .flatMapFOrNoI((exit) => exit.flatMap(identity));
+            return deferred.await()._run(ctx);
           }
 
           executed = true;
-          return tapExit(deferred.complete)._run(ctx);
+          return tapExit(deferred.completeExit)._run(ctx);
         });
       });
 
@@ -683,7 +680,7 @@ class ZIO<R, E, A> {
 extension ZIORunExt<E, A> on EIO<E, A> {
   FutureOr<Exit<E, A>> run({
     Runtime? runtime,
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).run(
         this,
@@ -692,7 +689,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
 
   Future<A> runFutureOrThrow({
     Runtime? runtime,
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runFutureOrThrow(
         this,
@@ -701,7 +698,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
 
   Future<Exit<E, A>> runFuture({
     Runtime? runtime,
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runFuture(
         this,
@@ -710,7 +707,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
 
   FutureOr<A> runOrThrow({
     Runtime? runtime,
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runOrThrow(
         this,
@@ -719,7 +716,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
 
   Exit<E, A> runSync({
     Runtime? runtime,
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runSync(
         this,

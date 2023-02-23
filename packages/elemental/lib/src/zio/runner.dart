@@ -24,8 +24,8 @@ class ZIORunner<E, A> {
   final EIO<E, A> _zio;
   final Scope _scope;
   final Ref<ZIORunnerState<E, A>> _ref;
-  final _interrupt = Deferred<Unit>();
-  Deferred<Exit<E, A>>? _deferred;
+  final _interrupt = DeferredIO<Unit>();
+  DeferredIO<Exit<E, A>>? _deferred;
 
   ZIORunnerState<E, A> get state => _ref.unsafeGet();
 

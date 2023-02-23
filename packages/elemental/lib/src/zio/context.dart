@@ -14,13 +14,13 @@ class ZIOContext<R> {
   factory ZIOContext({
     required Runtime runtime,
     required R env,
-    required Deferred<Unit> signal,
+    required DeferredIO<Unit> signal,
   }) =>
       ZIOContext._(runtime: runtime, env: env, signal: signal);
 
   final Runtime runtime;
   final R env;
-  final Deferred<Unit> signal;
+  final DeferredIO<Unit> signal;
 
   ZIOContext<R2> withEnv<R2>(R2 env) => ZIOContext._(
         runtime: runtime,

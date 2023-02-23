@@ -22,7 +22,7 @@ class Runtime {
   // == defaults
 
   static var defaultRuntime = Runtime();
-  static final _defaultSignal = Deferred<Unit>();
+  static final _defaultSignal = DeferredIO<Unit>();
 
   // == scopes
 
@@ -53,7 +53,7 @@ class Runtime {
 
   FutureOr<Exit<E, A>> run<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
 
@@ -72,7 +72,7 @@ class Runtime {
 
   Future<A> runFutureOrThrow<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     return Future.value(run(zio, interruptionSignal: interruptionSignal))
@@ -84,7 +84,7 @@ class Runtime {
 
   Future<Exit<E, A>> runFuture<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     return Future.value(run(zio, interruptionSignal: interruptionSignal));
@@ -92,7 +92,7 @@ class Runtime {
 
   FutureOr<A> runOrThrow<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     return run(zio, interruptionSignal: interruptionSignal).flatMapFOr(
@@ -107,7 +107,7 @@ class Runtime {
   /// Try to run the ZIO synchronously, throwing a [Future] if it is asynchronous.
   Exit<E, A> runSync<E, A>(
     EIO<E, A> zio, {
-    Deferred<Unit>? interruptionSignal,
+    DeferredIO<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     final result = run(zio, interruptionSignal: interruptionSignal);
@@ -121,7 +121,7 @@ class Runtime {
   A runSyncOrThrow<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
 
-    final signal = Deferred<Unit>();
+    final signal = DeferredIO<Unit>();
     final exit = run(zio, interruptionSignal: signal);
 
     if (exit is Future) {
