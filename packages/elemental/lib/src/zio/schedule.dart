@@ -14,8 +14,12 @@ Option<Duration> _remainingWindow(
 
 class Schedule<R, E, I, O> {
   Schedule._(this._transform);
+
   final ZIO<R, Option<E>, O> Function(
-      I input, int count, Option<DateTime> lastTick) _transform;
+    I input,
+    int count,
+    Option<DateTime> lastTick,
+  ) _transform;
 
   static Schedule<NoEnv, Never, I, int> fixed<I>(Duration duration) =>
       Schedule._(
@@ -23,7 +27,7 @@ class Schedule<R, E, I, O> {
           () => _remainingWindow(lastTick, duration),
         ).flatMap(
           (_) => _.match(
-            () => IO.succeed(count),
+            () => ZIO.succeed(count),
             (duration) => ZIO.sleepIO(duration).as(count),
           ),
         ),
@@ -32,7 +36,7 @@ class Schedule<R, E, I, O> {
   static Schedule<NoEnv, Never, I, int> forever<I>() =>
       Schedule._((input, count, lastTick) => ZIO.succeed(count));
 
-  static Schedule<NoEnv, Never, I, int> recursN<R, E, I>(int n) => Schedule._(
+  static Schedule<NoEnv, Never, I, int> recursN<I>(int n) => Schedule._(
         (input, count, lastTick) =>
             n >= count ? ZIO.succeed(count) : ZIO.fail(const None()),
       );
