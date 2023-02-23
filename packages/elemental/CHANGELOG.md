@@ -1,3 +1,8 @@
+## 0.0.66
+
+- Option.flatMapNullable
+- Option.flatMapThrowable
+
 ## 0.0.65
 
 - Add error channel to Deferred
