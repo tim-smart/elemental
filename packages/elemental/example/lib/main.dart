@@ -56,10 +56,6 @@ final dioLayer = Layer.memoize(
 final todosLayer = Layer(IO.layer(dioLayer).map((dio) => Todos(dio)));
 
 Future<void> main() async {
-  IO.layer(dioLayer).runSync();
-  IO.layer(dioLayer).runSync();
-  IO.layer(dioLayer).runSync();
-
   final listTodos = TodosIO.layer(todosLayer)
       .zipLeft(ZIO.logInfo('Fetching todos...'))
       .flatMap((todos) => todos.list);

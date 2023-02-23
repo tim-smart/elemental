@@ -4,6 +4,8 @@ Option<Duration> _remainingWindow(
   Option<DateTime> lastTick,
   Duration duration,
 ) {
+  if (lastTick.isNone()) return Option.of(duration);
+
   final endOfWindow = DateTime.now().subtract(duration);
   return lastTick
       .filter((lastTick) => lastTick.isAfter(endOfWindow))
@@ -15,7 +17,7 @@ class Schedule<R, E, I, O> {
   final ZIO<R, Option<E>, O> Function(
       I input, int count, Option<DateTime> lastTick) _transform;
 
-  static Schedule<NoEnv, Never, dynamic, int> fixed(Duration duration) =>
+  static Schedule<NoEnv, Never, I, int> fixed<I>(Duration duration) =>
       Schedule._(
         (input, count, lastTick) => IO(
           () => _remainingWindow(lastTick, duration),
@@ -27,11 +29,10 @@ class Schedule<R, E, I, O> {
         ),
       );
 
-  static Schedule<NoEnv, Never, dynamic, int> forever() =>
+  static Schedule<NoEnv, Never, I, int> forever<I>() =>
       Schedule._((input, count, lastTick) => ZIO.succeed(count));
 
-  static Schedule<NoEnv, Never, dynamic, int> recursN<R, E, I>(int n) =>
-      Schedule._(
+  static Schedule<NoEnv, Never, I, int> recursN<R, E, I>(int n) => Schedule._(
         (input, count, lastTick) =>
             n >= count ? ZIO.succeed(count) : ZIO.fail(const None()),
       );
@@ -82,7 +83,8 @@ class Schedule<R, E, I, O> {
             : ZIO.fail(const None()),
       );
 
-  IO<ScheduleDriver<R, E, I, O>> get driver => IO(() => ScheduleDriver(this));
+  ZIO<R2, E2, ScheduleDriver<R, E, I, O>> driver<R2, E2>() =>
+      ZIO(() => ScheduleDriver(this));
 }
 
 class ScheduleDriver<R, E, I, O> {

@@ -1,5 +1,7 @@
 part of '../zio.dart';
 
+const loggerAnnotationsSymbol = Symbol("elemental/Logger");
+
 enum LogLevel {
   debug(0, "DEBUG"),
   info(1, "INFO"),
@@ -30,45 +32,22 @@ class Logger {
   static String annotationsToString(Map<String, dynamic> annotations) =>
       annotations.entries.map((e) => '${e.key}="${e.value}"').join(' ');
 
-  IO<Unit> log(
+  ZIO<R, E, Unit> log<R, E>(
     LogLevel level,
+    DateTime time,
     String message, {
     Map<String, dynamic> annotations = const {},
   }) =>
-      IO.layer(logLevelLayer).flatMap(
-            (currentLevel) => level < currentLevel
-                ? IO.unitIO
-                : IO(() {
-                    _print(
-                      'level=${level.label} message="$message"${annotations.isEmpty ? "" : " ${annotationsToString(annotations)}"}',
-                    );
-                    return unit;
-                  }),
-          );
-
-  IO<Unit> debug(
-    String message, {
-    Map<String, dynamic> annotations = const {},
-  }) =>
-      log(LogLevel.debug, message, annotations: annotations);
-
-  IO<Unit> info(
-    String message, {
-    Map<String, dynamic> annotations = const {},
-  }) =>
-      log(LogLevel.info, message, annotations: annotations);
-
-  IO<Unit> warn(
-    String message, {
-    Map<String, dynamic> annotations = const {},
-  }) =>
-      log(LogLevel.warn, message, annotations: annotations);
-
-  IO<Unit> error(
-    String message, {
-    Map<String, dynamic> annotations = const {},
-  }) =>
-      log(LogLevel.error, message, annotations: annotations);
+      ZIO<R, E, LogLevel>.layer(logLevelLayer).flatMap(
+        (currentLevel) => level < currentLevel
+            ? ZIO.unit()
+            : ZIO(() {
+                _print(
+                  'level=${level.label} time="${time.toIso8601String()}" message="$message"${annotations.isEmpty ? "" : " ${annotationsToString(annotations)}"}',
+                );
+                return unit;
+              }),
+      );
 }
 
 final loggerLayer = Layer(IO(() => Logger()));

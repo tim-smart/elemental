@@ -160,18 +160,28 @@ class ZIO<R, E, A> {
     String message, {
     Map<String, dynamic>? annotations,
   }) =>
-      ZIO<R, E, Logger>.layer(loggerLayer).flatMap(
-        (log) => log
-            .log(level, message, annotations: annotations ?? const {})
-            .lift(),
-      );
+      ZIO.from((ctx) => ctx
+          .accessLayer<R, E, Logger>(loggerLayer)
+          .flatMap(
+            (log) => log.log(
+              level,
+              DateTime.now(),
+              message,
+              annotations: {
+                ...annotations ?? {},
+                ...ctx.unsafeGetAndClearAnnotations(loggerAnnotationsSymbol),
+              },
+            ),
+          )
+          ._run(ctx));
+
   static IO<Unit> logIO(LogLevel level, String message) => log(level, message);
 
   static ZIO<R, E, Unit> logDebug<R, E>(
     String message, {
     Map<String, dynamic>? annotations,
   }) =>
-      log(LogLevel.debug, message);
+      log(LogLevel.debug, message, annotations: annotations);
 
   static IO<Unit> logDebugIO(
     String message, {
@@ -183,7 +193,7 @@ class ZIO<R, E, A> {
     String message, {
     Map<String, dynamic>? annotations,
   }) =>
-      log(LogLevel.info, message);
+      log(LogLevel.info, message, annotations: annotations);
 
   static IO<Unit> logInfoIO(
     String message, {
@@ -195,7 +205,7 @@ class ZIO<R, E, A> {
     String message, {
     Map<String, dynamic>? annotations,
   }) =>
-      log(LogLevel.warn, message);
+      log(LogLevel.warn, message, annotations: annotations);
 
   static IO<Unit> logWarnIO(
     String message, {
@@ -207,7 +217,7 @@ class ZIO<R, E, A> {
     String message, {
     Map<String, dynamic>? annotations,
   }) =>
-      log(LogLevel.error, message);
+      log(LogLevel.error, message, annotations: annotations);
 
   static IO<Unit> logErrorIO(
     String message, {
@@ -316,6 +326,19 @@ class ZIO<R, E, A> {
         ),
       );
 
+  ZIO<R, E, A> annotate(Symbol key, String name, dynamic value) =>
+      ZIO.from((ctx) {
+        ctx.unsafeAnnotate(key, name, value);
+        return _run(ctx);
+      });
+
+  /// Retrieves and clears the annotations for the provided key.
+  ZIO<R, E, HashMap<String, dynamic>> annotations(Symbol key) =>
+      ZIO.from((ctx) => Exit.right(ctx.unsafeGetAndClearAnnotations(key)));
+
+  ZIO<R, E, A> annotateLog(String name, dynamic value) =>
+      annotate(loggerAnnotationsSymbol, name, value);
+
   ZIO<R, E, B> as<B>(B b) => map((_) => b);
 
   ZIO<R, E, Unit> get asUnit => as(fpdart.unit);
@@ -377,7 +400,7 @@ class ZIO<R, E, A> {
         (ctx) => _run(ctx).flatMapFOr(
           (ea) => ea.match(
             (e) => Either.left(e),
-            (a) => f(a)._run(ctx).flatMapFOrNoI((exit) => exit),
+            (a) => f(a)._run(ctx),
           ),
           interruptionSignal: ctx.signal,
         ),
@@ -522,7 +545,7 @@ class ZIO<R, E, A> {
   }
 
   ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
-      schedule.driver.lift<R, E>().flatMap((driver) {
+      schedule.driver<R, E>().flatMap((driver) {
         ZIO<R, E, A> loop() => flatMap((a) => driver.next(a).match(
               (e) => e.match(
                 () => ZIO.succeed(a),
@@ -543,7 +566,7 @@ class ZIO<R, E, A> {
       flatMap((_) => predicate(_) ? repeatWhile(predicate) : ZIO.succeed(_));
 
   ZIO<R, E, A> retry<O>(Schedule<R, E, E, O> schedule) =>
-      schedule.driver.lift<R, E>().flatMap((driver) {
+      schedule.driver<R, E>().flatMap((driver) {
         ZIO<R, E, A> loop() => catchError((error) => driver.next(error).match(
               (e) => e.match(
                 () => ZIO.fail(error),
@@ -774,4 +797,11 @@ extension ZIOOptionExt<A> on Option<A> {
   IOOption<A> get toZIO => ZIO.fromOption(this);
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
+}
+
+void main(List<String> args) {
+  ZIO
+      .logInfoIO("Hello!")
+      .repeat(Schedule.fixed(const Duration(seconds: 1)).times(5).lift())
+      .run();
 }

@@ -73,4 +73,27 @@ class ZIOContext<R> {
 
     return _layers.access(layer);
   }
+
+  // == annotations
+  final _annotations = HashMap<Symbol, HashMap<String, dynamic>>();
+
+  void unsafeAnnotate(
+    Symbol key,
+    String name,
+    dynamic value,
+  ) {
+    final map = _annotations[key] ??= HashMap();
+    map[name] = value;
+  }
+
+  HashMap<String, dynamic> unsafeGetAnnotations(Symbol key) =>
+      _annotations[key] ?? HashMap();
+
+  HashMap<String, dynamic> unsafeGetAndClearAnnotations(Symbol key) {
+    final a = _annotations[key] ?? HashMap();
+    _annotations.remove(key);
+    return a;
+  }
+
+  void unsafeClearAnnotations(Symbol key) => _annotations.remove(key);
 }
