@@ -11,6 +11,7 @@ part 'zio/deferred.dart';
 part 'zio/exit.dart';
 part 'zio/layer.dart';
 part 'zio/logger.dart';
+part 'zio/queue.dart';
 part 'zio/ref.dart';
 part 'zio/runner.dart';
 part 'zio/runtime.dart';

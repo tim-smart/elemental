@@ -34,11 +34,15 @@ class Deferred<E, A> {
       );
   late final EIO<E, A> awaitIO = await();
 
+  void unsafeCompleteExit(Exit<E, A> exit) {
+    _value = Option.of(exit);
+    __completer?.complete(exit);
+  }
+
   ZIO<R, E2, Unit> completeExit<R, E2>(Exit<E, A> exit) =>
       ZIO(() => _value.match(
             () {
-              _value = Option.of(exit);
-              __completer?.complete(exit);
+              unsafeCompleteExit(exit);
               return unit;
             },
             (_) => unit,
