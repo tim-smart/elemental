@@ -1,10 +1,9 @@
 # This is a generated file; do not edit or check into version control.
 path_provider_linux=/Users/tim/.pub-cache/hosted/pub.dev/path_provider_linux-2.1.7/
 path_provider_windows=/Users/tim/.pub-cache/hosted/pub.dev/path_provider_windows-2.1.3/
-shared_preferences=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences-2.0.15/
+shared_preferences=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences-2.0.18/
 shared_preferences_android=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_android-2.0.13/
-shared_preferences_ios=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_ios-2.1.1/
+shared_preferences_foundation=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_foundation-2.1.4/
 shared_preferences_linux=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_linux-2.1.1/
-shared_preferences_macos=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_macos-2.0.4/
 shared_preferences_web=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_web-2.0.4/
 shared_preferences_windows=/Users/tim/.pub-cache/hosted/pub.dev/shared_preferences_windows-2.1.1/
