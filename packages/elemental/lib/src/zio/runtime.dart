@@ -1,22 +1,22 @@
 part of '../zio.dart';
 
 class Runtime {
+  Runtime({
+    Logger logger = const Logger(),
+    LogLevel logLevel = LogLevel.debug,
+  }) {
+    _layers.unsafeAddService(logLevelLayer, logLevel);
+    _layers.unsafeAddService(loggerLayer, logger);
+  }
+
   static EIO<dynamic, Runtime> withLayers(
     Iterable<Layer> layers, {
-    Logger? logger,
-    LogLevel? logLevel,
+    Logger logger = const Logger(),
+    LogLevel logLevel = LogLevel.debug,
   }) {
-    final runtime = Runtime();
+    final runtime = Runtime(logger: logger, logLevel: logLevel);
 
-    return [
-      if (logger != null) loggerLayer.replace(ZIO.succeed(logger)),
-      if (logLevel != null) logLevelLayer.replace(ZIO.succeed(logLevel)),
-      ...layers,
-    ]
-        .map((layer) => runtime._layers.access<NoEnv, dynamic, dynamic>(layer))
-        .collectParDiscard
-        .as(runtime)
-        .withRuntime(runtime);
+    return runtime.provideLayers(layers).as(runtime).withRuntime(runtime);
   }
 
   // == defaults
@@ -38,10 +38,16 @@ class Runtime {
 
   late final _layers = _LayerContext((scope) => _scopes.add(scope));
 
-  IO<Unit> provideLayer(Layer layer) => IO(() {
-        _layers.unsafeProvide(layer);
-        return unit;
-      });
+  EIO<E, S> provideLayer<E, S>(Layer<E, S> layer) => _layers.provide(layer);
+
+  EIO<dynamic, Unit> provideLayers(Iterable<Layer> layers) =>
+      layers.map(provideLayer).collectDiscard;
+
+  IO<Unit> Function(S service) provideService<S>(Layer<dynamic, S> layer) =>
+      (service) => ZIO(() {
+            _layers.unsafeAddService(layer, service);
+            return unit;
+          });
 
   // == running zios
 

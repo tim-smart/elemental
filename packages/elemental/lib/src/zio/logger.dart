@@ -25,7 +25,7 @@ final logLevelLayer = Layer(IO.succeed(LogLevel.info));
 void _printStdout(String message) => print(message);
 
 class Logger {
-  Logger([this._print = _printStdout]);
+  const Logger([this._print = _printStdout]);
 
   final void Function(String message) _print;
 
@@ -50,4 +50,4 @@ class Logger {
       );
 }
 
-final loggerLayer = Layer(IO(() => Logger()));
+final loggerLayer = Layer(IO(() => const Logger()));

@@ -154,7 +154,7 @@ class ZIO<R, E, A> {
       ZIO.syncEither(() => oa.toEither(() => onNone()));
 
   factory ZIO.layer(Layer<E, A> layer) =>
-      ZIO.from((ctx) => ctx.accessLayer<R, E, A>(layer)._run(ctx));
+      ZIO.from((ctx) => ctx.accessLayer<E, A>(layer)._run(ctx));
 
   static ZIO<R, E, Unit> log<R, E>(
     LogLevel level,
@@ -162,7 +162,7 @@ class ZIO<R, E, A> {
     Map<String, dynamic>? annotations,
   }) =>
       ZIO.from((ctx) => ctx
-          .accessLayer<R, E, Logger>(loggerLayer)
+          .accessLayer<E, Logger>(loggerLayer)
           .flatMap(
             (log) => log.log(
               level,
@@ -549,10 +549,16 @@ class ZIO<R, E, A> {
     return ZIO.from((ctx) => zio._run(ctx.withEnv(env)));
   }
 
-  ZIO<R, E, A> provideLayer(Layer layer) => ZIO.from((ctx) {
-        ctx.unsafeProvideLayer(layer);
-        return _run(ctx);
-      });
+  ZIO<R, E, A> provideLayer(Layer<E, dynamic> layer) =>
+      ZIO.from((ctx) => ctx.provideLayer(layer).zipRight(this)._run(ctx));
+
+  ZIO<R, E, A> Function(S service) provideService<S>(Layer<dynamic, S> layer) =>
+      (service) => ZIO.from(
+            (ctx) => ctx
+                .provideService<E, S>(layer, service)
+                .zipRight(this)
+                ._run(ctx),
+          );
 
   ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
       schedule.driver<R, E>().flatMap((driver) {
@@ -752,12 +758,12 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
 }
 
 extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
-  ZIO<R, E, A> ask<R>() => ZIO.from((ZIOContext<R> ctx) => _run(ctx.asNoEnv));
+  ZIO<R, E, A> ask<R>() => ZIO.from((ctx) => _run(ctx.noEnv));
 
   ZIO<Scope, E, A> acquireRelease(
     IO<Unit> Function(A _) release,
   ) =>
-      ask<Scope>().tap((a) => addFinalizer(release(a)));
+      ask<Scope>().tapEnv((a, _) => _.addScopeFinalizer(release(a)).lift());
 
   ZIO<Scope, E, Unit> addFinalizer(
     IO<Unit> release,

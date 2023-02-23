@@ -30,7 +30,7 @@ class ZIOContext<R> {
         layerContext: _layers,
       );
 
-  ZIOContext<NoEnv> get asNoEnv => withEnv(const NoEnv());
+  ZIOContext<NoEnv> get noEnv => withEnv(const NoEnv());
 
   ZIOContext<R> withRuntime(Runtime runtime) => ZIOContext._(
         runtime: runtime,
@@ -71,21 +71,25 @@ class ZIOContext<R> {
   // == layers
   late final _LayerContext _layers;
 
-  ZIO<R2, E, A> accessLayer<R2, E, A>(Layer<E, A> layer) {
-    if (_layers.unsafeHas(layer)) {
-      return _layers.access(layer);
-    } else if (runtime._layers.unsafeHas(layer)) {
-      return runtime._layers.access(layer);
-    }
+  ZIO<R, E, A> accessLayer<E, A>(Layer<E, A> layer) => ZIO.from((ctx) {
+        if (_layers.unsafeHas(layer)) {
+          // ignore: null_check_on_nullable_type_parameter
+          return Exit.right(_layers.unsafeAccess(layer)!);
+        } else if (runtime._layers.unsafeHas(layer)) {
+          // ignore: null_check_on_nullable_type_parameter
+          return Exit.right(runtime._layers.unsafeAccess(layer)!);
+        }
 
-    if (layer._memoized) {
-      return runtime._layers.access(layer);
-    }
+        return _layers.provide(layer)._run(ctx);
+      });
 
-    return _layers.access(layer);
-  }
+  ZIO<R, E, S> provideLayer<E, S>(Layer<E, S> layer) => _layers.provide(layer);
 
-  void unsafeProvideLayer(Layer layer) => _layers.unsafeProvide(layer);
+  ZIO<R, E, Unit> provideService<E, A>(Layer<dynamic, A> layer, A service) =>
+      ZIO(() {
+        _layers.unsafeAddService(layer, service);
+        return unit;
+      });
 
   // == annotations
   final _annotations = HashMap<Symbol, HashMap<String, dynamic>>();

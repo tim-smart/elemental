@@ -49,19 +49,19 @@ class Todos {
 
 // Here we create a Dio layer, which closes the Dio instance when finished.
 final dioLayer = Layer.scoped(
-  IO(
-    () => Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/')),
-  ).acquireRelease(
+  IO(() {
+    print('dio build');
+    return Dio(BaseOptions(baseUrl: 'https://jsonplaceholder.typicode.com/'));
+  }).acquireRelease(
     (dio) => IO(() {
-      dio.close();
       print("closed DIO");
-      return unit;
-    }),
+      dio.close();
+    }).asUnit,
   ),
 );
 
 // We then use the Dio layer to create a Todos layer.
-final todosLayer = Layer(IO.layer(dioLayer).map((dio) => Todos(dio)));
+final todosLayer = Layer(dioLayer.accessWith((dio) => Todos(dio)));
 
 Future<void> main() async {
   final listTodos = TodosIO.layer(todosLayer)
