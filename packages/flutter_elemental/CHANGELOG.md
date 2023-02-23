@@ -1,3 +1,7 @@
+## 0.0.6
+
+- Update for latest elemental
+
 ## 0.0.5
 
 - Add BuildContext extension
