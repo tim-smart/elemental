@@ -2,26 +2,18 @@ import 'package:elemental/elemental.dart';
 
 final runtimeAtom = atom((get) => Runtime.defaultRuntime);
 
-AtomWithParent<Option<A>, Atom<Option<Ref<A>>>> zioRefAtom<A>(IO<Ref<A>> zio) =>
+AtomWithParent<A, Atom<Ref<A>>> zioRefAtomSync<E, A>(EIO<E, Ref<A>> zio) =>
     atomWithParent(
-      atom((get) {
-        get(runtimeAtom).run(
-          zio.flatMap(
-            (ref) => ZIO(() {
-              get.setSelf(Option.of(ref));
-            }),
-          ),
-        );
+      atom((get) => get(runtimeAtom).runSyncOrThrow(zio)),
+      (get, parent) {
+        final ref = get(parent);
 
-        return get.self() ?? Option.none();
-      }),
-      (get, parent) => get(parent).match(Option.none, (ref) {
         get.onDispose(ref.stream.listen((a) {
-          get.setSelf(Option.of(a));
+          get.setSelf(a);
         }).cancel);
 
-        return Option.of(ref.unsafeGet());
-      }),
+        return ref.unsafeGet();
+      },
     );
 
 AtomWithParent<A, Atom<Ref<A>>> _refAtomWrap<A>(Atom<Ref<A>> atom) =>

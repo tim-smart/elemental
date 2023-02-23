@@ -1,3 +1,7 @@
+## 0.0.59
+
+- Make `zioRunAtom` sync
+
 ## 0.0.58
 
 - zioRefAtom
