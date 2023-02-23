@@ -1,3 +1,7 @@
+## 0.0.60
+
+- `Layer.access`
+
 ## 0.0.59
 
 - Make `zioRunAtom` sync

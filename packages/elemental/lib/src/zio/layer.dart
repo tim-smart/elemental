@@ -35,6 +35,8 @@ class Layer<E, Service> {
   final bool _memoized;
   final bool _scoped;
 
+  EIO<E, Service> get access => ZIO.layer(this);
+
   Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._(
         tag: tag,
         make: build.lift(),
