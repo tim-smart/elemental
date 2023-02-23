@@ -1,3 +1,7 @@
+## 0.0.64
+
+- Improve layer API
+
 ## 0.0.63
 
 - memoize Layer by default
