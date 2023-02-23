@@ -1,3 +1,7 @@
+## 0.0.69
+
+- Document some functions
+
 ## 0.0.68
 
 - Change `envWithZIO` signature
