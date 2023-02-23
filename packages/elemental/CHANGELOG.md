@@ -1,3 +1,7 @@
+## 0.0.68
+
+- Change `envWithZIO` signature
+
 ## 0.0.67
 
 - log* accept Object?

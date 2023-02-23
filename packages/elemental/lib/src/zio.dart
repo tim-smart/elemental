@@ -130,8 +130,8 @@ class ZIO<R, E, A> {
   factory ZIO.envWith(A Function(R env) f) =>
       ZIO.from((ctx) => Either.right(f(ctx.env)));
 
-  factory ZIO.envWithZIO(ZIO<R, E, A> Function(R env) f) =>
-      ZIO.from((ctx) => f(ctx.env)._run(ctx));
+  factory ZIO.envWithZIO(ZIO<NoEnv, E, A> Function(R env) f) =>
+      ZIO.from((ctx) => f(ctx.env)._run(ctx.noEnv));
 
   factory ZIO.fromEither(Either<E, A> ea) => ZIO.fromExit(ea.toExit());
 
