@@ -4,7 +4,7 @@ class Layer<E, Service> {
   Layer._({
     required ZIO<Scope, E, Service> make,
     bool scoped = false,
-    bool memoized = false,
+    bool memoized = true,
     Symbol? tag,
   })  : tag = tag ?? Symbol("Layer<$E, $Service>()"),
         _make = make,
@@ -19,13 +19,13 @@ class Layer<E, Service> {
   factory Layer.scoped(ZIO<Scope, E, Service> make) =>
       Layer._(make: make, scoped: true);
 
-  /// A [Layer] that is only built once per [Runtime].
-  factory Layer.memoize(EIO<E, Service> make) =>
-      Layer._(make: make.lift(), memoized: true);
+  /// A [Layer] that is discarded after each use.
+  factory Layer.autoDispose(EIO<E, Service> make) =>
+      Layer._(make: make.lift(), memoized: false);
 
-  /// A [Layer] that is only built once per [Runtime], with scoped resources.
-  factory Layer.memoizeScoped(ZIO<Scope, E, Service> make) {
-    return Layer._(make: make, memoized: true, scoped: true);
+  /// A [Layer] that is discarded after each use, and has scoped resources.
+  factory Layer.autoDisposeScope(ZIO<Scope, E, Service> make) {
+    return Layer._(make: make, memoized: false, scoped: true);
   }
 
   // ignore: prefer_const_constructors

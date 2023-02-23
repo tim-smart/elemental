@@ -1,3 +1,7 @@
+## 0.0.63
+
+- memoize Layer by default
+
 ## 0.0.62
 
 - Improve zioRunAtomSync error
