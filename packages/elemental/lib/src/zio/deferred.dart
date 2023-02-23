@@ -1,7 +1,9 @@
 part of '../zio.dart';
 
+/// Represents a [Deferred] that can't fail.
 typedef DeferredIO<A> = Deferred<Never, A>;
 
+/// A [Deferred] is represents a value that may not be available yet.
 class Deferred<E, A> {
   Deferred();
 

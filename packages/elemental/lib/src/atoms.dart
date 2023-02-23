@@ -1,7 +1,11 @@
 import 'package:elemental/elemental.dart';
 
+/// The default [Runtime] used by used by [zioRefAtomSync] and [zioAtom].
+/// Also used by the extension methods on [AtomContext] and [BuildContext].
 final runtimeAtom = atom((get) => Runtime.defaultRuntime);
 
+/// Creates an [Atom] from a [Ref] contained in a [ZIO]. It will throw an error
+/// if the [Ref] cannot be accessed synchronously.
 AtomWithParent<A, Atom<Ref<A>>> zioRefAtomSync<E, A>(EIO<E, Ref<A>> zio) =>
     atomWithParent(
       atom((get) {
@@ -22,7 +26,10 @@ AtomWithParent<A, Atom<Ref<A>>> zioRefAtomSync<E, A>(EIO<E, Ref<A>> zio) =>
       },
     );
 
-AtomWithParent<ZIORunnerState<E, A>, Atom<ZIORunner<E, A>>> zioRunnerAtom<E, A>(
+/// Creates an [Atom] of [ZIORunnerState]'s from the given [ZIO].
+///
+/// Very similar to [futureAtom] / [FutureValue];
+AtomWithParent<ZIORunnerState<E, A>, Atom<ZIORunner<E, A>>> zioAtom<E, A>(
   EIO<E, A> zio, {
   bool runImmediately = true,
 }) =>

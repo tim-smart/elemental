@@ -1,20 +1,17 @@
 part of '../zio.dart';
 
 class Runtime {
-  Runtime({
-    Logger logger = const Logger(),
-    LogLevel logLevel = LogLevel.debug,
-  }) {
-    _layers.unsafeAddService(logLevelLayer, logLevel);
-    _layers.unsafeAddService(loggerLayer, logger);
-  }
+  Runtime();
 
   static EIO<dynamic, Runtime> withLayers(
     Iterable<Layer> layers, {
-    Logger logger = const Logger(),
-    LogLevel logLevel = LogLevel.debug,
+    Logger? logger,
+    LogLevel? logLevel,
   }) {
-    final runtime = Runtime(logger: logger, logLevel: logLevel);
+    final runtime = Runtime();
+
+    if (logger != null) runtime.provideService(loggerLayer)(logger);
+    if (logLevel != null) runtime.provideService(logLevelLayer)(logLevel);
 
     return runtime.provideLayers(layers).as(runtime).withRuntime(runtime);
   }

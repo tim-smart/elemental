@@ -1,5 +1,16 @@
 part of '../zio.dart';
 
+/// A [Layer] can be used to construct a service.
+///
+/// It will only be built once per [ZIO] execution, or it can be provided to
+/// a [Runtime] using [Runtime.provideLayer].
+///
+/// If it is provided to a [Runtime], it will be built once per [Runtime] - being
+/// reused for all [ZIO] executions.
+///
+/// It can be accessed using [access] or [accessWith]. Or by calling [ZIO.layer].
+///
+/// You can also replace a [Layer] using [Layer.replace].
 class Layer<E, Service> {
   Layer._({
     required ZIO<Scope, E, Service> make,

@@ -1,5 +1,8 @@
 part of '../zio.dart';
 
+/// Represents the error channel of a [ZIO].
+///
+/// A [ZIO] can fail with a [Failure], a [Defect] or be [Interrupted].
 abstract class Cause<E> {
   const Cause();
   Cause<E2> lift<E2>();
@@ -11,6 +14,7 @@ abstract class Cause<E> {
   });
 }
 
+/// Represents a failure with an error of type [E].
 class Failure<E> extends Cause<E> {
   const Failure(this.error);
   final E error;
@@ -31,6 +35,7 @@ class Failure<E> extends Cause<E> {
   String toString() => 'Failure($error)';
 }
 
+/// Represents an uncaught error.
 class Defect<E> extends Cause<E> {
   const Defect(this.error, this.stackTrace);
   final dynamic error;
@@ -52,6 +57,7 @@ class Defect<E> extends Cause<E> {
   String toString() => 'Defect($error, $stackTrace)';
 }
 
+/// [Interrupted] is used to indicated that a [ZIO] was interrupted.
 class Interrupted<E> extends Cause<E> {
   const Interrupted();
 

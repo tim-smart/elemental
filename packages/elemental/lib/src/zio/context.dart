@@ -1,5 +1,6 @@
 part of '../zio.dart';
 
+/// Represents the context in which a [ZIO] is executed.
 class ZIOContext<R> {
   ZIOContext._({
     required this.runtime,
@@ -11,6 +12,7 @@ class ZIOContext<R> {
     _layers = layerContext ?? _LayerContext(unsafeAddScope);
   }
 
+  /// Represents the context in which a [ZIO] is executed.
   factory ZIOContext({
     required Runtime runtime,
     required R env,

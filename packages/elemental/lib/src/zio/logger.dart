@@ -50,4 +50,4 @@ class Logger {
       );
 }
 
-final loggerLayer = Layer(IO(() => const Logger()));
+final loggerLayer = Layer(IO.succeed(const Logger()));
