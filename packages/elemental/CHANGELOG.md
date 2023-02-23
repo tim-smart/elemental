@@ -1,3 +1,7 @@
+## 0.0.56
+
+- Add unsafeValueDidChange to Ref
+
 ## 0.0.55
 
 - Add Layer.toString

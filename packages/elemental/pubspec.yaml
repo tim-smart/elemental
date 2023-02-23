@@ -1,6 +1,6 @@
 name: elemental
 description: A toolkit for writing software in dart
-version: 0.0.55
+version: 0.0.56
 homepage: https://github.com/tim-smart/nucleus
 
 environment:
@@ -13,4 +13,5 @@ dev_dependencies:
 dependencies:
   fast_immutable_collections: ">=8.0.0 <9.0.0"
   fpdart: ^0.4.0
+  meta: ^1.9.0
   nucleus: ^0.3.14

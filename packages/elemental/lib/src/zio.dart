@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:elemental/elemental.dart';
 import 'package:elemental/src/future_or.dart';
 import 'package:fpdart/fpdart.dart' as fpdart;
+import 'package:meta/meta.dart';
 
 part 'zio/context.dart';
 part 'zio/deferred.dart';
