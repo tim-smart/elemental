@@ -10,7 +10,7 @@ Includes:
 
 - `ZIO` a building block for writing effectful programs
 - `Layer` for composing dependencies
-- Everything from `nucleus`, for state and dependency management
+- `nucleus`, a simple state and dependency management tool. See more here: [https://pub.dev/packages/nucleus](https://pub.dev/packages/nucleus)
 - Thanks to the `fpdart` package [https://pub.dev/packages/fpdart](https://pub.dev/packages/fpdart):
   - `Option`
   - `Either`
