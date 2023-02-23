@@ -1,3 +1,7 @@
+## 0.0.55
+
+- Add Layer.toString
+
 ## 0.0.54
 
 - Drop `AtomRegistry` dependency

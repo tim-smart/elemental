@@ -6,7 +6,7 @@ class Layer<E, Service> {
     bool scoped = false,
     bool memoized = false,
     Symbol? tag,
-  })  : tag = tag ?? Symbol("Layer(${make.hashCode})"),
+  })  : tag = tag ?? Symbol("Layer<$E, $Service>()"),
         _make = make,
         _scoped = scoped,
         _memoized = memoized;
@@ -49,6 +49,10 @@ class Layer<E, Service> {
         scoped: _scoped,
         memoized: _memoized,
       );
+
+  @override
+  String toString() =>
+      'Layer<$E, $Service>(scoped: $_scoped, memoized: $_memoized)';
 }
 
 class _LayerContext {
