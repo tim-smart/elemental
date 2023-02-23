@@ -23,4 +23,5 @@ export 'src/atom_context.dart';
 export 'src/atoms.dart';
 export 'src/function.dart';
 export 'src/map_option.dart';
+export 'src/option.dart';
 export 'src/zio.dart';

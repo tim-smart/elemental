@@ -157,6 +157,9 @@ class ZIO<R, E, A> {
   factory ZIO.layer(Layer<E, A> layer) =>
       ZIO.from((ctx) => ctx.accessLayer<E, A>(layer)._run(ctx));
 
+  factory ZIO.lazy(ZIO<R, E, A> Function() zio) =>
+      ZIO.from((ctx) => zio()._run(ctx));
+
   static ZIO<R, E, Unit> log<R, E>(
     LogLevel level,
     String message, {
