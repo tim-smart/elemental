@@ -1,3 +1,7 @@
+## 0.0.79
+
+- Merge layers into runtime when accessing via `ZIO.runtime`.
+
 ## 0.0.78
 
 - Allow sync in Do notation
