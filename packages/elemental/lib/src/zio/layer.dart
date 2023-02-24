@@ -84,6 +84,19 @@ class Layer<E, Service> {
         return context._unsafeAccess(this)!;
       });
 
+  FutureAtom<Service> get atom => futureAtom((get) {
+        final runtime = get(runtimeAtom);
+
+        final context = LayerContext();
+        get.onDispose(
+          () => context.close<NoEnv, Never>().run(runtime: runtime),
+        );
+
+        return context
+            .provide<NoEnv, E, Service>(this)
+            .runFutureOrThrow(runtime: runtime);
+      });
+
   @override
   String toString() => 'Layer<$E, $Service>(scoped: $_scoped)';
 }

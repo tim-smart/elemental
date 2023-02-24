@@ -1,3 +1,7 @@
+## 0.0.75
+
+- Add async atom constructor to [Layer].
+
 ## 0.0.74
 
 - Add atomSyncOnly to Layer
