@@ -1,3 +1,7 @@
+## 0.0.72
+
+- Move [annotations] to static methods
+
 ## 0.0.71
 
 - Fix [annotate]

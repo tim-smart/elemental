@@ -66,6 +66,14 @@ class ZIO<R, E, A> {
 
   // Constructors
 
+  /// Retrieves and clears the annotations for the provided key.
+  static ZIO<R, E, HashMap<String, dynamic>> annotations<R, E>(Symbol key) =>
+      ZIO.from((ctx) => Exit.right(ctx.unsafeGetAndClearAnnotations(key)));
+
+  /// [IO] version of [annotations].
+  static IO<HashMap<String, dynamic>> annotationsIO(Symbol key) =>
+      annotations(key);
+
   /// Create a synchronous [ZIO] from a function, returning a [IO] that can't fail.
   factory ZIO(A Function() f) => ZIO.from((ctx) => Either.right(f()));
 
@@ -381,6 +389,10 @@ class ZIO<R, E, A> {
   factory ZIO.unsafeFuture(FutureOr<A> Function() f) => ZIO.from(
       (ctx) => f().flatMapFOr(Either.right, interruptionSignal: ctx.signal));
 
+  // ==========================
+  // ==== Instance methods ====
+  // ==========================
+
   /// Always run the given [ZIO] after this one, regardless of success or failure.
   ZIO<R, E, A> always(ZIO<R, E, A> zio) =>
       ZIO.from((ctx) => _run(ctx).flatMapFOrNoI(
@@ -404,10 +416,6 @@ class ZIO<R, E, A> {
             ctx.unsafeAnnotate(key, name, value);
             return exit;
           }));
-
-  /// Retrieves and clears the annotations for the provided key.
-  ZIO<R, E, HashMap<String, dynamic>> annotations(Symbol key) =>
-      ZIO.from((ctx) => Exit.right(ctx.unsafeGetAndClearAnnotations(key)));
 
   /// Adds an annotation to the next log entry.
   ZIO<R, E, A> annotateLog(String name, dynamic value) =>
