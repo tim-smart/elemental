@@ -35,7 +35,9 @@ class Runtime {
 
   late final _layers = _LayerContext((scope) => _scopes.add(scope));
 
-  EIO<E, S> provideLayer<E, S>(Layer<E, S> layer) => _layers.provide(layer);
+  EIO<E, S> provideLayer<E, S>(Layer<E, S> layer) => ZIO.from(
+        (ctx) => _layers.provide(layer)._run(ctx._withLayerContext(_layers)),
+      );
 
   EIO<dynamic, Unit> provideLayers(Iterable<Layer> layers) =>
       layers.map(provideLayer).collectDiscard;

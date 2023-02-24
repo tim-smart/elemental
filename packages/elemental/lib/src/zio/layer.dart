@@ -88,11 +88,9 @@ class _LayerContext {
         return build._run(ctx);
       }) //
           .lift<R>()
-          .tap(
-            (_) => ZIO(() {
-              _services[layer.tag] = _;
-            }),
-          );
+          .tap((_) => ZIO(() {
+                _services[layer.tag] = _;
+              }));
 
   EIO<E, S> _build<E, S>(Layer<E, S> layer) => EIO<E, EIO<E, S>>(() {
         final scope = Scope.closable();

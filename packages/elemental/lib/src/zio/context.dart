@@ -93,6 +93,14 @@ class ZIOContext<R> {
         return unit;
       });
 
+  ZIOContext<R> _withLayerContext(_LayerContext layerContext) => ZIOContext._(
+        runtime: runtime,
+        env: env,
+        signal: signal,
+        scopes: _scopes,
+        layerContext: layerContext,
+      );
+
   // == annotations
   final _annotations = HashMap<Symbol, HashMap<String, dynamic>>();
 
