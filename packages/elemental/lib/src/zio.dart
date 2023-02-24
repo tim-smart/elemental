@@ -682,6 +682,8 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> get microtask =>
       ZIO.from((ctx) => Future.microtask(() => _run(ctx)));
 
+  RIOOption<R, A> get option => mapError((_) => const NoValue());
+
   /// If the [ZIO] fails, turn the failure into a defect.
   RIO<R, A> get orDie => _mapCauseFOr((ctx, _) => _ is Failure<E>
       ? Exit.left(Defect(_, StackTrace.current))

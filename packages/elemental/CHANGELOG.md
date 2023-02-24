@@ -1,3 +1,7 @@
+## 0.0.80
+
+- Add `option` for converting to IOOption
+
 ## 0.0.79
 
 - Merge layers into runtime when accessing via `ZIO.runtime`.
