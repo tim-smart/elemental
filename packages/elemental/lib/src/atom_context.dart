@@ -33,6 +33,17 @@ extension ZIOAtomContextExt on AtomContext {
   }) =>
       registry.get(runtimeAtom).runOrThrow(zio, interruptionSignal: interrupt);
 
+  /// Calls [Runtime.runSync] on the [ZIO], using the [Runtime] from [runtimeAtom].
+  Exit<E, A> runZIOSync<E, A>(
+    EIO<E, A> zio, {
+    DeferredIO<Unit>? interrupt,
+  }) =>
+      registry.get(runtimeAtom).runSync(zio, interruptionSignal: interrupt);
+
+  /// Calls [Runtime.runSyncOrThrow] on the [ZIO], using the [Runtime] from [runtimeAtom].
+  A runZIOSyncOrThrow<E, A>(EIO<E, A> zio) =>
+      registry.get(runtimeAtom).runSyncOrThrow(zio);
+
   /// Creates a [ZIORunner] for the [ZIO], using the [Runtime] from [runtimeAtom].
   ZIORunner<E, A> makeZIORunner<E, A>(EIO<E, A> zio) =>
       registry.get(runtimeAtom).runSyncOrThrow(ZIORunner.make(zio));
