@@ -6,11 +6,8 @@ class ZIOContext<R> {
     required this.runtime,
     required this.env,
     required this.signal,
-    List<ScopeMixin>? scopes,
-    _LayerContext? layerContext,
-  }) : _scopes = scopes ?? [] {
-    _layers = layerContext ?? _LayerContext(unsafeAddScope);
-  }
+    LayerContext? layerContext,
+  }) : _layers = layerContext ?? LayerContext();
 
   /// Represents the context in which a [ZIO] is executed.
   factory ZIOContext({
@@ -28,7 +25,6 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        scopes: _scopes,
         layerContext: _layers,
       );
 
@@ -38,7 +34,6 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        scopes: _scopes,
         layerContext: _layers,
       );
 
@@ -46,40 +41,23 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: Deferred(),
-        scopes: _scopes,
         layerContext: _layers,
       );
 
   // == scopes
 
-  final List<ScopeMixin> _scopes;
-
-  IO<Unit> addScope(ScopeMixin scope) => IO(() {
-        unsafeAddScope(scope);
-        return unit;
-      });
-
-  void unsafeAddScope(ScopeMixin scope) => _scopes.add(scope);
-
-  ZIO<R2, E, Unit> close<R2, E>() => ZIO.from(
-        (ctx) => _scopes.isEmpty
-            ? Exit.right(unit)
-            : _scopes
-                .map((s) => s.closeScope<R2, E>())
-                .collectParDiscard
-                ._run(ctx),
-      );
+  ZIO<R2, E, Unit> close<R2, E>() => _layers.close();
 
   // == layers
-  late final _LayerContext _layers;
+  late final LayerContext _layers;
 
   ZIO<R, E, A> accessLayer<E, A>(Layer<E, A> layer) => ZIO.from((ctx) {
-        if (_layers.unsafeHas(layer)) {
+        if (_layers._unsafeHas(layer)) {
           // ignore: null_check_on_nullable_type_parameter
-          return Exit.right(_layers.unsafeAccess(layer)!);
-        } else if (runtime._layers.unsafeHas(layer)) {
+          return Exit.right(_layers._unsafeAccess(layer)!);
+        } else if (runtime._layers._unsafeHas(layer)) {
           // ignore: null_check_on_nullable_type_parameter
-          return Exit.right(runtime._layers.unsafeAccess(layer)!);
+          return Exit.right(runtime._layers._unsafeAccess(layer)!);
         }
 
         return _layers.provide(layer)._run(ctx);
@@ -89,15 +67,21 @@ class ZIOContext<R> {
 
   ZIO<R, E, Unit> provideService<E, A>(Layer<dynamic, A> layer, A service) =>
       ZIO(() {
-        _layers.unsafeAddService(layer, service);
+        _layers._unsafeAddService(layer, service);
         return unit;
       });
 
-  ZIOContext<R> _withLayerContext(_LayerContext layerContext) => ZIOContext._(
+  ZIOContext<R> _mergeLayerContext(LayerContext layerContext) => ZIOContext._(
         runtime: runtime,
         env: env,
         signal: signal,
-        scopes: _scopes,
+        layerContext: layerContext._unsafeMerge(layerContext),
+      );
+
+  ZIOContext<R> _withLayerContext(LayerContext layerContext) => ZIOContext._(
+        runtime: runtime,
+        env: env,
+        signal: signal,
         layerContext: layerContext,
       );
 

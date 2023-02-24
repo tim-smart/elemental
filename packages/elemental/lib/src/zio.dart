@@ -701,6 +701,9 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> provideLayer(Layer<E, dynamic> layer) =>
       ZIO.from((ctx) => ctx.provideLayer(layer).zipRight(this)._run(ctx));
 
+  ZIO<R, E, A> provideLayerContext(LayerContext context) =>
+      ZIO.from((ctx) => _run(ctx._mergeLayerContext(context)));
+
   /// Provide the [ZIO] with a [Layer], using the provided pre-built service [S].
   ZIO<R, E, A> Function(S service) provideService<S>(Layer<dynamic, S> layer) =>
       (service) => ZIO.from(

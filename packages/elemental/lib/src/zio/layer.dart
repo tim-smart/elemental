@@ -67,14 +67,31 @@ class Layer<E, Service> {
         scoped: _scoped,
       );
 
+  ReadOnlyAtom<Service> get atomSyncOnly => ReadOnlyAtom((get) {
+        final runtime = get(runtimeAtom);
+
+        final context = LayerContext();
+        get.onDispose(
+          () => context.close<NoEnv, Never>().run(runtime: runtime),
+        );
+
+        try {
+          context.provide<NoEnv, E, Service>(this).runSyncOrThrow(runtime);
+        } catch (err) {
+          throw "Could not build layer, probably due to asynchronous build. Error: $err";
+        }
+
+        return context._unsafeAccess(this)!;
+      });
+
   @override
   String toString() => 'Layer<$E, $Service>(scoped: $_scoped)';
 }
 
-class _LayerContext {
-  _LayerContext(this._registerScope);
+class LayerContext {
+  LayerContext();
 
-  final void Function(ScopeMixin scope) _registerScope;
+  final _scope = Scope.closable();
   final _services = HashMap<Symbol, dynamic>();
   final _cache = HashMap<Layer, EIO<dynamic, dynamic>>();
 
@@ -83,28 +100,38 @@ class _LayerContext {
           return (_cache[layer] as EIO<E, S>)._run(ctx);
         }
 
-        final build = _build(layer).memoize.runSyncOrThrow();
+        final build = layer._make.provide(_scope).memoize.runSyncOrThrow();
         _cache[layer] = build;
-        return build._run(ctx);
+        return build._run(ctx._withLayerContext(this));
       }) //
           .lift<R>()
           .tap((_) => ZIO(() {
                 _services[layer.tag] = _;
               }));
 
-  EIO<E, S> _build<E, S>(Layer<E, S> layer) => EIO<E, EIO<E, S>>(() {
-        final scope = Scope.closable();
-        if (layer._scoped) {
-          _registerScope(scope);
-        }
-        return layer._make.provide(scope);
-      }).flatMap(identity);
+  ZIO<R, E, Unit> Function(S service) provideService<R, E, S>(
+    Layer<dynamic, S> layer,
+  ) =>
+      (service) => ZIO(() {
+            _unsafeAddService(layer, service);
+            return unit;
+          });
 
-  A? unsafeAccess<A>(Layer<dynamic, A> layer) => _services[layer.tag];
+  ZIO<R, E, Unit> close<R, E>() => _scope.closeScope();
 
-  bool unsafeHas(Layer layer) => _services.containsKey(layer.tag);
+  ZIO<R, E, A> use<R, E, A>(ZIO<R, E, A> zio) => zio.provideLayerContext(this);
 
-  void unsafeAddService<A>(Layer<dynamic, A> layer, A service) {
+  // === Unsafe ===
+
+  void _unsafeAddService<A>(Layer<dynamic, A> layer, A service) {
     _services[layer.tag] = service;
   }
+
+  LayerContext _unsafeMerge(LayerContext other) {
+    _services.addAll(other._services);
+    return this;
+  }
+
+  A? _unsafeAccess<A>(Layer<dynamic, A> layer) => _services[layer.tag];
+  bool _unsafeHas(Layer layer) => _services.containsKey(layer.tag);
 }

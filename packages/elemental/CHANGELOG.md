@@ -1,3 +1,8 @@
+## 0.0.74
+
+- Add atomSyncOnly to Layer
+- Expose `LayerContext`
+
 ## 0.0.73
 
 - Improve Runtime.provideLayer

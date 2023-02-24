@@ -23,17 +23,14 @@ class Runtime {
 
   // == scopes
 
-  final _scopes = <ScopeMixin>[];
-
   bool _disposed = false;
   bool get disposed => _disposed;
 
-  IO<Unit> get dispose => IO(() => _disposed = true)
-      .zipRight(_scopes.map((s) => s.closeScopeIO).collectParDiscard);
+  IO<Unit> get dispose => IO(() => _disposed = true).zipRight(_layers.close());
 
   // == layers
 
-  late final _layers = _LayerContext((scope) => _scopes.add(scope));
+  final _layers = LayerContext();
 
   EIO<E, S> provideLayer<E, S>(Layer<E, S> layer) => ZIO.from(
         (ctx) => _layers.provide(layer)._run(ctx._withLayerContext(_layers)),
@@ -44,7 +41,7 @@ class Runtime {
 
   IO<Unit> Function(S service) provideService<S>(Layer<dynamic, S> layer) =>
       (service) => ZIO(() {
-            _layers.unsafeAddService(layer, service);
+            _layers._unsafeAddService(layer, service);
             return unit;
           });
 
