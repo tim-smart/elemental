@@ -309,27 +309,25 @@ class ZIO<R, E, A> {
     Iterable<A> iterable,
     ZIO<R, E, B> Function(A _) f,
   ) =>
-      ZIO.from(
-        (ctx) {
-          if (iterable.isEmpty) {
-            return Exit.right(IList());
-          }
+      ZIO.from((ctx) {
+        if (iterable.isEmpty) {
+          return Exit.right(IList());
+        }
 
-          final results =
-              iterable.map((a) => f(a)._run(ctx)).toList(growable: false);
-          final hasFuture = results.any((eb) => eb is Future);
+        final results =
+            iterable.map((a) => f(a)._run(ctx)).toList(growable: false);
+        final hasFuture = results.any((eb) => eb is Future);
 
-          if (!hasFuture) {
-            return Either.sequenceList(
-              results.cast<Exit<E, B>>().toList(growable: false),
-            ).map((a) => a.toIList());
-          }
+        if (!hasFuture) {
+          return Either.sequenceList(
+            results.cast<Exit<E, B>>().toList(growable: false),
+          ).map((a) => a.toIList());
+        }
 
-          return Future.wait(results.map((eb) => Future.value(eb))).then(
-            (eithers) => Either.sequenceList(eithers).map((a) => a.toIList()),
-          );
-        },
-      );
+        return Future.wait(results.map((eb) => Future.value(eb))).then(
+          (eithers) => Either.sequenceList(eithers).map((a) => a.toIList()),
+        );
+      });
 
   /// Create a [EIO] from the given function [f], which may throw an exception.
   ///

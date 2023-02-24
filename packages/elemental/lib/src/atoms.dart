@@ -2,7 +2,11 @@ import 'package:elemental/elemental.dart';
 
 /// The default [Runtime] used by used by [zioRefAtomSync] and [zioAtom].
 /// Also used by the extension methods on [AtomContext] and [BuildContext].
-final runtimeAtom = atom((get) => Runtime.defaultRuntime);
+final runtimeAtom = atom((get) {
+  final runtime = Runtime();
+  get.onDispose(() => runtime.dispose.run());
+  return runtime;
+});
 
 /// Creates an [Atom] from a [Ref] contained in a [ZIO]. It will throw an error
 /// if the [Ref] cannot be accessed synchronously.
