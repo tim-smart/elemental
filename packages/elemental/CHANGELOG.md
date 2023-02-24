@@ -1,3 +1,7 @@
+## 0.0.70
+
+- Fix [Scope.closeScope] ordering
+
 ## 0.0.69
 
 - Document some functions
