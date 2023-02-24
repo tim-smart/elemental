@@ -57,14 +57,14 @@ class Layer<E, Service> {
   Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._(
         tag: tag,
         make: build.lift(),
-        scoped: _scoped,
+        scoped: false,
       );
 
   Layer<E2, Service> replaceScoped<E2>(ZIO<Scope, E2, Service> build) =>
       Layer._(
         tag: tag,
         make: build,
-        scoped: _scoped,
+        scoped: true,
       );
 
   ReadOnlyAtom<Service> get atomSyncOnly => ReadOnlyAtom((get) {

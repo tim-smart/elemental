@@ -1,8 +1,6 @@
 part of '../zio.dart';
 
 class _Taker<A> {
-  _Taker();
-
   final deferred = DeferredIO<A>();
   _Taker<A>? next;
 }
