@@ -5,9 +5,8 @@ Future<AtomInitialValue<Runtime>> runtimeInitialValue(
   LogLevel? logLevel,
   Logger? logger,
 }) =>
-    Runtime.withLayers([
-      if (logger == null) flutterLoggerLayer,
-      ...layers,
-    ], logLevel: logLevel)
-        .map(runtimeAtom.withInitialValue)
-        .runFutureOrThrow();
+    Runtime.withLayers(
+      [...layers],
+      logLevel: logLevel,
+      logger: logger,
+    ).map(runtimeAtom.withInitialValue).runFutureOrThrow();

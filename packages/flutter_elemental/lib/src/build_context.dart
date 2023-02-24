@@ -36,6 +36,17 @@ extension ZIOBuildContextExt on BuildContext {
           .get(runtimeAtom)
           .runOrThrow(zio, interruptionSignal: interrupt);
 
+  Exit<E, A> runZIOSync<E, A>(
+    EIO<E, A> zio, {
+    DeferredIO<Unit>? interrupt,
+  }) =>
+      registry(listen: false)
+          .get(runtimeAtom)
+          .runSync(zio, interruptionSignal: interrupt);
+
+  A runZIOSyncOrThrow<E, A>(EIO<E, A> zio) =>
+      registry(listen: false).get(runtimeAtom).runSyncOrThrow(zio);
+
   ZIORunner<E, A> makeZIORunner<E, A>(EIO<E, A> zio) => registry(listen: false)
       .get(runtimeAtom)
       .runSyncOrThrow(ZIORunner.make(zio));
