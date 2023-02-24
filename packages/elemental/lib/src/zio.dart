@@ -398,18 +398,18 @@ class ZIO<R, E, A> {
       );
 
   /// Adds an annotation to the the current [ZIOContext], which can be retrieved
-  /// with [annotations].
+  /// later with [annotations].
   ZIO<R, E, A> annotate(Symbol key, String name, dynamic value) =>
-      ZIO.from((ctx) {
-        ctx.unsafeAnnotate(key, name, value);
-        return _run(ctx);
-      });
+      ZIO.from((ctx) => _run(ctx).flatMapFOrNoI((exit) {
+            ctx.unsafeAnnotate(key, name, value);
+            return exit;
+          }));
 
   /// Retrieves and clears the annotations for the provided key.
   ZIO<R, E, HashMap<String, dynamic>> annotations(Symbol key) =>
       ZIO.from((ctx) => Exit.right(ctx.unsafeGetAndClearAnnotations(key)));
 
-  /// Adds an annotation to the most recent log entry.
+  /// Adds an annotation to the next log entry.
   ZIO<R, E, A> annotateLog(String name, dynamic value) =>
       annotate(loggerAnnotationsSymbol, name, value);
 
