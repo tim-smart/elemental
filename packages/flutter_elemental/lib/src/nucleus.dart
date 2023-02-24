@@ -1,6 +1,6 @@
 import 'package:flutter_elemental/flutter_elemental.dart';
 
-Future<AtomInitialValue> runtimeInitialValue(
+Future<AtomInitialValue<Runtime>> runtimeInitialValue(
   Iterable<Layer> layers, {
   LogLevel? logLevel,
   Logger? logger,

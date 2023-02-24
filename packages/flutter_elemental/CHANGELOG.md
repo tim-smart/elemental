@@ -1,3 +1,7 @@
+## 0.0.9
+
+- Update `runtimeInitialValue`
+
 ## 0.0.8
 
 - Update elemental
