@@ -1,3 +1,8 @@
+## 0.0.77
+
+- Fix layer scoping
+- Add sync methods to AtomContext
+
 ## 0.0.76
 
 - liftScope
