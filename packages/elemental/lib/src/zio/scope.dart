@@ -11,7 +11,7 @@ mixin ScopeMixin {
       });
 
   ZIO<R, E, Unit> closeScope<R, E>() =>
-      IO.collectPar(_scopeFinalizers).zipRight(IO(() {
+      _scopeFinalizers.reversed.collectDiscard.zipRight(IO(() {
         _scopeFinalizers.clear();
         return unit;
       })).lift();
