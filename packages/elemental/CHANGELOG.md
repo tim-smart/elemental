@@ -1,3 +1,7 @@
+## 0.0.76
+
+- liftScope
+
 ## 0.0.75
 
 - Add async atom constructor to [Layer].

@@ -30,3 +30,16 @@ class Scope with ScopeMixin {
   @override
   bool get scopeClosable => _closable;
 }
+
+class _ScopeProxy extends Scope {
+  _ScopeProxy(this.parent) : super._(parent.scopeClosable);
+
+  final ScopeMixin parent;
+
+  @override
+  IO<Unit> addScopeFinalizer(IO<Unit> finalizer) =>
+      parent.addScopeFinalizer(finalizer);
+
+  @override
+  ZIO<R, E, Unit> closeScope<R, E>() => parent.closeScope();
+}

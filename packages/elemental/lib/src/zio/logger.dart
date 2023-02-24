@@ -19,7 +19,7 @@ enum LogLevel {
   operator >=(LogLevel other) => level >= other.level;
 }
 
-final logLevelLayer = Layer(IO.succeed(LogLevel.info));
+final logLevelLayer = Layer(IO.succeed(LogLevel.debug));
 
 // ignore: avoid_print
 void _printStdout(String message) => print(message);
