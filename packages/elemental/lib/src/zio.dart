@@ -289,15 +289,19 @@ class ZIO<R, E, A> {
     Iterable<A> iterable,
     ZIO<R, E, B> Function(A _) f,
   ) =>
-      ZIO.from(
-        (ctx) => iterable
+      ZIO.from((ctx) {
+        if (iterable.isEmpty) {
+          return Exit.right(IList());
+        }
+
+        return iterable
             .map((a) => f(a))
             .fold<ZIO<R, E, IList<B>>>(
               ZIO.succeed(IList()),
               (acc, zio) => acc.zipWith(zio, (a, B b) => a.add(b)),
             )
-            ._run(ctx),
-      );
+            ._run(ctx);
+      });
 
   /// Traverse an [Iterable] with the given function, collecting the results in
   /// parallel.
@@ -307,6 +311,10 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.from(
         (ctx) {
+          if (iterable.isEmpty) {
+            return Exit.right(IList());
+          }
+
           final results =
               iterable.map((a) => f(a)._run(ctx)).toList(growable: false);
           final hasFuture = results.any((eb) => eb is Future);
