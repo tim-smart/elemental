@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 
 part 'zio/context.dart';
 part 'zio/deferred.dart';
+part 'zio/do.dart';
 part 'zio/exit.dart';
 part 'zio/layer.dart';
 part 'zio/logger.dart';
@@ -122,10 +123,10 @@ class ZIO<R, E, A> {
   /// ```
   // ignore: non_constant_identifier_names
   factory ZIO.Do(DoFunction<R, E, A> f) => ZIO.from((ctx) => fromThrowable(
-        () => f(_doAdapter(ctx), ctx.env),
+        () => f(DoContext(ctx), ctx.env),
         onError: (err, stack) {
-          if (err is Left<Cause<E>, A>) {
-            return err.value;
+          if (err is Cause<E>) {
+            return err;
           }
 
           return Defect(err, stack);
@@ -1049,25 +1050,6 @@ extension ZIOOptionExt<A> on Option<A> {
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
 }
-
-// ==== Do notation helpers
-typedef _DoAdapter<R, E> = FutureOr<A> Function<A>(ZIO<R, E, A> zio);
-
-_DoAdapter<R, E> _doAdapter<R, E>(ZIOContext<R> ctx) =>
-    <A>(zio) => zio._run(ctx).flatMapFOr(
-          (ea) => ea.match(
-            (e) => Future.error(Left<Cause<E>, A>(e)),
-            identity,
-          ),
-          interruptionSignal: ctx.signal,
-        );
-
-/// A function that can be used in a [ZIO.Do].
-typedef DoFunction<R, E, A> = FutureOr<A> Function(
-  // ignore: library_private_types_in_public_api
-  _DoAdapter<R, E> $,
-  R env,
-);
 
 // For the const unit
 FutureOr<Exit<E, Unit>> _kZioUnit<R, E>(ZIOContext<R> ctx) => Exit.right(unit);

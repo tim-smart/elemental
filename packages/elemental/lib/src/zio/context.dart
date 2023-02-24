@@ -46,7 +46,8 @@ class ZIOContext<R> {
 
   // == scopes
 
-  ZIO<R2, E, Unit> close<R2, E>() => _layers.close();
+  ZIO<R2, E, Unit> close<R2, E>() =>
+      _layers.close<R2, E>().zipRight(signal.complete(unit));
 
   // == layers
   late final LayerContext _layers;

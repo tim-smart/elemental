@@ -1,3 +1,7 @@
+## 0.0.78
+
+- Allow sync in Do notation
+
 ## 0.0.77
 
 - Fix layer scoping
