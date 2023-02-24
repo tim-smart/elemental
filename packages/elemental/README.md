@@ -8,7 +8,7 @@ A toolkit for writing software in dart
 
 Includes:
 
-- `ZIO` a building block for writing effectful programs
+- `ZIO` a building block for writing effectful programs. Explore the full API: https://pub.dev/documentation/elemental/latest/elemental/ZIO-class.html
 - `Layer` for composing dependencies
 - `nucleus`, a simple state and dependency management tool. See more here: [https://pub.dev/packages/nucleus](https://pub.dev/packages/nucleus)
 - Thanks to the `fpdart` package [https://pub.dev/packages/fpdart](https://pub.dev/packages/fpdart):
