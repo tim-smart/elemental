@@ -1,3 +1,7 @@
+## 0.0.71
+
+- Fix [annotate]
+
 ## 0.0.70
 
 - Fix [Scope.closeScope] ordering
