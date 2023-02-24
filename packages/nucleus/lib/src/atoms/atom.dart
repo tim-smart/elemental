@@ -29,7 +29,7 @@ abstract class Atom<T> {
   ///
   /// By default it calls [Atom.keepAlive], to ensure the initial value is not
   /// disposed.
-  AtomInitialValue withInitialValue(
+  AtomInitialValue<T> withInitialValue(
     T value, {
     bool keepAlive = true,
   }) {

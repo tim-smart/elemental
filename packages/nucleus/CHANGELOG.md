@@ -1,3 +1,7 @@
+## 0.3.15
+
+- Set generic on AtomInitialValue
+
 ## 0.3.14
 
 - Expose registry on AtomContext
