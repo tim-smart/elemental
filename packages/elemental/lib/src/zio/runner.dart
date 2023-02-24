@@ -10,7 +10,7 @@ class ZIORunner<E, A> {
   static IO<ZIORunner<E, A>> make<E, A>(EIO<E, A> zio) {
     final scope = Scope.closable();
 
-    return Ref.makeScope(ZIORunnerState<E, A>(
+    return Ref.make(ZIORunnerState<E, A>(
       error: Option.none(),
       value: Option.none(),
       loading: false,

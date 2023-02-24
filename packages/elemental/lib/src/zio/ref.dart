@@ -15,7 +15,7 @@ class Ref<A> {
   /// The [Ref] will be disposed when the scope is disposed.
   ///
   /// Allows for a custom environment [R] to be used, as long as it includes [ScopeMixin].
-  static RIO<R, Ref<A>> make<R extends ScopeMixin, A>(A a) =>
+  static RIO<R, Ref<A>> makeWith<R extends ScopeMixin, A>(A a) =>
       RIO<R, Ref<A>>(() => Ref.unsafeMake(a)).acquireRelease(
         (ref) => IO(ref.unsafeDispose).asUnit,
       );
@@ -23,7 +23,7 @@ class Ref<A> {
   /// Creates a new [Ref] with the given initial value.
   ///
   /// The [Ref] will be disposed when the [Scope] is disposed.
-  static RIO<Scope, Ref<A>> makeScope<A>(A a) =>
+  static RIO<Scope, Ref<A>> make<A>(A a) =>
       IO(() => Ref.unsafeMake(a)).acquireRelease(
         (ref) => IO(() => ref._controller?.close()).asUnit,
       );

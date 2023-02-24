@@ -52,7 +52,7 @@ class StorageRef<A> extends Ref<A> {
     return initialValue;
   }
 
-  static ZIO<R, SharedPrefsError, StorageRef<A>> make<R extends ScopeMixin, A>(
+  static ZIO<R, SharedPrefsError, Ref<A>> makeWith<R extends ScopeMixin, A>(
     A initialValue, {
     required String key,
     required A Function(dynamic json) fromJson,
@@ -68,13 +68,13 @@ class StorageRef<A> extends Ref<A> {
         ),
       );
 
-  static ZIO<Scope, SharedPrefsError, StorageRef<A>> makeScope<A>(
+  static ZIO<Scope, SharedPrefsError, Ref<A>> make<A>(
     A initialValue, {
     required String key,
     required A Function(dynamic json) fromJson,
     required dynamic Function(A a) toJson,
   }) =>
-      make(initialValue, key: key, fromJson: fromJson, toJson: toJson);
+      makeWith(initialValue, key: key, fromJson: fromJson, toJson: toJson);
 
   final NucleusStorage storage;
   final String key;
