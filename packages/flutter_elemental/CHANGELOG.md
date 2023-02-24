@@ -1,3 +1,8 @@
+## 0.0.10
+
+- flutter_hooks
+- Remove FlutterLogger
+
 ## 0.0.9
 
 - Update `runtimeInitialValue`
