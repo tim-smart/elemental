@@ -14,26 +14,21 @@ part of '../zio.dart';
 class Layer<E, Service> {
   Layer._({
     required ZIO<Scope, E, Service> make,
-    bool scoped = false,
-    bool memoized = true,
     Symbol? tag,
   })  : tag = tag ?? Symbol("Layer<$E, $Service>()"),
-        _make = make,
-        _scoped = scoped;
+        _make = make;
 
   /// A [Layer] constructs a service, and is only built once per [ZIO]
   /// execution.
   factory Layer(EIO<E, Service> make) => Layer._(make: make.lift());
 
   /// A [Layer] that has scoped resources.
-  factory Layer.scoped(ZIO<Scope, E, Service> make) =>
-      Layer._(make: make, scoped: true);
+  factory Layer.scoped(ZIO<Scope, E, Service> make) => Layer._(make: make);
 
   // ignore: prefer_const_constructors
   final Symbol tag;
 
   final ZIO<Scope, E, Service> _make;
-  final bool _scoped;
 
   EIO<E, Service> get access => ZIO.layer(this);
 
@@ -45,26 +40,22 @@ class Layer<E, Service> {
   Layer<E2, Service> mapError<E2>(E2 Function(E _) f) => Layer._(
         tag: tag,
         make: _make.mapError(f),
-        scoped: _scoped,
       );
 
   Layer<E, Service> provideLayer(Layer<E, dynamic> layer) => Layer._(
         tag: tag,
         make: _make.provideLayer(layer),
-        scoped: _scoped,
       );
 
   Layer<E2, Service> replace<E2>(EIO<E2, Service> build) => Layer._(
         tag: tag,
         make: build.lift(),
-        scoped: false,
       );
 
   Layer<E2, Service> replaceScoped<E2>(ZIO<Scope, E2, Service> build) =>
       Layer._(
         tag: tag,
         make: build,
-        scoped: true,
       );
 
   ReadOnlyAtom<Service> get atomSyncOnly => ReadOnlyAtom((get) {
@@ -98,15 +89,19 @@ class Layer<E, Service> {
       });
 
   @override
-  String toString() => 'Layer<$E, $Service>(scoped: $_scoped)';
+  String toString() => 'Layer<$E, $Service>()';
 }
 
 class LayerContext {
-  LayerContext();
+  LayerContext()
+      : _services = HashMap(),
+        _cache = HashMap();
+
+  LayerContext.populated(this._services, this._cache);
 
   final _scope = Scope.closable();
-  final _services = HashMap<Symbol, dynamic>();
-  final _cache = HashMap<Layer, EIO<dynamic, dynamic>>();
+  final HashMap<Symbol, dynamic> _services;
+  final HashMap<Layer, EIO<dynamic, dynamic>> _cache;
 
   ZIO<R, E, S> provide<R, E, S>(Layer<E, S> layer) => EIO<E, S>.from((ctx) {
         if (_cache.containsKey(layer)) {
@@ -130,9 +125,17 @@ class LayerContext {
             return unit;
           });
 
-  ZIO<R, E, Unit> close<R, E>() => _scope.closeScope();
+  ZIO<R, E, Unit> close<R, E>() => ZIO<R, E, void>(() {
+        _services.clear();
+        _cache.clear();
+      }).zipRight(_scope.closeScope());
 
   ZIO<R, E, A> use<R, E, A>(ZIO<R, E, A> zio) => zio.provideLayerContext(this);
+
+  LayerContext merge(LayerContext other) => LayerContext.populated(
+        HashMap.from(_services)..addAll(other._services),
+        HashMap.from(_cache)..addAll(other._cache),
+      );
 
   // === Unsafe ===
 
@@ -142,6 +145,7 @@ class LayerContext {
 
   LayerContext _unsafeMerge(LayerContext other) {
     _services.addAll(other._services);
+    _cache.addAll(other._cache);
     return this;
   }
 

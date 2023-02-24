@@ -1,7 +1,8 @@
 part of '../zio.dart';
 
 class Runtime {
-  Runtime();
+  Runtime() : _layers = LayerContext();
+  Runtime.withLayerContext(this._layers);
 
   static EIO<dynamic, Runtime> withLayers(
     Iterable<Layer> layers, {
@@ -21,16 +22,9 @@ class Runtime {
   static var defaultRuntime = Runtime();
   static final _defaultSignal = DeferredIO<Unit>();
 
-  // == scopes
-
-  bool _disposed = false;
-  bool get disposed => _disposed;
-
-  IO<Unit> get dispose => IO(() => _disposed = true).zipRight(_layers.close());
-
   // == layers
 
-  final _layers = LayerContext();
+  final LayerContext _layers;
 
   EIO<E, S> provideLayer<E, S>(Layer<E, S> layer) => ZIO.from(
         (ctx) => _layers.provide(layer)._run(ctx._withLayerContext(_layers)),
@@ -44,6 +38,15 @@ class Runtime {
             _layers._unsafeAddService(layer, service);
             return unit;
           });
+
+  Runtime mergeLayerContext(LayerContext layerContext) =>
+      Runtime.withLayerContext(_layers.merge(layerContext));
+
+  // == disposal
+
+  bool _disposed = false;
+  bool get disposed => _disposed;
+  IO<Unit> get dispose => IO(() => _disposed = true).zipRight(_layers.close());
 
   // == running zios
 

@@ -272,8 +272,8 @@ class ZIO<R, E, A> {
       logError(message, annotations: annotations);
 
   /// Access the current [Runtime].
-  static ZIO<R, E, Runtime> runtime<R, E>() =>
-      ZIO.from((ctx) => Either.right(ctx.runtime));
+  static ZIO<R, E, Runtime> runtime<R, E>() => ZIO
+      .from((ctx) => Either.right(ctx.runtime.mergeLayerContext(ctx.layers)));
 
   /// An [IO] version of [runtime].
   static final IO<Runtime> runtimeIO = runtime();

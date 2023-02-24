@@ -7,7 +7,7 @@ class ZIOContext<R> {
     required this.env,
     required this.signal,
     LayerContext? layerContext,
-  }) : _layers = layerContext ?? LayerContext();
+  }) : layers = layerContext ?? LayerContext();
 
   /// Represents the context in which a [ZIO] is executed.
   factory ZIOContext({
@@ -25,7 +25,7 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        layerContext: _layers,
+        layerContext: layers,
       );
 
   ZIOContext<NoEnv> get noEnv => withEnv(const NoEnv());
@@ -34,41 +34,41 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        layerContext: _layers,
+        layerContext: layers,
       );
 
   ZIOContext<R> get withoutSignal => ZIOContext._(
         runtime: runtime,
         env: env,
         signal: Deferred(),
-        layerContext: _layers,
+        layerContext: layers,
       );
 
   // == scopes
 
   ZIO<R2, E, Unit> close<R2, E>() =>
-      _layers.close<R2, E>().zipRight(signal.complete(unit));
+      layers.close<R2, E>().zipRight(signal.complete(unit));
 
   // == layers
-  late final LayerContext _layers;
+  late final LayerContext layers;
 
   ZIO<R, E, A> accessLayer<E, A>(Layer<E, A> layer) => ZIO.from((ctx) {
-        if (_layers._unsafeHas(layer)) {
+        if (layers._unsafeHas(layer)) {
           // ignore: null_check_on_nullable_type_parameter
-          return Exit.right(_layers._unsafeAccess(layer)!);
+          return Exit.right(layers._unsafeAccess(layer)!);
         } else if (runtime._layers._unsafeHas(layer)) {
           // ignore: null_check_on_nullable_type_parameter
           return Exit.right(runtime._layers._unsafeAccess(layer)!);
         }
 
-        return _layers.provide(layer)._run(ctx);
+        return layers.provide(layer)._run(ctx);
       });
 
-  ZIO<R, E, S> provideLayer<E, S>(Layer<E, S> layer) => _layers.provide(layer);
+  ZIO<R, E, S> provideLayer<E, S>(Layer<E, S> layer) => layers.provide(layer);
 
   ZIO<R, E, Unit> provideService<E, A>(Layer<dynamic, A> layer, A service) =>
       ZIO(() {
-        _layers._unsafeAddService(layer, service);
+        layers._unsafeAddService(layer, service);
         return unit;
       });
 
