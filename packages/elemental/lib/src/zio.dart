@@ -950,6 +950,11 @@ extension RIOLiftExt<R extends Object?, A> on RIO<R, A> {
   ZIO<R, E, A> liftError<E>() => lift<E>();
 }
 
+extension ZIOLiftScooeExt<E, A> on ZIO<Scope, E, A> {
+  ZIO<R, E, A> liftScope<R extends ScopeMixin>() =>
+      ZIO.from((ctx) => _run(ctx.withEnv(_ScopeProxy(ctx.env))));
+}
+
 extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
   /// Add a finalizer to this [ZIO] for the current [Scope], using the result of this [ZIO].
   ZIO<R, E, A> acquireRelease(
