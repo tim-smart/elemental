@@ -37,6 +37,7 @@ class Deferred<E, A> {
   late final EIO<E, A> awaitIO = await();
 
   void unsafeCompleteExit(Exit<E, A> exit) {
+    if (_value.isSome()) return;
     _value = Option.of(exit);
     __completer?.complete(exit);
   }

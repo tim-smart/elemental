@@ -5,6 +5,9 @@ part of '../zio.dart';
 /// A [ZIO] can fail with a [Failure], a [Defect] or be [Interrupted].
 abstract class Cause<E> {
   const Cause();
+
+  StackTrace? get stackTrace;
+
   Cause<E2> lift<E2>();
 
   B when<B>({
@@ -12,12 +15,18 @@ abstract class Cause<E> {
     required B Function(Defect<E> _) defect,
     required B Function(Interrupted<E> _) interrupted,
   });
+
+  Cause<E> withTrace(StackTrace stack);
 }
 
 /// Represents a failure with an error of type [E].
 class Failure<E> extends Cause<E> {
-  const Failure(this.error);
+  const Failure(this.error, [this.stackTrace]);
+
   final E error;
+
+  @override
+  final StackTrace? stackTrace;
 
   @override
   Cause<E2> lift<E2>() => throw UnimplementedError();
@@ -32,17 +41,25 @@ class Failure<E> extends Cause<E> {
   }
 
   @override
-  String toString() => 'Failure($error)';
+  Failure<E> withTrace(StackTrace stack) =>
+      stackTrace == null ? Failure(error, stack) : this;
+
+  @override
+  String toString() => 'Failure($error, $stackTrace)';
 }
 
 /// Represents an uncaught error.
 class Defect<E> extends Cause<E> {
-  const Defect(this.error, this.stackTrace);
+  const Defect(this.error, this.defectStackTrace, [this.stackTrace]);
+
   final dynamic error;
-  final StackTrace stackTrace;
+  final StackTrace defectStackTrace;
 
   @override
-  Cause<E2> lift<E2>() => Defect(error, stackTrace);
+  final StackTrace? stackTrace;
+
+  @override
+  Cause<E2> lift<E2>() => Defect(error, defectStackTrace, stackTrace);
 
   @override
   B when<B>({
@@ -54,15 +71,22 @@ class Defect<E> extends Cause<E> {
   }
 
   @override
+  Defect<E> withTrace(StackTrace stack) =>
+      stackTrace == null ? Defect(error, defectStackTrace, stack) : this;
+
+  @override
   String toString() => 'Defect($error, $stackTrace)';
 }
 
 /// [Interrupted] is used to indicated that a [ZIO] was interrupted.
 class Interrupted<E> extends Cause<E> {
-  const Interrupted();
+  Interrupted([this.stackTrace]);
 
   @override
-  Cause<E2> lift<E2>() => const Interrupted();
+  final StackTrace? stackTrace;
+
+  @override
+  Cause<E2> lift<E2>() => Interrupted(stackTrace);
 
   @override
   B when<B>({
@@ -74,7 +98,11 @@ class Interrupted<E> extends Cause<E> {
   }
 
   @override
-  String toString() => 'Interrupted()';
+  Interrupted<E> withTrace(StackTrace stack) =>
+      stackTrace == null ? Interrupted(stack) : this;
+
+  @override
+  String toString() => 'Interrupted($stackTrace)';
 }
 
 typedef Exit<E, A> = Either<Cause<E>, A>;

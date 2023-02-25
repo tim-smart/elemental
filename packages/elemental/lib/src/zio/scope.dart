@@ -5,8 +5,13 @@ mixin ScopeMixin {
 
   final _scopeFinalizers = <IO<Unit>>[];
 
-  IO<Unit> addScopeFinalizer(IO<Unit> finalizer) => IO(() {
+  ZIO<R, E, Unit> addScopeFinalizer<R, E>(IO<Unit> finalizer) => ZIO(() {
         _scopeFinalizers.add(finalizer);
+        return unit;
+      });
+
+  ZIO<R, E, Unit> removeScopeFinalizer<R, E>(IO<Unit> finalizer) => ZIO(() {
+        _scopeFinalizers.remove(finalizer);
         return unit;
       });
 
@@ -37,8 +42,12 @@ class _ScopeProxy extends Scope {
   final ScopeMixin parent;
 
   @override
-  IO<Unit> addScopeFinalizer(IO<Unit> finalizer) =>
+  ZIO<R, E, Unit> addScopeFinalizer<R, E>(IO<Unit> finalizer) =>
       parent.addScopeFinalizer(finalizer);
+
+  @override
+  ZIO<R, E, Unit> removeScopeFinalizer<R, E>(IO<Unit> finalizer) =>
+      parent.removeScopeFinalizer(finalizer);
 
   @override
   ZIO<R, E, Unit> closeScope<R, E>() => parent.closeScope();

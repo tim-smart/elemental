@@ -6,6 +6,7 @@ import 'package:elemental/src/future_or.dart';
 import 'package:fpdart/fpdart.dart' as fpdart;
 import 'package:meta/meta.dart';
 
+part 'zio/async.dart';
 part 'zio/context.dart';
 part 'zio/deferred.dart';
 part 'zio/do.dart';
@@ -54,19 +55,45 @@ typedef RIOOption<R, A> = ZIO<R, NoValue, A>;
 /// Represents an operation that can fail with requirements
 class ZIO<R, E, A> {
   /// Creates a [ZIO] from a function that takes a [ZIOContext] and returns a [FutureOr] of [Exit]
-  const ZIO.from(this._unsafeRun);
+  ZIO.from(this._unsafeRun);
 
   final FutureOr<Exit<E, A>> Function(ZIOContext<R> ctx) _unsafeRun;
 
+  static bool debugTracing = false;
+  var stackTrace = debugTracing ? StackTrace.current : null;
+
   FutureOr<Exit<E, A>> _run(ZIOContext<R> ctx) {
+    if (ctx.signal.unsafeCompleted) {
+      return Exit.left(Interrupted(stackTrace));
+    }
+
     try {
-      return _unsafeRun(ctx);
+      if (stackTrace != null) {
+        return _unsafeRun(ctx).then((exit) {
+          if (ctx.signal.unsafeCompleted && exit is! Left<Interrupted<E>, A>) {
+            return Exit.left(Interrupted(stackTrace));
+          }
+
+          return exit.mapLeft((cause) => cause.withTrace(stackTrace!));
+        });
+      }
+
+      return _unsafeRun(ctx).then((exit) {
+        if (ctx.signal.unsafeCompleted) {
+          return Exit.left(Interrupted());
+        }
+
+        return exit;
+      });
     } catch (err, stack) {
-      return Exit.left(Defect(err, stack));
+      return Exit.left(Defect(err, stack, stackTrace));
     }
   }
 
   // Constructors
+
+  /// Create a synchronous [ZIO] from a function, returning a [IO] that can't fail.
+  factory ZIO(A Function() f) => ZIO.from((ctx) => Either.right(f()));
 
   /// Retrieves and clears the annotations for the provided key.
   static ZIO<R, E, HashMap<String, dynamic>> annotations<R, E>(Symbol key) =>
@@ -76,8 +103,32 @@ class ZIO<R, E, A> {
   static IO<HashMap<String, dynamic>> annotationsIO(Symbol key) =>
       annotations(key);
 
-  /// Create a synchronous [ZIO] from a function, returning a [IO] that can't fail.
-  factory ZIO(A Function() f) => ZIO.from((ctx) => Either.right(f()));
+  factory ZIO.async(void Function(AsyncContext<E, A> resume) f) =>
+      ZIO.from((ctx) {
+        final context = AsyncContext<E, A>();
+        f(context);
+        return context._deferred.await()._run(ctx);
+      });
+
+  factory ZIO.asyncInterrupt(IO<Unit> Function(AsyncContext<E, A> $) f) =>
+      ZIO.from((ctx) {
+        final context = AsyncContext<E, A>();
+        final finalizer = f(context);
+        if (context._deferred.unsafeCompleted) {
+          return context._deferred.await()._run(ctx);
+        }
+
+        final interuption = ctx.signal
+            .await<R>()
+            .zipRight(finalizer.lift())
+            .liftError<E>()
+            .zipRight(ZIO<R, E, Never>.failCause(Interrupted()));
+
+        return context._deferred
+            .await<R>()
+            .race(interuption)
+            ._run(ctx.withoutSignal);
+      });
 
   /// Create a [ZIO] that succeeds with [a].
   factory ZIO.succeed(A a) => ZIO.fromEither(Either.right(a));
@@ -132,7 +183,6 @@ class ZIO<R, E, A> {
 
           return Defect(err, stack);
         },
-        interruptionSignal: ctx.signal,
       ));
 
   /// Retrieve the current environment of the [ZIO].
@@ -352,7 +402,6 @@ class ZIO<R, E, A> {
       ZIO.from(
         (ctx) => fromThrowable(
           f,
-          interruptionSignal: ctx.signal,
           onError: (e, s) => Failure(onError(e, s)),
         ),
       );
@@ -366,7 +415,6 @@ class ZIO<R, E, A> {
       ZIO.from(
         (ctx) => fromThrowable(
           () => f(ctx.env),
-          interruptionSignal: ctx.signal,
           onError: (e, s) => Failure(onError(e, s)),
         ),
       );
@@ -383,38 +431,36 @@ class ZIO<R, E, A> {
   static ZIO<R, E, Unit> unit<R, E>() => ZIO.from(_kZioUnit);
 
   /// An [IO] version of [unit].
-  static const unitIO = IO.from(_kZioUnit);
+  static final unitIO = IO.from(_kZioUnit);
 
   /// Creates a ZIO from a [Future].
   ///
   /// **This can be unsafe** because it will throw an error if the future fails.
-  factory ZIO.unsafeFuture(FutureOr<A> Function() f) => ZIO.from(
-      (ctx) => f().flatMapFOr(Either.right, interruptionSignal: ctx.signal));
+  factory ZIO.unsafeFuture(FutureOr<A> Function() f) =>
+      ZIO.from((ctx) => f().then(Either.right));
 
   // ==========================
   // ==== Instance methods ====
   // ==========================
 
   /// Always run the given [ZIO] after this one, regardless of success or failure.
-  ZIO<R, E, A> always(ZIO<R, E, A> zio) =>
-      ZIO.from((ctx) => _run(ctx).flatMapFOrNoI(
-            (exit) => zio._run(ctx.withoutSignal),
-          ));
+  ZIO<R, E, A> always(ZIO<R, E, A> zio) => ZIO.from((ctx) => _run(ctx).then(
+        (exit) => zio._run(ctx.withoutSignal),
+      ));
 
   /// Always run the given [ZIO] after this one, regardless of success or failure.
   ///
   /// The result of this [ZIO] is ignored.
   ZIO<R, E, A> alwaysIgnore<X>(ZIO<R, E, X> zio) => ZIO.from(
-        (ctx) => _run(ctx).flatMapFOrNoI(
-          (exit) =>
-              zio._run(ctx.withoutSignal).flatMapFOrNoI((_) => _.call(exit)),
+        (ctx) => _run(ctx).then(
+          (exit) => zio._run(ctx.withoutSignal).then((_) => _.call(exit)),
         ),
       );
 
   /// Adds an annotation to the the current [ZIOContext], which can be retrieved
   /// later with [annotations].
   ZIO<R, E, A> annotate(Symbol key, String name, dynamic value) =>
-      ZIO.from((ctx) => _run(ctx).flatMapFOrNoI((exit) {
+      ZIO.from((ctx) => _run(ctx).then((exit) {
             ctx.unsafeAnnotate(key, name, value);
             return exit;
           }));
@@ -437,9 +483,8 @@ class ZIO<R, E, A> {
         f,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
+        (ctx) => _run(ctx).then(
           (exit) => exit.match((cause) => f(ctx, cause), Exit.right),
-          interruptionSignal: ctx.signal,
         ),
       );
 
@@ -476,7 +521,7 @@ class ZIO<R, E, A> {
       ZIO.sleep<R, E>(duration).zipRight(this);
 
   /// Squashes the error and success channels into a single [Either] result.
-  RIO<R, Either<E, A>> get either => ZIO.from((ctx) => _run(ctx).flatMapFOrNoI(
+  RIO<R, Either<E, A>> get either => ZIO.from((ctx) => _run(ctx).then(
         (exit) => exit.matchExit(
           (_) => Either.right(Either.left(_)),
           (_) => Either.right(Either.right(_)),
@@ -497,12 +542,11 @@ class ZIO<R, E, A> {
     ZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
+        (ctx) => _run(ctx).then(
           (ea) => ea.match(
             (e) => Either.left(e),
             (a) => f(a)._run(ctx),
           ),
-          interruptionSignal: ctx.signal,
         ),
       );
 
@@ -522,7 +566,7 @@ class ZIO<R, E, A> {
     Either<E, B> Function(A _) f,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOrNoI(
+        (ctx) => _run(ctx).then(
           (ea) => ea.flatMapExitEither(f),
         ),
       );
@@ -533,12 +577,11 @@ class ZIO<R, E, A> {
     ZIO<R, E, B> Function(A _, R env) f,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
+        (ctx) => _run(ctx).then(
           (ea) => ea.match(
             (e) => Either.left(e),
             (a) => f(a, ctx.env)._run(ctx),
           ),
-          interruptionSignal: ctx.signal,
         ),
       );
 
@@ -617,16 +660,13 @@ class ZIO<R, E, A> {
   ZIO<R, E, B> map<B>(
     B Function(A _) f,
   ) =>
-      ZIO.from((ctx) => _run(ctx).flatMapFOr(
-            (ea) => ea.map(f),
-            interruptionSignal: ctx.signal,
-          ));
+      ZIO.from((ctx) => _run(ctx).then((ea) => ea.map(f)));
 
   /// Transform the failure value of this [ZIO] using the given function.
   ZIO<R, E2, A> mapError<E2>(
     E2 Function(E _) f,
   ) =>
-      ZIO.from((ctx) => _run(ctx).flatMapFOrNoI(
+      ZIO.from((ctx) => _run(ctx).then(
             (ea) => ea.mapFailure(f),
           ));
 
@@ -637,12 +677,11 @@ class ZIO<R, E, A> {
     ZIO<R, E2, B> Function(A _) onSuccess,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
+        (ctx) => _run(ctx).then(
           (ea) => ea._matchExitFOr(
             (e) => onError(e)._run(ctx),
             (a) => onSuccess(a)._run(ctx),
           ),
-          interruptionSignal: ctx.signal,
         ),
       );
 
@@ -652,12 +691,11 @@ class ZIO<R, E, A> {
     B Function(A _) onSuccess,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
+        (ctx) => _run(ctx).then(
           (ea) => ea.matchExit(
             (e) => Either.right(onError(e)),
             (a) => Either.right(onSuccess(a)),
           ),
-          interruptionSignal: ctx.signal,
         ),
       );
 
@@ -716,6 +754,18 @@ class ZIO<R, E, A> {
                 .zipRight(this)
                 ._run(ctx),
           );
+
+  ZIO<R, E, A> race(ZIO<R, E, A> other) => ZIO.from((ctx) {
+        final signal = DeferredIO<Unit>();
+        final deferred = Deferred<E, A>();
+
+        _run(ctx.withSignal(signal)).then(deferred.unsafeCompleteExit);
+        if (!deferred.unsafeCompleted) {
+          other._run(ctx.withSignal(signal)).then(deferred.unsafeCompleteExit);
+        }
+
+        return deferred.await().zipLeft(signal.complete(fpdart.unit))._run(ctx);
+      });
 
   /// Repeat this [ZIO] using the given [Schedule].
   ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
@@ -796,15 +846,13 @@ class ZIO<R, E, A> {
     ZIO<R, E, X> Function(Either<E, A> _) f,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
+        (ctx) => _run(ctx).then(
           (exit) => exit._matchExitFOr(
-            (e) => f(Either.left(e))._run(ctx).flatMapFOr(
-                  (fExit) => fExit.flatMapExit((_) => exit),
-                  interruptionSignal: ctx.signal,
-                ),
+            (e) => f(Either.left(e))
+                ._run(ctx)
+                .then((fExit) => fExit.flatMapExit((_) => exit)),
             Either.right,
           ),
-          interruptionSignal: ctx.signal,
         ),
       );
 
@@ -813,14 +861,17 @@ class ZIO<R, E, A> {
     ZIO<R, E, X> Function(Exit<E, A> _) f,
   ) =>
       ZIO.from(
-        (ctx) => _run(ctx).flatMapFOr(
-          (exit) => f(exit)._run(ctx).flatMapFOr(
-                (fExit) => fExit.flatMapExit((_) => exit),
-                interruptionSignal: ctx.signal,
-              ),
-          interruptionSignal: ctx.signal,
+        (ctx) => _run(ctx).then(
+          (exit) =>
+              f(exit)._run(ctx).then((fExit) => fExit.flatMapExit((_) => exit)),
         ),
       );
+
+  /// Force this [ZIO] to be traced, even if [debugTracing] is not set.
+  ZIO<R, E, A> get traced {
+    stackTrace ??= StackTrace.current;
+    return this;
+  }
 
   /// Replace the [Runtime] in this [ZIO] with the given [Runtime].
   ZIO<R, E, A> withRuntime(Runtime runtime) =>
@@ -970,7 +1021,7 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
   ZIO<R, E, Unit> addFinalizer(
     IO<Unit> release,
   ) =>
-      flatMapEnv((_, env) => env.addScopeFinalizer(release).lift());
+      flatMapEnv((_, env) => env.addScopeFinalizer(release));
 }
 
 extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
@@ -981,14 +1032,13 @@ extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
   ZIO<Scope, E, A> acquireRelease(
     IO<Unit> Function(A _) release,
   ) =>
-      ask<Scope>().tapEnv((a, _) => _.addScopeFinalizer(release(a)).lift());
+      ask<Scope>().tapEnv((a, _) => _.addScopeFinalizer(release(a)));
 
   /// Request a [Scope] and add a finalizer to it.
   ZIO<Scope, E, Unit> addFinalizer(
     IO<Unit> release,
   ) =>
-      ask<Scope>()
-          .flatMapEnv((_, env) => env.addScopeFinalizer(release).lift());
+      ask<Scope>().flatMapEnv((_, env) => env.addScopeFinalizer(release));
 }
 
 extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {

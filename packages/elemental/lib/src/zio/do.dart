@@ -12,12 +12,11 @@ class DoContext<R, E> {
 
   final ZIOContext<R> _ctx;
 
-  FutureOr<A> call<A>(ZIO<R, E, A> zio) => zio._run(_ctx).flatMapFOr(
+  FutureOr<A> call<A>(ZIO<R, E, A> zio) => zio._run(_ctx).then(
         (ea) => ea.match(
           (e) => throw e,
           identity,
         ),
-        interruptionSignal: _ctx.signal,
       );
 
   A sync<A>(ZIO<R, E, A> zio) {

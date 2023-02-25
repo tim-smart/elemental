@@ -6,8 +6,8 @@ class ZIOContext<R> {
     required this.runtime,
     required this.env,
     required this.signal,
-    LayerContext? layerContext,
-  }) : layers = layerContext ?? LayerContext();
+    required this.layers,
+  });
 
   /// Represents the context in which a [ZIO] is executed.
   factory ZIOContext({
@@ -15,7 +15,12 @@ class ZIOContext<R> {
     required R env,
     required DeferredIO<Unit> signal,
   }) =>
-      ZIOContext._(runtime: runtime, env: env, signal: signal);
+      ZIOContext._(
+        runtime: runtime,
+        env: env,
+        signal: signal,
+        layers: LayerContext(),
+      );
 
   final Runtime runtime;
   final R env;
@@ -25,7 +30,7 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        layerContext: layers,
+        layers: layers,
       );
 
   ZIOContext<NoEnv> get noEnv => withEnv(const NoEnv());
@@ -34,20 +39,21 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        layerContext: layers,
+        layers: layers,
       );
 
-  ZIOContext<R> get withoutSignal => ZIOContext._(
+  ZIOContext<R> withSignal(DeferredIO<Unit> signal) => ZIOContext._(
         runtime: runtime,
         env: env,
-        signal: Deferred(),
-        layerContext: layers,
+        signal: signal,
+        layers: layers,
       );
 
-  // == scopes
+  ZIOContext<R> get withoutSignal => withSignal(Deferred());
 
-  ZIO<R2, E, Unit> close<R2, E>() =>
-      layers.close<R2, E>().zipRight(signal.complete(unit));
+  // == disposal
+
+  ZIO<R2, E, Unit> close<R2, E>() => layers.close();
 
   // == layers
   late final LayerContext layers;
@@ -76,14 +82,14 @@ class ZIOContext<R> {
         runtime: runtime,
         env: env,
         signal: signal,
-        layerContext: layerContext._unsafeMerge(layerContext),
+        layers: layerContext._unsafeMerge(layerContext),
       );
 
   ZIOContext<R> _withLayerContext(LayerContext layerContext) => ZIOContext._(
         runtime: runtime,
         env: env,
         signal: signal,
-        layerContext: layerContext,
+        layers: layerContext,
       );
 
   // == annotations

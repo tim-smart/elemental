@@ -59,7 +59,7 @@ class Runtime {
     final context = ZIOContext(
       runtime: this,
       env: const NoEnv(),
-      signal: interruptionSignal ?? Deferred(),
+      signal: interruptionSignal ?? _defaultSignal,
     );
 
     try {
@@ -94,12 +94,11 @@ class Runtime {
     DeferredIO<Unit>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
-    return run(zio, interruptionSignal: interruptionSignal).flatMapFOr(
+    return run(zio, interruptionSignal: interruptionSignal).then(
       (ea) => ea.match(
         (e) => throw e,
         identity,
       ),
-      interruptionSignal: _defaultSignal,
     );
   }
 

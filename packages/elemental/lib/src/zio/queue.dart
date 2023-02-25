@@ -81,7 +81,7 @@ class ZIOQueue<A> {
         if (_takers.isEmpty) return Exit.right(unit);
 
         return _takers
-            .map((_) => _.deferred.failCause<R, E>(const Interrupted()))
+            .map((_) => _.deferred.failCause<R, E>(Interrupted()))
             .collectParDiscard
             .zipLeft(ZIO(_takers.clear))
             ._run(ctx);

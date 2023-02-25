@@ -1,3 +1,9 @@
+## 0.0.81
+
+- Add `Semaphore` and `Guarded`
+- `async` and `asyncInterrupt`
+- `ZIO.debugTracing` flag
+
 ## 0.0.80
 
 - Add `option` for converting to IOOption
