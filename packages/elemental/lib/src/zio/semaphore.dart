@@ -70,6 +70,6 @@ class Guarded<A> {
   final Semaphore _semaphore;
   final A _value;
 
-  ZIO<R, E, A> use<R, E>(ZIO<R, E, A> Function(A _) f) =>
+  ZIO<R, E, B> use<R, E, B>(ZIO<R, E, B> Function(A _) f) =>
       _semaphore.withPermits(1, ZIO.lazy(() => f(_value)));
 }

@@ -1,3 +1,7 @@
+## 0.0.83
+
+- Fix Guarded.use api
+
 ## 0.0.82
 
 - Enable debug tracing when assert is available
