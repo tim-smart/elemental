@@ -61,15 +61,17 @@ class ZIO<R, E, A> {
 
   /// Creates a [ZIO] from a function that takes a [ZIOContext] and returns a [FutureOr] of [Exit]
   factory ZIO.from(FutureOr<Exit<E, A>> Function(ZIOContext<R> ctx) run) {
-    StackTrace? stackTrace;
+    StackTrace? stackTrace = debugTracing ? StackTrace.current : null;
     assert(() {
-      stackTrace = StackTrace.current;
+      stackTrace ??= StackTrace.current;
       return true;
     }());
     return ZIO._(run, stackTrace: stackTrace);
   }
 
   final FutureOr<Exit<E, A>> Function(ZIOContext<R> ctx) _unsafeRun;
+
+  static var debugTracing = false;
   final StackTrace? stackTrace;
 
   FutureOr<Exit<E, A>> _run(ZIOContext<R> ctx) {
