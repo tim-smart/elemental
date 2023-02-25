@@ -1,3 +1,7 @@
+## 0.0.82
+
+- Enable debug tracing when assert is available
+
 ## 0.0.81
 
 - Add `Semaphore` and `Guarded`
