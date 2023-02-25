@@ -74,8 +74,16 @@ class Defect<E> extends Cause<E> {
   Defect<E> withTrace(StackTrace stack) =>
       stackTrace == null ? Defect(error, defectStackTrace, stack) : this;
 
+  String _trimmedStackTrace() {
+    if (stackTrace == null) {
+      return defectStackTrace.toString();
+    }
+
+    return stackTrace.toString().split('\n').skip(3).join('\n');
+  }
+
   @override
-  String toString() => 'Defect($error, $stackTrace)';
+  String toString() => 'Defect($error, ${_trimmedStackTrace()})';
 }
 
 /// [Interrupted] is used to indicated that a [ZIO] was interrupted.

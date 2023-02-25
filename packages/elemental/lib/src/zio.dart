@@ -54,13 +54,23 @@ typedef RIOOption<R, A> = ZIO<R, NoValue, A>;
 
 /// Represents an operation that can fail with requirements
 class ZIO<R, E, A> {
+  const ZIO._(
+    this._unsafeRun, {
+    this.stackTrace,
+  });
+
   /// Creates a [ZIO] from a function that takes a [ZIOContext] and returns a [FutureOr] of [Exit]
-  ZIO.from(this._unsafeRun);
+  factory ZIO.from(FutureOr<Exit<E, A>> Function(ZIOContext<R> ctx) run) {
+    StackTrace? stackTrace;
+    assert(() {
+      stackTrace = StackTrace.current;
+      return true;
+    }());
+    return ZIO._(run, stackTrace: stackTrace);
+  }
 
   final FutureOr<Exit<E, A>> Function(ZIOContext<R> ctx) _unsafeRun;
-
-  static bool debugTracing = false;
-  var stackTrace = debugTracing ? StackTrace.current : null;
+  final StackTrace? stackTrace;
 
   FutureOr<Exit<E, A>> _run(ZIOContext<R> ctx) {
     if (ctx.signal.unsafeCompleted) {
@@ -427,11 +437,15 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.tryCatch(f, (_, s) => const NoValue());
 
+  /// For the const unit
+  static FutureOr<Exit<E, Unit>> _kZioUnit<R, E>(ZIOContext<R> ctx) =>
+      const Right(fpdart.unit);
+
   /// Returns a [ZIO] that succeeds with [unit].
-  static ZIO<R, E, Unit> unit<R, E>() => ZIO.from(_kZioUnit);
+  static ZIO<R, E, Unit> unit<R, E>() => const ZIO._(_kZioUnit);
 
   /// An [IO] version of [unit].
-  static final unitIO = IO.from(_kZioUnit);
+  static const unitIO = IO._(_kZioUnit);
 
   /// Creates a ZIO from a [Future].
   ///
@@ -867,12 +881,6 @@ class ZIO<R, E, A> {
         ),
       );
 
-  /// Force this [ZIO] to be traced, even if [debugTracing] is not set.
-  ZIO<R, E, A> get traced {
-    stackTrace ??= StackTrace.current;
-    return this;
-  }
-
   /// Replace the [Runtime] in this [ZIO] with the given [Runtime].
   ZIO<R, E, A> withRuntime(Runtime runtime) =>
       ZIO.from((ctx) => _run(ctx.withRuntime(runtime)));
@@ -1103,6 +1111,3 @@ extension ZIOOptionExt<A> on Option<A> {
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
 }
-
-// For the const unit
-FutureOr<Exit<E, Unit>> _kZioUnit<R, E>(ZIOContext<R> ctx) => Exit.right(unit);
