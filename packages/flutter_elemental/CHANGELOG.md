@@ -1,3 +1,7 @@
+## 0.0.11
+
+- make hook keys optional
+
 ## 0.0.10
 
 - flutter_hooks
