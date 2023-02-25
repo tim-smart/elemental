@@ -18,6 +18,7 @@ part 'zio/runner.dart';
 part 'zio/runtime.dart';
 part 'zio/schedule.dart';
 part 'zio/scope.dart';
+part 'zio/semaphore.dart';
 
 /// Represents the absence of an environment
 class NoEnv {

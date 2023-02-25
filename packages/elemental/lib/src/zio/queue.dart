@@ -1,8 +1,7 @@
 part of '../zio.dart';
 
-class _Taker<A> {
+class _Taker<A> extends LinkedListEntry<_Taker<A>> {
   final deferred = DeferredIO<A>();
-  _Taker<A>? next;
 }
 
 /// An asynchronous queue. It is backed by a [ListQueue] and a linked list of [DeferredIO]s.
@@ -14,7 +13,7 @@ class ZIOQueue<A> {
   ZIOQueue.unbounded();
 
   final _buffer = ListQueue<A>();
-  _Taker<A>? _takers;
+  final _takers = LinkedList<_Taker<A>>();
 
   /// Returns whether the queue is empty.
   ZIO<R, E, bool> isEmpty<R, E>() => ZIO(() => _buffer.isEmpty);
@@ -24,12 +23,12 @@ class ZIOQueue<A> {
 
   /// Offers an item to the queue. If there are pending [take]s, it will complete the first one.
   ZIO<R, E, Unit> offer<R, E>(A value) => ZIO(() {
-        if (_takers != null) {
-          final taker = _takers!;
-          _takers = taker.next;
-          taker.deferred.unsafeCompleteExit(Exit.right(value));
-        } else {
+        if (_takers.isEmpty) {
           _buffer.add(value);
+        } else {
+          (_takers.first..unlink())
+              .deferred
+              .unsafeCompleteExit(Exit.right(value));
         }
 
         return unit;
@@ -45,12 +44,7 @@ class ZIOQueue<A> {
         }
 
         final taker = _Taker<A>();
-        if (_takers == null) {
-          _takers = taker;
-        } else {
-          _takers!.next = taker;
-        }
-
+        _takers.add(taker);
         return taker.deferred.await()._run(ctx);
       });
 
@@ -84,16 +78,13 @@ class ZIOQueue<A> {
   /// Interrupts all pending [take]s.
   ZIO<R, E, Unit> shutdown<R, E>() => ZIO.from((ctx) {
         _buffer.clear();
-        if (_takers == null) return Exit.right(unit);
+        if (_takers.isEmpty) return Exit.right(unit);
 
-        final List<ZIO<R, E, Unit>> zios = [];
-        var taker = _takers;
-        while (taker != null) {
-          zios.add(taker.deferred.failCause(const Interrupted()));
-          taker = taker.next;
-        }
-
-        return zios.collectParDiscard._run(ctx);
+        return _takers
+            .map((_) => _.deferred.failCause<R, E>(const Interrupted()))
+            .collectParDiscard
+            .zipLeft(ZIO(_takers.clear))
+            ._run(ctx);
       });
 
   /// [IO] version of [shutdown].
