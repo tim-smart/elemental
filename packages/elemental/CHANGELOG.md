@@ -1,3 +1,7 @@
+## 0.0.85
+
+- Add `logged` for logging failures
+
 ## 0.0.84
 
 - Update fpdart
