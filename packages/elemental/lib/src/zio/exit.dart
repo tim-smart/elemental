@@ -1,5 +1,10 @@
 part of '../zio.dart';
 
+/// The result of a [ZIO] computation.
+///
+/// [Exit] is an [Either] with a left side (failure) of [Cause] and a right side (success) of [A].
+typedef Exit<E, A> = Either<Cause<E>, A>;
+
 /// Represents the error channel of a [ZIO].
 ///
 /// A [ZIO] can fail with a [Failure], a [Defect] or be [Interrupted].
@@ -143,8 +148,6 @@ class Interrupted<E> extends Cause<E> {
   @override
   int get hashCode => 0;
 }
-
-typedef Exit<E, A> = Either<Cause<E>, A>;
 
 extension EitherExitExt<E, A> on Either<E, A> {
   Exit<E, A> toExit() => mapLeft(Failure.new);
