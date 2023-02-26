@@ -71,35 +71,35 @@ class Layer<E, Service> {
             ._run(ctx);
       });
 
-  ReadOnlyAtom<Service> get atomSyncOnly => ReadOnlyAtom((get) {
-        final runtime = get(runtimeAtom);
+  late final atomSyncOnly = ReadOnlyAtom<Service>((get) {
+    final runtime = get(runtimeAtom);
 
-        final context = LayerContext();
-        get.onDispose(
-          () => context.close<NoEnv, Never>().run(runtime: runtime),
-        );
+    final context = LayerContext();
+    get.onDispose(
+      () => context.close<NoEnv, Never>().run(runtime: runtime),
+    );
 
-        try {
-          context.provide<NoEnv, E, Service>(this).runSyncOrThrow(runtime);
-        } catch (err) {
-          throw "Could not build layer, probably due to asynchronous build. Error: $err";
-        }
+    try {
+      context.provide<NoEnv, E, Service>(this).runSyncOrThrow(runtime);
+    } catch (err) {
+      throw "Could not build layer, probably due to asynchronous build. Error: $err";
+    }
 
-        return context._unsafeAccess(this)!;
-      });
+    return context._unsafeAccess(this)!;
+  });
 
-  FutureAtom<Service> get atom => futureAtom((get) {
-        final runtime = get(runtimeAtom);
+  late final FutureAtom<Service> atom = futureAtom((get) {
+    final runtime = get(runtimeAtom);
 
-        final context = LayerContext();
-        get.onDispose(
-          () => context.close<NoEnv, Never>().run(runtime: runtime),
-        );
+    final context = LayerContext();
+    get.onDispose(
+      () => context.close<NoEnv, Never>().run(runtime: runtime),
+    );
 
-        return context
-            .provide<NoEnv, E, Service>(this)
-            .runFutureOrThrow(runtime: runtime);
-      });
+    return context
+        .provide<NoEnv, E, Service>(this)
+        .runFutureOrThrow(runtime: runtime);
+  });
 
   @override
   String toString() => 'Layer<$E, $Service>()';
