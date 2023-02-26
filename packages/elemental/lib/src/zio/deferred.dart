@@ -11,7 +11,7 @@ class Deferred<E, A> {
   Deferred.failedCause(Cause<E> cause) : _value = Option.of(Exit.left(cause));
   Deferred.failed(E error) : _value = Option.of(Exit.left(Failure(error)));
 
-  Option<Exit<E, A>> _value = Option.none();
+  Option<Exit<E, A>> _value = const Option.none();
 
   Completer<Exit<E, A>>? __completer;
   Completer<Exit<E, A>> get _completer =>

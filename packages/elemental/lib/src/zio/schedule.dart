@@ -96,7 +96,7 @@ class ScheduleDriver<R, E, I, O> {
 
   final Schedule<R, E, I, O> _schedule;
   final _count = Ref.unsafeMake(0);
-  final _lastTick = Ref.unsafeMake(Option<DateTime>.none());
+  final _lastTick = Ref.unsafeMake(const Option<DateTime>.none());
 
   ZIO<R, Option<E>, O> next(I input) => _count
       .updateAndGet<R, Option<E>>((_) => _ + 1)

@@ -11,8 +11,8 @@ class ZIORunner<E, A> {
     final scope = Scope.closable();
 
     return Ref.make(ZIORunnerState<E, A>(
-      error: Option.none(),
-      value: Option.none(),
+      error: const Option.none(),
+      value: const Option.none(),
       loading: false,
     ))
         .flatMap2((_) => ZIO.runtime())

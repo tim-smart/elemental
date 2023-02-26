@@ -1081,7 +1081,7 @@ extension ZIONoneExt<R, A> on RIOOption<R, A> {
 
   /// Transform an [IOOption] into an `IO<Option<A>>`.
   RIO<R, Option<A>> get option => matchSync(
-        (a) => Option.none(),
+        (a) => const Option.none(),
         Option.of,
       );
 }
