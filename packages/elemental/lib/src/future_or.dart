@@ -13,9 +13,9 @@ FutureOr<Exit<E, A>> fromThrowable<E, A>(
         Either.right,
         onError: (err, stack) {
           try {
-            return Either.left(onError(err, stack));
+            return Exit<E, A>.left(onError(err, stack));
           } catch (err, stack) {
-            return Either.left(Defect(err, stack));
+            return Exit<E, A>.left(Defect(err, stack));
           }
         },
       );
@@ -23,9 +23,9 @@ FutureOr<Exit<E, A>> fromThrowable<E, A>(
     return Either.right(a);
   } catch (err, stack) {
     try {
-      return Either.left(onError(err, stack));
+      return Exit<E, A>.left(onError(err, stack));
     } catch (err, stack) {
-      return Either.left(Defect(err, stack));
+      return Exit<E, A>.left(Defect(err, stack));
     }
   }
 }

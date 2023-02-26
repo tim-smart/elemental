@@ -12,6 +12,16 @@ abstract class Cause<E> {
   const Cause();
 
   StackTrace? get stackTrace;
+  final stackTraceSkipFrames = 2;
+
+  String prettyStackTrace([String prefix = ""]) {
+    if (stackTrace == null) {
+      return "";
+    }
+
+    return prefix +
+        stackTrace.toString().split('\n').skip(stackTraceSkipFrames).join('\n');
+  }
 
   Cause<E2> lift<E2>();
 
@@ -50,7 +60,7 @@ class Failure<E> extends Cause<E> {
       stackTrace == null ? Failure(error, stack) : this;
 
   @override
-  String toString() => 'Failure($error, $stackTrace)';
+  String toString() => 'Failure($error)${prettyStackTrace("\n Stack: ")}';
 
   @override
   bool operator ==(Object other) =>
@@ -92,16 +102,17 @@ class Defect<E> extends Cause<E> {
   Defect<E> withTrace(StackTrace stack) =>
       stackTrace == null ? Defect(error, defectStackTrace, stack) : this;
 
-  String _trimmedStackTrace() {
+  @override
+  String prettyStackTrace([String prefix = ""]) {
     if (stackTrace == null) {
-      return defectStackTrace.toString();
+      return prefix + defectStackTrace.toString();
     }
 
-    return stackTrace.toString().split('\n').skip(3).join('\n');
+    return super.prettyStackTrace(prefix);
   }
 
   @override
-  String toString() => 'Defect($error, ${_trimmedStackTrace()})';
+  String toString() => 'Defect($error)${prettyStackTrace("\n Stack: ")})';
 
   @override
   bool operator ==(Object other) =>
@@ -138,7 +149,7 @@ class Interrupted<E> extends Cause<E> {
       stackTrace == null ? Interrupted(stack) : this;
 
   @override
-  String toString() => 'Interrupted($stackTrace)';
+  String toString() => 'Interrupted()${prettyStackTrace("\n Stack: ")}';
 
   @override
   bool operator ==(Object other) =>
