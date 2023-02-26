@@ -866,12 +866,12 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.from(
         (ctx) => _run(ctx).then(
-          (exit) => exit._matchExitFOr(
-            (e) => f(Either.left(e))
-                ._run(ctx)
-                .then((fExit) => fExit.flatMapExit((_) => exit)),
-            Either.right,
-          ),
+          (exit) => exit
+              ._matchExitFOr(
+                (e) => f(Either.left(e))._run(ctx),
+                (a) => f(Either.right(a))._run(ctx),
+              )
+              .then((fExit) => fExit.flatMapExit((_) => exit)),
         ),
       );
 
