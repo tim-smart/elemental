@@ -1,3 +1,7 @@
+## 0.0.86
+
+- Log defects in `ignoreLogged`
+
 ## 0.0.85
 
 - Add `logged` for logging failures

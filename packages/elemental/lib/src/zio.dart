@@ -661,7 +661,7 @@ class ZIO<R, E, A> {
 
   /// Ignore both the success and failure values of this [ZIO], and log any
   /// failure using [logInfo].
-  RIO<R, Unit> get ignoreLogged => tapError(logInfo).ignore;
+  RIO<R, Unit> get ignoreLogged => logged.ignore;
 
   /// Log any failures using [logInfo].
   ZIO<R, E, A> get logged => tapErrorCause(logInfo);
