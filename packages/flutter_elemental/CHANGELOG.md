@@ -1,3 +1,9 @@
+## 0.0.12
+
+- useRef
+- useLayer
+- useLayerContext
+
 ## 0.0.11
 
 - make hook keys optional
