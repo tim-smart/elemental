@@ -46,11 +46,24 @@ class Failure<E> extends Cause<E> {
 
   @override
   String toString() => 'Failure($error, $stackTrace)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Failure &&
+          runtimeType == other.runtimeType &&
+          error == other.error;
+
+  @override
+  int get hashCode => error.hashCode;
 }
 
 /// Represents an uncaught error.
 class Defect<E> extends Cause<E> {
   const Defect(this.error, this.defectStackTrace, [this.stackTrace]);
+
+  factory Defect.current(dynamic error, [StackTrace? stackTrace]) =>
+      Defect(error, StackTrace.current, stackTrace);
 
   final dynamic error;
   final StackTrace defectStackTrace;
@@ -84,6 +97,16 @@ class Defect<E> extends Cause<E> {
 
   @override
   String toString() => 'Defect($error, ${_trimmedStackTrace()})';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Defect &&
+          runtimeType == other.runtimeType &&
+          error == other.error;
+
+  @override
+  int get hashCode => error.hashCode;
 }
 
 /// [Interrupted] is used to indicated that a [ZIO] was interrupted.
@@ -111,6 +134,14 @@ class Interrupted<E> extends Cause<E> {
 
   @override
   String toString() => 'Interrupted($stackTrace)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Interrupted && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => 0;
 }
 
 typedef Exit<E, A> = Either<Cause<E>, A>;
