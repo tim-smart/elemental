@@ -1,3 +1,8 @@
+## 0.0.88
+
+- Fix Exit issue
+- Improve stack traces
+
 ## 0.0.87
 
 - Fix `tapEither`
