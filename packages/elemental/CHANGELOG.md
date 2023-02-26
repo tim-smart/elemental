@@ -2,6 +2,7 @@
 
 - Fix `tapEither`
 - Add `provideLayerLazy` to runtime
+- Add `build*` to `Layer`
 
 ## 0.0.86
 

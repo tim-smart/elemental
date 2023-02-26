@@ -58,6 +58,19 @@ class Layer<E, Service> {
         make: build,
       );
 
+  EIO<E, LayerContext> get buildContext => ZIO.from((ctx) {
+        final context = LayerContext();
+        return context.provide<NoEnv, E, Service>(this).as(context)._run(ctx);
+      });
+
+  ZIO<Scope, E, Service> get build => ZIO.from((ctx) {
+        final context = LayerContext();
+        return context
+            .provide<NoEnv, E, Service>(this)
+            .addFinalizer(context.close())
+            ._run(ctx);
+      });
+
   ReadOnlyAtom<Service> get atomSyncOnly => ReadOnlyAtom((get) {
         final runtime = get(runtimeAtom);
 

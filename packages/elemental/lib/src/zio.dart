@@ -1031,10 +1031,10 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
       tap((a) => addFinalizer(release(a)));
 
   /// Add a finalizer to this [ZIO] for the current [Scope].
-  ZIO<R, E, Unit> addFinalizer(
+  ZIO<R, E, A> addFinalizer(
     IO<Unit> release,
   ) =>
-      flatMapEnv((_, env) => env.addScopeFinalizer(release));
+      tapEnv((_, env) => env.addScopeFinalizer(release));
 }
 
 extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
@@ -1048,10 +1048,10 @@ extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
       ask<Scope>().tapEnv((a, _) => _.addScopeFinalizer(release(a)));
 
   /// Request a [Scope] and add a finalizer to it.
-  ZIO<Scope, E, Unit> addFinalizer(
+  ZIO<Scope, E, A> addFinalizer(
     IO<Unit> release,
   ) =>
-      ask<Scope>().flatMapEnv((_, env) => env.addScopeFinalizer(release));
+      ask<Scope>().tapEnv((_, env) => env.addScopeFinalizer(release));
 }
 
 extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
