@@ -3,6 +3,17 @@ import 'dart:async';
 import 'package:flutter_elemental/flutter_elemental.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
+LayerContext useLayerContext() {
+  final context = useMemoized(() => LayerContext());
+  useEffect(() => () => context.close.run(), [context]);
+  return context;
+}
+
+EIO<E, A> useLayer<E, A>(Layer<E, A> layer) {
+  final context = useLayerContext();
+  return context.provide(layer);
+}
+
 FutureOr<Exit<E, A>> Function() useZIO<E, A>(
   EIO<E, A> zio, [
   List<Object?> keys = const [],
