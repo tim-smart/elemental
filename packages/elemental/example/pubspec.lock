@@ -87,7 +87,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.81"
+    version: "0.0.84"
   fast_immutable_collections:
     dependency: transitive
     description:
@@ -108,10 +108,10 @@ packages:
     dependency: transitive
     description:
       name: fpdart
-      sha256: "19db038cf3bb49bfe28b2a0b363ce84cf2e6a0f471a93ae09271cfef03dae935"
+      sha256: "21053522d5a97347737525c84e8839340a0af3c0ef592f98fac37380fdd6a57b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "0.4.1"
   frontend_server_client:
     dependency: transitive
     description:
