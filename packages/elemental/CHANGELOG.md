@@ -1,3 +1,8 @@
+## 0.0.84
+
+- Update fpdart
+- Add back debugTracing flag
+
 ## 0.0.83
 
 - Fix Guarded.use api
