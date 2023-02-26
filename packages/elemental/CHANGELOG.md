@@ -1,3 +1,8 @@
+## 0.0.87
+
+- Fix `tapEither`
+- Add `provideLayerLazy` to runtime
+
 ## 0.0.86
 
 - Log defects in `ignoreLogged`

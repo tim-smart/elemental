@@ -95,13 +95,15 @@ class Layer<E, Service> {
 class LayerContext {
   LayerContext()
       : _services = HashMap(),
-        _cache = HashMap();
+        _cache = HashMap(),
+        _lazy = HashSet();
 
-  LayerContext.populated(this._services, this._cache);
+  LayerContext.populated(this._services, this._cache, this._lazy);
 
   final _scope = Scope.closable();
   final HashMap<Symbol, dynamic> _services;
   final HashMap<Layer, EIO<dynamic, dynamic>> _cache;
+  final HashSet<Symbol> _lazy;
 
   ZIO<R, E, S> provide<R, E, S>(Layer<E, S> layer) => EIO<E, S>.from((ctx) {
         if (_cache.containsKey(layer)) {
@@ -116,6 +118,11 @@ class LayerContext {
           .tap((_) => ZIO(() {
                 _services[layer.tag] = _;
               }));
+
+  ZIO<R, E, Unit> provideLazy<R, E>(Layer layer) => ZIO(() {
+        _lazy.add(layer.tag);
+        return unit;
+      });
 
   ZIO<R, E, Unit> Function(S service) provideService<R, E, S>(
     Layer<dynamic, S> layer,
@@ -135,6 +142,7 @@ class LayerContext {
   LayerContext merge(LayerContext other) => LayerContext.populated(
         HashMap.from(_services)..addAll(other._services),
         HashMap.from(_cache)..addAll(other._cache),
+        HashSet.from(_lazy)..addAll(other._lazy),
       );
 
   // === Unsafe ===
@@ -151,4 +159,5 @@ class LayerContext {
 
   A? _unsafeAccess<A>(Layer<dynamic, A> layer) => _services[layer.tag];
   bool _unsafeHas(Layer layer) => _services.containsKey(layer.tag);
+  bool _unsafeHasLazy(Layer layer) => _lazy.contains(layer.tag);
 }

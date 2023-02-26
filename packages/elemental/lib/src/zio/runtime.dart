@@ -30,8 +30,17 @@ class Runtime {
         (ctx) => _layers.provide(layer)._run(ctx._withLayerContext(_layers)),
       );
 
+  IO<Unit> provideLayerLazy(Layer layer) => ZIO.from(
+        (ctx) => _layers
+            .provideLazy<NoEnv, Never>(layer)
+            ._run(ctx._withLayerContext(_layers)),
+      );
+
   EIO<dynamic, Unit> provideLayers(Iterable<Layer> layers) =>
       layers.map(provideLayer).collectDiscard;
+
+  IO<Unit> provideLayersLazy(Iterable<Layer> layers) =>
+      layers.map(provideLayerLazy).collectDiscard;
 
   IO<Unit> Function(S service) provideService<S>(Layer<dynamic, S> layer) =>
       (service) => ZIO(() {
