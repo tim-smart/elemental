@@ -88,7 +88,7 @@ class Layer<E, Service> {
     return context._unsafeAccess(this)!;
   });
 
-  late final FutureAtom<Service> atom = futureAtom((get) {
+  late final atom = futureAtom<Service>((get) {
     final runtime = get(runtimeAtom);
 
     final context = LayerContext();

@@ -72,4 +72,24 @@ void main() {
       expect(await deferred.awaitIO.runOrThrow(), Either.left(1));
     });
   });
+
+  group('timeout', () {
+    test('success', () {
+      expect(
+        IO.succeed(1).timeout(const Duration(seconds: 1)).runSyncOrThrow(),
+        1,
+      );
+    });
+
+    test('fail', () async {
+      expect(
+        await IO
+            .succeed(1)
+            .delay(const Duration(seconds: 1))
+            .timeout(Duration.zero)
+            .runFuture(),
+        Exit<Never, int>.left(Interrupted()),
+      );
+    });
+  });
 }

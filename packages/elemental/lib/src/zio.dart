@@ -886,6 +886,11 @@ class ZIO<R, E, A> {
         ),
       );
 
+  ZIO<R, E, A> timeout(
+    Duration duration,
+  ) =>
+      race(ZIO<R, E, A>.failCause(Interrupted()).delay(duration));
+
   /// Replace the [Runtime] in this [ZIO] with the given [Runtime].
   ZIO<R, E, A> withRuntime(Runtime runtime) =>
       ZIO.from((ctx) => _run(ctx.withRuntime(runtime)));
