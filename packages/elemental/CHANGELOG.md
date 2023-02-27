@@ -1,3 +1,7 @@
+## 0.0.89
+
+- Add `timeout`
+
 ## 0.0.88
 
 - Fix Exit issue
