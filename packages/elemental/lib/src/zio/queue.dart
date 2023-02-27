@@ -45,7 +45,7 @@ class ZIOQueue<A> {
 
         final taker = _Taker<A>();
         _takers.add(taker);
-        return taker.deferred.await()._run(ctx);
+        return taker.deferred.await().unsafeRun(ctx);
       });
 
   /// [IO] version of [take].
@@ -84,7 +84,7 @@ class ZIOQueue<A> {
             .map((_) => _.deferred.failCause<R, E>(Interrupted()))
             .collectParDiscard
             .zipLeft(ZIO(_takers.clear))
-            ._run(ctx);
+            .unsafeRun(ctx);
       });
 
   /// [IO] version of [shutdown].

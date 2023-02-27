@@ -27,13 +27,14 @@ class Runtime {
   final LayerContext _layers;
 
   EIO<E, S> provideLayer<E, S>(Layer<E, S> layer) => ZIO.from(
-        (ctx) => _layers.provide(layer)._run(ctx._withLayerContext(_layers)),
+        (ctx) =>
+            _layers.provide(layer).unsafeRun(ctx._withLayerContext(_layers)),
       );
 
   IO<Unit> provideLayerLazy(Layer layer) => ZIO.from(
         (ctx) => _layers
             .provideLazy<NoEnv, Never>(layer)
-            ._run(ctx._withLayerContext(_layers)),
+            .unsafeRun(ctx._withLayerContext(_layers)),
       );
 
   EIO<dynamic, Unit> provideLayers(Iterable<Layer> layers) =>
@@ -72,7 +73,7 @@ class Runtime {
     );
 
     try {
-      return zio.alwaysIgnore(context.close())._run(context);
+      return zio.alwaysIgnore(context.close()).unsafeRun(context);
     } catch (error, stack) {
       return Either.left(Defect(error, stack));
     }

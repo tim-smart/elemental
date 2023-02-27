@@ -37,7 +37,7 @@ class Semaphore {
 
         final waiter = _Waiter(permits);
         _waiters.add(waiter);
-        return waiter.deferred.await()._run(ctx);
+        return waiter.deferred.await().unsafeRun(ctx);
       });
 
   /// Releases the specified number of permits.

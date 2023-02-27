@@ -1,3 +1,7 @@
+## 0.0.92
+
+- Expose ZIO unsafeRun
+
 ## 0.0.91
 
 - Allow Scope to wrap an environment

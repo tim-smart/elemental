@@ -61,7 +61,10 @@ class Layer<E, Service> {
 
   EIO<E, LayerContext> get buildContext => ZIO.from((ctx) {
         final context = LayerContext();
-        return context.provide<NoEnv, E, Service>(this).as(context)._run(ctx);
+        return context
+            .provide<NoEnv, E, Service>(this)
+            .as(context)
+            .unsafeRun(ctx);
       });
 
   ZIO<Scope<NoEnv>, E, Service> get build => ZIO.from((ctx) {
@@ -69,7 +72,7 @@ class Layer<E, Service> {
         return context
             .provide<NoEnv, E, Service>(this)
             .addFinalizer(context.close())
-            ._run(ctx);
+            .unsafeRun(ctx);
       });
 
   late final atomSyncOnly = ReadOnlyAtom<Service>((get) {
@@ -121,12 +124,12 @@ class LayerContext {
 
   ZIO<R, E, S> provide<R, E, S>(Layer<E, S> layer) => EIO<E, S>.from((ctx) {
         if (_cache.containsKey(layer)) {
-          return (_cache[layer] as EIO<E, S>)._run(ctx);
+          return (_cache[layer] as EIO<E, S>).unsafeRun(ctx);
         }
 
         final build = layer._make.provide(_scope).memoize.runSyncOrThrow();
         _cache[layer] = build;
-        return build._run(ctx._withLayerContext(this));
+        return build.unsafeRun(ctx._withLayerContext(this));
       }) //
           .lift<R>()
           .tap((_) => ZIO(() {

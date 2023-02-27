@@ -66,10 +66,10 @@ class ZIOContext<R> {
           // ignore: null_check_on_nullable_type_parameter
           return Exit.right(runtime._layers._unsafeAccess(layer)!);
         } else if (runtime._layers._unsafeHasLazy(layer)) {
-          return runtime._layers.provide(layer)._run(ctx);
+          return runtime._layers.provide(layer).unsafeRun(ctx);
         }
 
-        return layers.provide(layer)._run(ctx);
+        return layers.provide(layer).unsafeRun(ctx);
       });
 
   ZIO<R, E, S> provideLayer<E, S>(Layer<E, S> layer) => layers.provide(layer);

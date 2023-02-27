@@ -12,7 +12,7 @@ class DoContext<R, E> {
 
   final ZIOContext<R> _ctx;
 
-  FutureOr<A> call<A>(ZIO<R, E, A> zio) => zio._run(_ctx).then(
+  FutureOr<A> call<A>(ZIO<R, E, A> zio) => zio.unsafeRun(_ctx).then(
         (ea) => ea.match(
           (e) => throw e,
           identity,
