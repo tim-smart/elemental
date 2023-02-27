@@ -1,3 +1,7 @@
+## 0.0.90
+
+- Add `tryCatchNullable`
+
 ## 0.0.89
 
 - Add `timeout`

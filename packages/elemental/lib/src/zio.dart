@@ -431,6 +431,11 @@ class ZIO<R, E, A> {
         ),
       );
 
+  static IOOption<A> tryCatchNullable<A>(
+    FutureOr<A?> Function() f,
+  ) =>
+      ZIO.tryCatchOption(f).flatMapNullable(identity);
+
   /// A variant of [ZIO.tryCatch], that returns an [IOOption] instead of an [EIO].
   ///
   /// Failures are mapped to [NoValue].
