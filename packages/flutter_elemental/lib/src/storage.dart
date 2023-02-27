@@ -68,7 +68,7 @@ class StorageRef<A> extends Ref<A> {
         ),
       );
 
-  static ZIO<Scope, SharedPrefsError, Ref<A>> make<A>(
+  static ZIO<Scope<NoEnv>, SharedPrefsError, Ref<A>> make<A>(
     A initialValue, {
     required String key,
     required A Function(dynamic json) fromJson,

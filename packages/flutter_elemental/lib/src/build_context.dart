@@ -1,53 +1,26 @@
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_elemental/flutter_elemental.dart';
 
-extension ZIOBuildContextExt on BuildContext {
-  FutureOr<Exit<E, A>> runZIO<E, A>(
-    EIO<E, A> zio, {
-    DeferredIO<Unit>? interrupt,
-  }) =>
-      registry(listen: false)
-          .get(runtimeAtom)
-          .run(zio, interruptionSignal: interrupt);
+/// A [ZIO] that requires a [BuildContext] to run.
+typedef BuildContextEIO<E, A> = ZIO<BuildContext, E, A>;
 
-  Future<Exit<E, A>> runZIOFuture<E, A>(
-    EIO<E, A> zio, {
-    DeferredIO<Unit>? interrupt,
-  }) =>
-      registry(listen: false)
-          .get(runtimeAtom)
-          .runFuture(zio, interruptionSignal: interrupt);
+/// A [ZIO] that requires a [BuildContext] to run, and never fails.
+typedef BuildContextIO<A> = ZIO<BuildContext, Never, A>;
 
-  Future<A> runZIOFutureOrThrow<E, A>(
-    EIO<E, A> zio, {
-    DeferredIO<Unit>? interrupt,
-  }) =>
-      registry(listen: false)
-          .get(runtimeAtom)
-          .runFutureOrThrow(zio, interruptionSignal: interrupt);
+extension ZIOBuildContextExt<R, E, A> on ZIO<R, E, A> {
+  ZIO<R, E, A> provideRegistryRuntime(AtomRegistry registry) =>
+      withRuntime(registry.get(runtimeAtom));
 
-  FutureOr<A> runZIOOrThrow<E, A>(
-    EIO<E, A> zio, {
-    DeferredIO<Unit>? interrupt,
-  }) =>
-      registry(listen: false)
-          .get(runtimeAtom)
-          .runOrThrow(zio, interruptionSignal: interrupt);
+  ZIO<R, E, A> provideBuildContextRuntime(BuildContext context) =>
+      provideRegistryRuntime(context.registry(listen: false));
+}
 
-  Exit<E, A> runZIOSync<E, A>(
-    EIO<E, A> zio, {
-    DeferredIO<Unit>? interrupt,
-  }) =>
-      registry(listen: false)
-          .get(runtimeAtom)
-          .runSync(zio, interruptionSignal: interrupt);
+extension ZIOBuildContextEnvExt<E, A> on EIO<E, A> {
+  BuildContextEIO<E, A> get withBuildContextRuntime => ZIO.from(
+        (ctx) => provideBuildContextRuntime(ctx.env).unsafeRun(ctx.noEnv),
+      );
 
-  A runZIOSyncOrThrow<E, A>(EIO<E, A> zio) =>
-      registry(listen: false).get(runtimeAtom).runSyncOrThrow(zio);
-
-  ZIORunner<E, A> makeZIORunner<E, A>(EIO<E, A> zio) => registry(listen: false)
-      .get(runtimeAtom)
-      .runSyncOrThrow(ZIORunner.make(zio));
+  ZIO<AtomRegistry, E, A> get withRegistryRuntime => ZIO.from(
+        (ctx) => provideRegistryRuntime(ctx.env).unsafeRun(ctx.noEnv),
+      );
 }
