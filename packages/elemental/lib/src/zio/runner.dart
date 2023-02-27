@@ -22,7 +22,7 @@ class ZIORunner<E, A> {
 
   final Runtime _runtime;
   final EIO<E, A> _zio;
-  final Scope _scope;
+  final Scope<NoEnv> _scope;
   final Ref<ZIORunnerState<E, A>> _ref;
   final _interrupt = DeferredIO<Unit>();
   DeferredIO<Exit<E, A>>? _deferred;

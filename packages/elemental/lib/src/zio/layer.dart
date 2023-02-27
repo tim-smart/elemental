@@ -13,7 +13,7 @@ part of '../zio.dart';
 /// You can also replace a [Layer] using [Layer.replace].
 class Layer<E, Service> {
   Layer._({
-    required ZIO<Scope, E, Service> make,
+    required ZIO<Scope<NoEnv>, E, Service> make,
     Symbol? tag,
   })  : tag = tag ?? Symbol("Layer<$E, $Service>()"),
         _make = make;
@@ -23,12 +23,13 @@ class Layer<E, Service> {
   factory Layer(EIO<E, Service> make) => Layer._(make: make.lift());
 
   /// A [Layer] that has scoped resources.
-  factory Layer.scoped(ZIO<Scope, E, Service> make) => Layer._(make: make);
+  factory Layer.scoped(ZIO<Scope<NoEnv>, E, Service> make) =>
+      Layer._(make: make);
 
   // ignore: prefer_const_constructors
   final Symbol tag;
 
-  final ZIO<Scope, E, Service> _make;
+  final ZIO<Scope<NoEnv>, E, Service> _make;
 
   EIO<E, Service> get access => ZIO.layer(this);
 
@@ -52,7 +53,7 @@ class Layer<E, Service> {
         make: build.lift(),
       );
 
-  Layer<E2, Service> replaceScoped<E2>(ZIO<Scope, E2, Service> build) =>
+  Layer<E2, Service> replaceScoped<E2>(ZIO<Scope<NoEnv>, E2, Service> build) =>
       Layer._(
         tag: tag,
         make: build,
@@ -63,7 +64,7 @@ class Layer<E, Service> {
         return context.provide<NoEnv, E, Service>(this).as(context)._run(ctx);
       });
 
-  ZIO<Scope, E, Service> get build => ZIO.from((ctx) {
+  ZIO<Scope<NoEnv>, E, Service> get build => ZIO.from((ctx) {
         final context = LayerContext();
         return context
             .provide<NoEnv, E, Service>(this)

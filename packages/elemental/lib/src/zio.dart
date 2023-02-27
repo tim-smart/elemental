@@ -151,6 +151,10 @@ class ZIO<R, E, A> {
   /// Create a [ZIO] that fails with the given [cause].
   factory ZIO.failCause(Cause<E> cause) => ZIO.fromExit(Either.left(cause));
 
+  /// Create a [ZIO] that fails with the given defect.
+  factory ZIO.die(dynamic defect) =>
+      ZIO.fromExit(Either.left(Defect(defect, StackTrace.current)));
+
   /// Runs the given [zios] in sequence, collecting the results.
   static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
       ZIO.traverseIterable<R, E, ZIO<R, E, A>, A>(
@@ -1028,7 +1032,7 @@ extension RIOLiftExt<R extends Object?, A> on RIO<R, A> {
   ZIO<R, E, A> liftError<E>() => lift<E>();
 }
 
-extension ZIOLiftScooeExt<E, A> on ZIO<Scope, E, A> {
+extension ZIOLiftScopeExt<E, A> on ZIO<Scope<NoEnv>, E, A> {
   ZIO<R, E, A> liftScope<R extends ScopeMixin>() =>
       ZIO.from((ctx) => _run(ctx.withEnv(_ScopeProxy(ctx.env))));
 }
@@ -1047,27 +1051,38 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
       tapEnv((_, env) => env.addScopeFinalizer(release));
 }
 
-extension ZIOFinalizerNoEnvExt<E, A> on EIO<E, A> {
+extension ZIOAskExt<E, A> on ZIO<NoEnv, E, A> {
   /// Lift the environment of this [ZIO] to the given [R] type.
   ZIO<R, E, A> ask<R>() => ZIO.from((ctx) => _run(ctx.noEnv));
-
-  /// Request a [Scope] and add a finalizer from the result of this [ZIO] to it.
-  ZIO<Scope, E, A> acquireRelease(
-    IO<Unit> Function(A _) release,
-  ) =>
-      ask<Scope>().tapEnv((a, _) => _.addScopeFinalizer(release(a)));
-
-  /// Request a [Scope] and add a finalizer to it.
-  ZIO<Scope, E, A> addFinalizer(
-    IO<Unit> release,
-  ) =>
-      ask<Scope>().tapEnv((_, env) => env.addScopeFinalizer(release));
 }
 
-extension ZIOScopeExt<E, A> on ZIO<Scope, E, A> {
+extension ZIOFinalizerNoEnvExt<R, E, A> on ZIO<R, E, A> {
+  /// Wrap the environment of this [ZIO] in a [Scope].
+  ///
+  /// This is useful when you want to add finalizers to clean up resources.
+  ZIO<Scope<R>, E, A> get withScope =>
+      ZIO<Scope<R>, E, A>.from((ctx) => _run(ctx.withEnv(ctx.env.env)));
+
+  /// Request a [Scope] and add a finalizer from the result of this [ZIO] to it.
+  ZIO<Scope<R>, E, A> acquireRelease(
+    IO<Unit> Function(A _) release,
+  ) =>
+      withScope.tapEnv((a, _) => _.addScopeFinalizer(release(a)));
+
+  /// Request a [Scope] and add a finalizer to it.
+  ZIO<Scope<R>, E, A> addFinalizer(
+    IO<Unit> release,
+  ) =>
+      withScope.tapEnv((_, env) => env.addScopeFinalizer(release));
+}
+
+extension ZIOScopeExt<R, E, A> on ZIO<Scope<R>, E, A> {
   /// Provide a [Scope] to this [ZIO].
   /// All finalizers added to the [Scope] will be run at this point of the execution.
-  EIO<E, A> get scoped => provide(Scope());
+  ZIO<R, E, A> get scoped => ZIO.from((ctx) {
+        final scope = Scope.withEnv(ctx.env);
+        return alwaysIgnore(scope.closeScope())._run(ctx.withEnv(scope));
+      });
 }
 
 extension ZIONoneExt<R, A> on RIOOption<R, A> {

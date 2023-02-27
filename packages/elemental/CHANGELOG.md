@@ -1,3 +1,7 @@
+## 0.0.91
+
+- Allow Scope to wrap an environment
+
 ## 0.0.90
 
 - Add `tryCatchNullable`

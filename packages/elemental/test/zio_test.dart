@@ -92,4 +92,27 @@ void main() {
       );
     });
   });
+
+  group('acquireRelease', () {
+    test('release is called', () {
+      final deferred = DeferredIO<void>();
+      IO
+          .succeed(1)
+          .acquireRelease((_) => deferred.completeIO(null))
+          .scoped
+          .runSyncOrThrow();
+      expect(deferred.unsafeCompleted, true);
+    });
+
+    test('defect', () {
+      final deferred = DeferredIO<void>();
+      IO
+          .succeed(1)
+          .acquireRelease((_) => deferred.completeIO(null))
+          .zipRight(ZIO.die('fail'))
+          .scoped
+          .runSync();
+      expect(deferred.unsafeCompleted, true);
+    });
+  });
 }

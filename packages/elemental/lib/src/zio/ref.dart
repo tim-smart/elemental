@@ -23,7 +23,7 @@ class Ref<A> {
   /// Creates a new [Ref] with the given initial value.
   ///
   /// The [Ref] will be disposed when the [Scope] is disposed.
-  static RIO<Scope, Ref<A>> make<A>(A a) =>
+  static RIO<Scope<NoEnv>, Ref<A>> make<A>(A a) =>
       IO(() => Ref.unsafeMake(a)).acquireRelease(
         (ref) => IO(() => ref._controller?.close()).asUnit,
       );

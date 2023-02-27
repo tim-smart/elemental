@@ -24,20 +24,24 @@ mixin ScopeMixin {
   late final IO<Unit> closeScopeIO = closeScope();
 }
 
-class Scope with ScopeMixin {
-  Scope._(this._closable);
+class Scope<R> with ScopeMixin {
+  Scope._(this.env, this._closable);
 
-  factory Scope() => Scope._(false);
-  factory Scope.closable() => Scope._(true);
+  static Scope<NoEnv> noEnv() => Scope._(const NoEnv(), false);
+  static Scope<NoEnv> closable() => Scope._(const NoEnv(), true);
+
+  factory Scope.withEnv(R env) => Scope._(env, false);
+  factory Scope.withEnvClosable(R env) => Scope._(env, true);
 
   final bool _closable;
+  final R env;
 
   @override
   bool get scopeClosable => _closable;
 }
 
-class _ScopeProxy extends Scope {
-  _ScopeProxy(this.parent) : super._(parent.scopeClosable);
+class _ScopeProxy extends Scope<NoEnv> {
+  _ScopeProxy(this.parent) : super._(const NoEnv(), parent.scopeClosable);
 
   final ScopeMixin parent;
 
