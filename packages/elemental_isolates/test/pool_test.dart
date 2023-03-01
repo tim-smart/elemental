@@ -27,4 +27,49 @@ void main() {
       fiber.interruptIO.runSyncOrThrow();
     });
   });
+
+  group("IsolatePoolChild", () {
+    test("identity", () async {
+      final childA = IsolatePoolChild(
+        id: 0,
+        processed: 0,
+        active: 0,
+        queue: ZIOQueue.unbounded(),
+      );
+      await null;
+      final childB = IsolatePoolChild(
+        id: 1,
+        processed: 0,
+        active: 0,
+        queue: ZIOQueue.unbounded(),
+      );
+      var set = ISet.withConfig([childB, childA], ConfigSet(sort: true));
+      expect(set.toIList(), IList([childA, childB]));
+
+      final newA = childA.addActive();
+      expect(newA.hashCode, childA.hashCode);
+      set = set.remove(newA).add(newA);
+      expect(set.toIList(), IList([childB, childA]));
+    });
+
+    test("compareTo active", () {
+      final childA = IsolatePoolChild(
+        id: 0,
+        processed: 0,
+        active: 0,
+        queue: ZIOQueue.unbounded(),
+      );
+      final childB = IsolatePoolChild(
+        id: 1,
+        processed: 0,
+        active: 1,
+        queue: ZIOQueue.unbounded(),
+      );
+      expect(childA.compareTo(childB), -1);
+      expect(
+        ISet.withConfig([childB, childA], ConfigSet(sort: true)).toIList(),
+        [childA, childB],
+      );
+    });
+  });
 }

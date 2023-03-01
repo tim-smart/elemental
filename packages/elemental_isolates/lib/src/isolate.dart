@@ -34,14 +34,18 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
       final SendPort sendPort = await receivePort.first;
       final exitPort = ReceivePort();
       isolate.addOnExitListener(exitPort.sendPort);
+      isolate.addErrorListener(exitPort.sendPort);
 
       final waitForExit = _IsolateIO.future(() => exitPort.first)
-          .zipRight(_IsolateIO<Never>.fail(IsolateError("exit")));
+          .flatMap((_) => _IsolateIO<Never>.fail(IsolateError(_)));
+
+      final activeRequests = <Request<I, E, O>>{};
 
       _IsolateIO<Unit> sendRequest(
         Request<I, E, O> request,
       ) =>
           _IsolateIO<ReceivePort>(() {
+            activeRequests.add(request);
             final receive = ReceivePort();
             sendPort.send(tuple2(request.first, receive.sendPort));
             return receive;
@@ -50,6 +54,7 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
                 (_) => _.first,
                 (error, stack) => IsolateError(error),
               )
+              .zipLeft(ZIO(() => activeRequests.remove(request)))
               .flatMap((_) => request.second.completeExit(_));
 
       final send = requests
@@ -57,7 +62,20 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
           .flatMap((_) => sendRequest(_))
           .forever;
 
-      await $(send.race(waitForExit));
+      await $(
+        send.race(waitForExit).tapExit((exit) => ZIO(() {
+              for (final request in activeRequests) {
+                request.second.unsafeCompleteExit(exit.mapLeft(
+                  (_) => _.when<Cause<E>>(
+                    failure: (_) => Defect.current(_.error),
+                    defect: (_) => _.lift(),
+                    interrupted: (_) => _.lift(),
+                  ),
+                ));
+              }
+              activeRequests.clear();
+            })),
+      );
     });
 
 void Function(SendPort) _entrypoint<I, E, O>(IsolateHandler<I, E, O> handle) =>

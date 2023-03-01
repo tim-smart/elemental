@@ -909,11 +909,11 @@ class ZIO<R, E, A> {
     ZIO<R, E, X> Function(Exit<E, A> _) f,
   ) =>
       ZIO.from(
-        (ctx) => unsafeRun(ctx).then(
-          (exit) => f(exit)
-              .unsafeRun(ctx)
-              .then((fExit) => fExit.flatMapExit((_) => exit)),
-        ),
+        (ctx) => race(ctx.signal.awaitIO.lift<R, E>()).unsafeRun(ctx).then(
+              (exit) => f(exit)
+                  .unsafeRun(ctx.withoutSignal)
+                  .then((_) => _.call(exit)),
+            ),
       );
 
   ZIO<R, E, A> timeout(

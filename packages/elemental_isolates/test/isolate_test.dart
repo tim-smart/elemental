@@ -15,7 +15,7 @@ void main() {
           .asUnit
           .scoped
           .race(deferred.awaitIO.lift<NoEnv, IsolateError>().asUnit)
-          .runOrThrow();
+          .run();
 
       expect(deferred.awaitIO.runSyncOrThrow(), "Got: 123");
     });

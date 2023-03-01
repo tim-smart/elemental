@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:elemental/elemental.dart';
-import 'package:elemental_isolates/src/isolate.dart';
+import 'package:elemental_isolates/elemental_isolates.dart';
 
 ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
   IsolateHandler<I, E, O> handle, {
@@ -10,52 +10,115 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
   Schedule<Scope<NoEnv>, IsolateError, IsolateError, dynamic>? respawnSchedule,
 }) =>
     ZIO<Scope<NoEnv>, IsolateError, Never>.Do(($, env) async {
-      final childCount = Ref.unsafeMake(0);
-      final poolSize = maxSize ?? Platform.numberOfProcessors;
-      final queue = ZIOQueue<Enqueue<Request<I, E, O>>>.unbounded();
       final exitDeferred = Deferred<IsolateError, Never>();
+      final poolSize = maxSize ?? Platform.numberOfProcessors;
 
-      final spawnChild =
-          ZIO<Scope<NoEnv>, IsolateError, Enqueue<Request<I, E, O>>>.Do(
-              ($, env) {
-        final childQueue = ZIOQueue<Request<I, E, O>>.unbounded();
+      RIO<Scope<NoEnv>, IsolatePoolChild<I, E, O>> spawnChild(int id) =>
+          ZIO.Do(($, env) {
+            final child = IsolatePoolChild<I, E, O>.empty(id);
+            final schedule = respawnSchedule ??
+                Schedule.fixed(const Duration(seconds: 1)).lift();
+            final fiber = $
+                .sync(spawnIsolate(handle, child.queue).retry(schedule).fork());
+            fiber.addObserver(exitDeferred.unsafeCompleteExit);
+            return child;
+          });
 
-        final schedule = respawnSchedule ??
-            Schedule.fixed(const Duration(seconds: 1)).lift();
-        final fiber =
-            $.sync(spawnIsolate(handle, childQueue).retry(schedule).fork());
-        fiber.addObserver(exitDeferred.unsafeCompleteExit);
+      final children = Ref.unsafeMake(
+        ISet<IsolatePoolChild<I, E, O>>.withConfig(
+          $.sync(List.generate(poolSize, (id) => spawnChild(id)).collect),
+          ConfigSet(sort: true),
+        ),
+      );
 
-        return $.sync(childCount
-            .update<Scope<NoEnv>, IsolateError>((_) => _ + 1)
-            .as(childQueue));
-      });
-
-      final spawnOffer = spawnChild.flatMap(queue.offer);
-
-      final takeOrSpawn = childCount
-          .get<Scope<NoEnv>, IsolateError>()
-          .flatMap((_) => _ < poolSize ? spawnChild : queue.take());
-
-      final takeChild =
-          queue.poll<Scope<NoEnv>, IsolateError>().flatMap((_) => _.match(
-                () => takeOrSpawn,
-                ZIO.succeed,
-              ));
-
-      final work = requests
-          .take<Scope<NoEnv>, IsolateError>()
+      final work = requests.takeIO
           .flatMap(
-            (request) => takeChild.flatMap(
-              (childQueue) => childQueue
-                  .offerIO(request)
-                  .zipRight(request.second.awaitIO.ignore)
-                  .always(queue.offer(childQueue))
-                  .forkIO
-                  .lift(),
-            ),
+            (request) => children
+                .unsafeGet()
+                .first
+                .offer(request)
+                .flatMap(
+                  (child) => children
+                      .updateIO((_) => _.remove(child).add(child))
+                      .zipRight(request.second.awaitIO.ignore)
+                      .alwaysIgnore(children.updateIO((_) {
+                    final newChild = _.firstWhere((_) => _ == child);
+                    return _.remove(newChild).add(newChild.addProcessed());
+                  })).lift(),
+                )
+                .forkIO,
           )
-          .forever;
+          .forever
+          .lift<Scope<NoEnv>, IsolateError>();
 
-      await $(spawnOffer.zipRight(work).race(exitDeferred.awaitIO.lift()));
+      await $(work.race(exitDeferred.awaitIO.lift()));
     });
+
+class IsolatePoolChild<I, E, O>
+    implements Comparable<IsolatePoolChild<I, E, O>> {
+  IsolatePoolChild({
+    required this.id,
+    required this.processed,
+    required this.active,
+    required this.queue,
+    DateTime? lastActive,
+  }) : lastActive = lastActive ?? DateTime.now();
+
+  factory IsolatePoolChild.empty(int id) => IsolatePoolChild(
+        id: id,
+        processed: 0,
+        active: 0,
+        queue: ZIOQueue.unbounded(),
+      );
+
+  final int id;
+  final int processed;
+  final int active;
+  final DateTime lastActive;
+  final ZIOQueue<Request<I, E, O>> queue;
+
+  @override
+  int compareTo(IsolatePoolChild<I, E, O> other) {
+    if (other.active == active) {
+      return lastActive.compareTo(other.lastActive);
+    }
+    return (other.active > active) ? -1 : 1;
+  }
+
+  IO<IsolatePoolChild<I, E, O>> offer(Request<I, E, O> request) =>
+      queue.offerIO(request).as(addActive());
+
+  IsolatePoolChild<I, E, O> addActive() => copyWith(
+        active: active + 1,
+        lastActive: DateTime.now(),
+      );
+
+  IsolatePoolChild<I, E, O> addProcessed() => copyWith(
+        processed: processed + 1,
+        active: active - 1,
+      );
+
+  IsolatePoolChild<I, E, O> copyWith({
+    int? processed,
+    int? active,
+    DateTime? lastActive,
+  }) =>
+      IsolatePoolChild(
+        id: id,
+        queue: queue,
+        processed: processed ?? this.processed,
+        active: active ?? this.active,
+        lastActive: lastActive ?? this.lastActive,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is IsolatePoolChild<I, E, O> && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() =>
+      'IsolatePoolChild<$I, $E, $O>(id: $id, processed: $processed, active: $active, lastActive: $lastActive)';
+}
