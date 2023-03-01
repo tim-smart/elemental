@@ -52,23 +52,12 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
               )
               .flatMap((_) => request.second.completeExit(_));
 
-      final errorDeferred = Deferred<IsolateError, Never>();
-
       final send = requests.takeIO
           .flatMap((_) => sendRequest(_).fork())
-          .tap(
-            (_) => ZIO(
-              () => _.addObserver((exit) {
-                exit.mapLeft((cause) {
-                  errorDeferred.unsafeCompleteExit(Either.left(cause));
-                });
-              }),
-            ),
-          )
           .forever
           .lift<Scope<NoEnv>, IsolateError>();
 
-      await $(send.race(waitForExit).race(errorDeferred.awaitIO.lift()));
+      await $(send.race(waitForExit));
     });
 
 void Function(SendPort) _entrypoint<I, E, O>(IsolateHandler<I, E, O> handle) =>
