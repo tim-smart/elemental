@@ -38,10 +38,10 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
       final waitForExit = _IsolateIO.future(() => exitPort.first)
           .zipRight(_IsolateIO<Never>.fail(IsolateError("exit")));
 
-      ZIO<NoEnv, IsolateError, Unit> sendRequest(
+      _IsolateIO<Unit> sendRequest(
         Request<I, E, O> request,
       ) =>
-          EIO<IsolateError, ReceivePort>(() {
+          _IsolateIO<ReceivePort>(() {
             final receive = ReceivePort();
             sendPort.send(tuple2(request.first, receive.sendPort));
             return receive;
@@ -52,10 +52,10 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
               )
               .flatMap((_) => request.second.completeExit(_));
 
-      final send = requests.takeIO
-          .flatMap((_) => sendRequest(_).fork())
-          .forever
-          .lift<Scope<NoEnv>, IsolateError>();
+      final send = requests
+          .take<Scope<NoEnv>, IsolateError>()
+          .flatMap((_) => sendRequest(_))
+          .forever;
 
       await $(send.race(waitForExit));
     });

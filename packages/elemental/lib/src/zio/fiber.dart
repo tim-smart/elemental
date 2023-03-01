@@ -21,6 +21,12 @@ abstract class Fiber<R, E, A> {
 
   /// An [RIO] version of [run].
   RIO<R, Unit> get runIO => run();
+
+  /// Interrupt the fiber.
+  ZIO<R2, E2, Unit> interrupt<R2, E2>();
+
+  /// An [RIO] version of [interrupt].
+  IO<Unit> get interruptIO => interrupt();
 }
 
 class _DeferredFiber<R, E, A> extends Fiber<R, E, A> {
@@ -28,6 +34,7 @@ class _DeferredFiber<R, E, A> extends Fiber<R, E, A> {
 
   final ZIO<R, E, A> _zio;
   final _exit = Deferred<E, A>();
+  final _signal = DeferredIO<Never>();
 
   final _observers = <void Function(Exit<E, A>)>{};
 
@@ -56,7 +63,12 @@ class _DeferredFiber<R, E, A> extends Fiber<R, E, A> {
 
   @override
   ZIO<R, E2, Unit> run<E2>() => ZIO.from((ctx) {
-        ctx.runtime.run(_run.provide(ctx.env), interruptionSignal: ctx.signal);
+        ctx.runtime.run(_run.provide(ctx.env).race(_signal.await()),
+            interruptionSignal: ctx.signal);
         return Exit.right(unit);
       });
+
+  @override
+  ZIO<R2, E2, Unit> interrupt<R2, E2>() =>
+      _signal.failCause(const Interrupted());
 }

@@ -1,6 +1,5 @@
 import 'package:elemental/elemental.dart';
-import 'package:elemental_isolates/src/isolate.dart';
-import 'package:elemental_isolates/src/pool.dart';
+import 'package:elemental_isolates/elemental_isolates.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,18 +15,16 @@ void main() {
       final deferred3 = DeferredIO<String>();
       requests.offerIO(tuple2(3, deferred3)).run();
 
-      await spawnIsolatePool(
+      final fiber = spawnIsolatePool(
         (count) => ZIO.succeed("Got: $count"),
         requests: requests,
-      )
-          .asUnit
-          .scoped
-          .race(deferred3.awaitIO.lift<NoEnv, IsolateError>().asUnit)
-          .runOrThrow();
+      ).asUnit.scoped.fork().runSyncOrThrow();
 
-      expect(deferred1.awaitIO.runSyncOrThrow(), "Got: 1");
-      expect(deferred2.awaitIO.runSyncOrThrow(), "Got: 2");
-      expect(deferred3.awaitIO.runSyncOrThrow(), "Got: 3");
+      expect(await deferred1.awaitIO.runOrThrow(), "Got: 1");
+      expect(await deferred2.awaitIO.runOrThrow(), "Got: 2");
+      expect(await deferred3.awaitIO.runOrThrow(), "Got: 3");
+
+      fiber.interruptIO.runSyncOrThrow();
     });
   });
 }
