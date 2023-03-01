@@ -57,5 +57,5 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
           )
           .forever;
 
-      await $(spawnOffer.zipRight(work));
+      await $(spawnOffer.zipRight(work).race(exitDeferred.awaitIO.lift()));
     });

@@ -8,10 +8,15 @@ class ZIOIsolateRunner {
   final Enqueue<Request<EIO, dynamic, dynamic>> requests;
 
   ZIO<R, E, A> run<R, E, A>(ZIO<R, E, A> zio) => ZIO.from((ctx) {
-        final deferred = Deferred<E, A>();
+        final deferred = Deferred<dynamic, dynamic>();
         return requests
-            .offer<NoEnv, E>(tuple2(zio.provide(ctx.env), deferred))
-            .zipRight(deferred.await())
+            .offer<NoEnv, dynamic>(tuple2(
+              zio.mapError((_) => _ as dynamic).provide(ctx.env),
+              deferred,
+            ))
+            .zipRight(deferred.awaitIO)
+            .mapError((_) => _ as E)
+            .map((_) => _ as A)
             .unsafeRun(ctx.noEnv);
       });
 }
@@ -28,3 +33,8 @@ final zioIsolateRunnerLayer = Layer<Never, ZIOIsolateRunner>.scoped(
     return ZIOIsolateRunner(requests);
   }),
 );
+
+extension ZIOIsolateExt<R, E, A> on ZIO<R, E, A> {
+  ZIO<R, E, A> get onIsolate =>
+      zioIsolateRunnerLayer.access.lift<R, E>().flatMap((_) => _.run(this));
+}
