@@ -127,7 +127,7 @@ class Defect<E> extends Cause<E> {
 
 /// [Interrupted] is used to indicated that a [ZIO] was interrupted.
 class Interrupted<E> extends Cause<E> {
-  Interrupted([this.stackTrace]);
+  const Interrupted([this.stackTrace]);
 
   @override
   final StackTrace? stackTrace;

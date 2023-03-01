@@ -3,23 +3,23 @@ part of '../zio.dart';
 mixin ScopeMixin {
   bool get scopeClosable => false;
 
-  final _scopeFinalizers = <IO<Unit>>[];
+  final scopeFinalizers = <IO<Unit>>[];
 
   ZIO<R, E, Unit> addScopeFinalizer<R, E>(IO<Unit> finalizer) => ZIO(() {
-        _scopeFinalizers.add(finalizer);
+        scopeFinalizers.add(finalizer);
         return unit;
       });
 
   ZIO<R, E, Unit> removeScopeFinalizer<R, E>(IO<Unit> finalizer) => ZIO(() {
-        _scopeFinalizers.remove(finalizer);
+        scopeFinalizers.remove(finalizer);
         return unit;
       });
 
   ZIO<R, E, Unit> closeScope<R, E>() =>
-      _scopeFinalizers.reversed.collectDiscard.zipRight(IO(() {
-        _scopeFinalizers.clear();
-        return unit;
-      })).lift();
+      ZIO.lazy(() => scopeFinalizers.reversed.collectDiscard.zipRight(IO(() {
+            scopeFinalizers.clear();
+            return unit;
+          })).lift());
 
   late final IO<Unit> closeScopeIO = closeScope();
 }

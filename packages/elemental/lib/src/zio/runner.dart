@@ -24,7 +24,7 @@ class ZIORunner<E, A> {
   final EIO<E, A> _zio;
   final Scope<NoEnv> _scope;
   final Ref<ZIORunnerState<E, A>> _ref;
-  final _interrupt = DeferredIO<Unit>();
+  final _interrupt = DeferredIO<Never>();
   DeferredIO<Exit<E, A>>? _deferred;
 
   ZIORunnerState<E, A> get state => _ref.unsafeGet();
@@ -59,8 +59,10 @@ class ZIORunner<E, A> {
   Future<A> runOrThrow() =>
       Future.sync(run).then((value) => value.getOrElse((l) => throw l));
 
-  void dispose() =>
-      _interrupt.completeIO(unit).zipRight(_scope.closeScopeIO).run();
+  void dispose() => _interrupt
+      .failCauseIO(const Interrupted())
+      .zipRight(_scope.closeScopeIO)
+      .run();
 }
 
 class ZIORunnerState<E, A> {

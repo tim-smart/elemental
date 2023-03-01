@@ -13,7 +13,7 @@ class ZIOContext<R> {
   factory ZIOContext({
     required Runtime runtime,
     required R env,
-    required DeferredIO<Unit> signal,
+    required DeferredIO<Never> signal,
   }) =>
       ZIOContext._(
         runtime: runtime,
@@ -24,7 +24,7 @@ class ZIOContext<R> {
 
   final Runtime runtime;
   final R env;
-  final DeferredIO<Unit> signal;
+  final DeferredIO<Never> signal;
 
   ZIOContext<R2> withEnv<R2>(R2 env) => ZIOContext._(
         runtime: runtime,
@@ -42,7 +42,7 @@ class ZIOContext<R> {
         layers: layers,
       );
 
-  ZIOContext<R> withSignal(DeferredIO<Unit> signal) => ZIOContext._(
+  ZIOContext<R> withSignal(DeferredIO<Never> signal) => ZIOContext._(
         runtime: runtime,
         env: env,
         signal: signal,

@@ -11,6 +11,7 @@ part 'zio/context.dart';
 part 'zio/deferred.dart';
 part 'zio/do.dart';
 part 'zio/exit.dart';
+part 'zio/fiber.dart';
 part 'zio/layer.dart';
 part 'zio/logger.dart';
 part 'zio/queue.dart';
@@ -93,7 +94,7 @@ class ZIO<R, E, A> {
 
       return _unsafeRun(ctx).then((exit) {
         if (ctx.signal.unsafeCompleted) {
-          return Exit.left(Interrupted());
+          return Exit.left(const Interrupted());
         }
 
         return exit;
@@ -135,7 +136,7 @@ class ZIO<R, E, A> {
             .await<R>()
             .zipRight(finalizer.lift())
             .liftError<E>()
-            .zipRight(ZIO<R, E, Never>.failCause(Interrupted()));
+            .zipRight(ZIO<R, E, Never>.failCause(const Interrupted()));
 
         return context._deferred
             .await<R>()
@@ -339,6 +340,27 @@ class ZIO<R, E, A> {
   }) =>
       logError(message, annotations: annotations);
 
+  factory ZIO.raceAll(Iterable<ZIO<R, E, A>> others) => ZIO.from((ctx) {
+        final signal = DeferredIO<Never>();
+        final deferred = Deferred<E, A>();
+
+        for (final zio in others) {
+          zio
+              .unsafeRun(ctx.withSignal(signal))
+              .then(deferred.unsafeCompleteExit);
+          if (deferred.unsafeCompleted) {
+            break;
+          }
+        }
+
+        return deferred.await<R>().unsafeRun(ctx).then(
+              (exit) => signal
+                  .failCause(const Interrupted())
+                  .unsafeRun(ctx.withoutSignal)
+                  .then((_) => exit),
+            );
+      });
+
   /// Access the current [Runtime].
   static ZIO<R, E, Runtime> runtime<R, E>() => ZIO
       .from((ctx) => Either.right(ctx.runtime.mergeLayerContext(ctx.layers)));
@@ -479,9 +501,10 @@ class ZIO<R, E, A> {
   ///
   /// The result of this [ZIO] is ignored.
   ZIO<R, E, A> alwaysIgnore<X>(ZIO<R, E, X> zio) => ZIO.from(
-        (ctx) => unsafeRun(ctx).then(
-          (exit) => zio.unsafeRun(ctx.withoutSignal).then((_) => _.call(exit)),
-        ),
+        (ctx) => race(ctx.signal.awaitIO.lift<R, E>()).unsafeRun(ctx).then(
+              (exit) =>
+                  zio.unsafeRun(ctx.withoutSignal).then((_) => _.call(exit)),
+            ),
       );
 
   /// Adds an annotation to the the current [ZIOContext], which can be retrieved
@@ -786,22 +809,7 @@ class ZIO<R, E, A> {
                 .unsafeRun(ctx),
           );
 
-  ZIO<R, E, A> race(ZIO<R, E, A> other) => ZIO.from((ctx) {
-        final signal = DeferredIO<Unit>();
-        final deferred = Deferred<E, A>();
-
-        unsafeRun(ctx.withSignal(signal)).then(deferred.unsafeCompleteExit);
-        if (!deferred.unsafeCompleted) {
-          other
-              .unsafeRun(ctx.withSignal(signal))
-              .then(deferred.unsafeCompleteExit);
-        }
-
-        return deferred
-            .await()
-            .zipLeft(signal.complete(fpdart.unit))
-            .unsafeRun(ctx);
-      });
+  ZIO<R, E, A> race(ZIO<R, E, A> other) => ZIO.raceAll([this, other]);
 
   /// Repeat this [ZIO] using the given [Schedule].
   ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
@@ -907,7 +915,7 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> timeout(
     Duration duration,
   ) =>
-      race(ZIO<R, E, A>.failCause(Interrupted()).delay(duration));
+      race(ZIO<R, E, A>.failCause(const Interrupted()).delay(duration));
 
   /// Replace the [Runtime] in this [ZIO] with the given [Runtime].
   ZIO<R, E, A> withRuntime(Runtime runtime) =>
@@ -965,7 +973,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
   /// Runs this [ZIO] asynchronously or synchronously as a [FutureOr], returning the [Exit] result.
   FutureOr<Exit<E, A>> run({
     Runtime? runtime,
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).run(
         this,
@@ -975,7 +983,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
   /// Runs this [ZIO] asynchronously and returns result as a [Future]. If the [ZIO] fails, the [Future] will throw.
   Future<A> runFutureOrThrow({
     Runtime? runtime,
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runFutureOrThrow(
         this,
@@ -985,7 +993,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
   /// Runs this [ZIO] asynchronously and returns the [Exit] result as a [Future].
   Future<Exit<E, A>> runFuture({
     Runtime? runtime,
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runFuture(
         this,
@@ -995,7 +1003,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
   /// Runs this [ZIO] synchronously or asynchronously as a [FutureOr], throwing if it fails.
   FutureOr<A> runOrThrow({
     Runtime? runtime,
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runOrThrow(
         this,
@@ -1005,7 +1013,7 @@ extension ZIORunExt<E, A> on EIO<E, A> {
   /// Runs this [ZIO] synchronously and returns the result as an [Exit].
   Exit<E, A> runSync({
     Runtime? runtime,
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) =>
       (runtime ?? Runtime.defaultRuntime).runSync(
         this,
@@ -1135,6 +1143,9 @@ extension ZIOIterableExt<R, E, A> on Iterable<ZIO<R, E, A>> {
 
   /// Alias for [ZIO.collectParDiscard]
   ZIO<R, E, Unit> get collectParDiscard => ZIO.collectParDiscard(this);
+
+  /// Alias for [ZIO.raceAll]
+  ZIO<R, E, A> get raceAll => ZIO.raceAll(this);
 }
 
 extension ZIOEitherExt<E, A> on Either<E, A> {
@@ -1149,4 +1160,15 @@ extension ZIOOptionExt<A> on Option<A> {
   /// Alias for [ZIO.fromOptionOrFail]
   ZIO<NoEnv, E, A> toZIOOrFail<E>(E Function() onNone) =>
       ZIO.fromOptionOrFail(this, onNone);
+}
+
+extension ZIOForkExt<R, E, A> on ZIO<R, E, A> {
+  /// Fork this [ZIO] into a [Fiber], running it in the background.
+  ZIO<R, E2, Fiber<R, E, A>> fork<E2>() => ZIO.from((ctx) {
+        final fiber = _DeferredFiber(this);
+        return fiber.run<E2>().unsafeRun(ctx).then((_) => Exit.right(fiber));
+      });
+
+  /// An [IO] version of [fork].
+  RIO<R, Fiber<R, E, A>> get forkIO => fork();
 }

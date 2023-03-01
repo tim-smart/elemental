@@ -88,7 +88,7 @@ void main() {
             .delay(const Duration(seconds: 1))
             .timeout(Duration.zero)
             .runFuture(),
-        Exit<Never, int>.left(Interrupted()),
+        Exit<Never, int>.left(const Interrupted()),
       );
     });
   });

@@ -20,7 +20,7 @@ class Runtime {
   // == defaults
 
   static var defaultRuntime = Runtime();
-  static final _defaultSignal = DeferredIO<Unit>();
+  static final _defaultSignal = DeferredIO<Never>();
 
   // == layers
 
@@ -62,7 +62,7 @@ class Runtime {
 
   FutureOr<Exit<E, A>> run<E, A>(
     EIO<E, A> zio, {
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
 
@@ -81,7 +81,7 @@ class Runtime {
 
   Future<A> runFutureOrThrow<E, A>(
     EIO<E, A> zio, {
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     return Future.value(run(zio, interruptionSignal: interruptionSignal))
@@ -93,7 +93,7 @@ class Runtime {
 
   Future<Exit<E, A>> runFuture<E, A>(
     EIO<E, A> zio, {
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     return Future.value(run(zio, interruptionSignal: interruptionSignal));
@@ -101,7 +101,7 @@ class Runtime {
 
   FutureOr<A> runOrThrow<E, A>(
     EIO<E, A> zio, {
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     return run(zio, interruptionSignal: interruptionSignal).then(
@@ -115,7 +115,7 @@ class Runtime {
   /// Try to run the ZIO synchronously, throwing a [Future] if it is asynchronous.
   Exit<E, A> runSync<E, A>(
     EIO<E, A> zio, {
-    DeferredIO<Unit>? interruptionSignal,
+    DeferredIO<Never>? interruptionSignal,
   }) {
     assert(!_disposed, 'Runtime has been disposed');
     final result = run(zio, interruptionSignal: interruptionSignal);
@@ -129,11 +129,11 @@ class Runtime {
   A runSyncOrThrow<E, A>(EIO<E, A> zio) {
     assert(!_disposed, 'Runtime has been disposed');
 
-    final signal = DeferredIO<Unit>();
+    final signal = DeferredIO<Never>();
     final exit = run(zio, interruptionSignal: signal);
 
     if (exit is Future) {
-      signal.completeIO(unit).runSyncOrThrow();
+      signal.failCauseIO(const Interrupted()).runSyncOrThrow();
       throw Interrupted<E>();
     }
 
