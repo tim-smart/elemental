@@ -19,7 +19,6 @@ void main() {
       await spawnIsolatePool(
         (count) => ZIO.succeed("Got: $count"),
         requests: requests,
-        size: 3,
       )
           .asUnit
           .scoped

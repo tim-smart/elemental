@@ -19,5 +19,21 @@ void main() {
 
       expect(deferred.awaitIO.runSyncOrThrow(), "Got: 123");
     });
+
+    test('send zio', () async {
+      final deferred = DeferredIO<String>();
+      final requests =
+          ZIOQueue<Tuple2<IO<String>, Deferred<Never, String>>>.unbounded();
+
+      requests.offerIO(tuple2(IO.succeed("abc"), deferred)).run();
+
+      await spawnIsolate((_) => _, requests)
+          .asUnit
+          .scoped
+          .race(deferred.awaitIO.lift<NoEnv, IsolateError>().asUnit)
+          .runOrThrow();
+
+      expect(deferred.awaitIO.runSyncOrThrow(), "abc");
+    });
   });
 }

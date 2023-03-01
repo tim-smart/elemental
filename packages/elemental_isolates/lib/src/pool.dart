@@ -6,37 +6,56 @@ import 'package:elemental_isolates/src/isolate.dart';
 ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
   IsolateHandler<I, E, O> handle, {
   required Dequeue<Request<I, E, O>> requests,
-  int? size,
+  int? maxSize,
   Schedule<Scope<NoEnv>, IsolateError, IsolateError, dynamic>? respawnSchedule,
 }) =>
     ZIO<Scope<NoEnv>, IsolateError, Never>.Do(($, env) async {
-      final poolSize = size ?? Platform.numberOfProcessors;
+      final childCount = Ref.unsafeMake(0);
+      final poolSize = maxSize ?? Platform.numberOfProcessors;
       final queue = ZIOQueue<Enqueue<Request<I, E, O>>>.unbounded();
+      final exitDeferred = Deferred<IsolateError, Never>();
 
-      final spawnChild = ZIO.lazy(() {
+      final spawnChild =
+          ZIO<Scope<NoEnv>, IsolateError, Enqueue<Request<I, E, O>>>.Do(
+              ($, env) {
         final childQueue = ZIOQueue<Request<I, E, O>>.unbounded();
 
         final schedule = respawnSchedule ??
             Schedule.fixed(const Duration(seconds: 1)).lift();
-        final spawnRetry = spawnIsolate(handle, childQueue).retry(schedule);
+        final fiber =
+            $.sync(spawnIsolate(handle, childQueue).retry(schedule).fork());
+        fiber.addObserver(exitDeferred.unsafeCompleteExit);
 
-        return queue
-            .offer<Scope<NoEnv>, IsolateError>(childQueue)
-            .zipRight(spawnRetry);
+        return $.sync(childCount
+            .update<Scope<NoEnv>, IsolateError>((_) => _ + 1)
+            .as(childQueue));
       });
 
-      final work = requests.takeIO
+      final spawnOffer = spawnChild.flatMap(queue.offer);
+
+      final takeOrSpawn = childCount
+          .get<Scope<NoEnv>, IsolateError>()
+          .flatMap((_) => _ < poolSize ? spawnChild : queue.take());
+
+      final takeChild =
+          queue.poll<Scope<NoEnv>, IsolateError>().flatMap((_) => _.match(
+                () => takeOrSpawn,
+                ZIO.succeed,
+              ));
+
+      final work = requests
+          .take<Scope<NoEnv>, IsolateError>()
           .flatMap(
-            (request) => queue.takeIO.flatMap(
+            (request) => takeChild.flatMap(
               (childQueue) => childQueue
                   .offerIO(request)
                   .zipRight(request.second.awaitIO.ignore)
-                  .always(queue.offer(childQueue)),
+                  .always(queue.offer(childQueue))
+                  .forkIO
+                  .lift(),
             ),
           )
           .forever;
 
-      final children = List.generate(poolSize, (index) => spawnChild);
-      children.add(work.lift());
-      await $(children.raceAll);
+      await $(spawnOffer.zipRight(work));
     });

@@ -248,6 +248,16 @@ class ZIO<R, E, A> {
   ) =>
       ZIO.syncEither(() => oa.toEither(() => onNone()));
 
+  /// Creates a ZIO from a [Future].
+  ///
+  /// **This can be unsafe** because it will throw an error if the future fails.
+  factory ZIO.future(FutureOr<A> Function() f) => ZIO.from(
+        (ctx) => fromThrowable(
+          f,
+          onError: (e, s) => Defect(e, s),
+        ),
+      );
+
   /// Access a [Layer] and return the resulting service.
   /// If the [Layer] has already been accessed or provided with [provideLayer],
   /// the cached value will be used.
@@ -370,7 +380,7 @@ class ZIO<R, E, A> {
 
   /// Sleep for the given [duration].
   static ZIO<R, E, Unit> sleep<R, E>(Duration duration) =>
-      ZIO.unsafeFuture(() => Future.delayed(duration, () => fpdart.unit));
+      ZIO.future(() => Future.delayed(duration, () => fpdart.unit));
 
   /// An [IO] version of [sleep].
   static IO<Unit> sleepIO(Duration duration) => sleep(duration);
@@ -480,12 +490,6 @@ class ZIO<R, E, A> {
 
   /// An [IO] version of [unit].
   static const unitIO = IO._(_kZioUnit);
-
-  /// Creates a ZIO from a [Future].
-  ///
-  /// **This can be unsafe** because it will throw an error if the future fails.
-  factory ZIO.unsafeFuture(FutureOr<A> Function() f) =>
-      ZIO.from((ctx) => f().then(Either.right));
 
   // ==========================
   // ==== Instance methods ====

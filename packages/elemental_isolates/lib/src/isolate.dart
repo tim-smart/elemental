@@ -23,7 +23,7 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
     _IsolateIO<Never>.Do(($, env) async {
       final receivePort = ReceivePort();
       final isolate = await $(
-        _IsolateIO<Isolate>.unsafeFuture(
+        _IsolateIO<Isolate>.future(
           () => Isolate.spawn<SendPort>(
             _entrypoint<I, E, O>(handle),
             receivePort.sendPort,
@@ -35,7 +35,7 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
       final exitPort = ReceivePort();
       isolate.addOnExitListener(exitPort.sendPort);
 
-      final waitForExit = _IsolateIO.unsafeFuture(() => exitPort.first)
+      final waitForExit = _IsolateIO.future(() => exitPort.first)
           .zipRight(_IsolateIO<Never>.fail(IsolateError("exit")));
 
       ZIO<NoEnv, IsolateError, Unit> sendRequest(
