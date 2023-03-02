@@ -1,3 +1,7 @@
+## 0.0.95
+
+- Update dependencies
+
 ## 0.0.94
 
 - forkScope
