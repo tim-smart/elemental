@@ -1,3 +1,7 @@
+## 0.0.93
+
+- Add [Fiber]
+
 ## 0.0.92
 
 - Expose ZIO unsafeRun
