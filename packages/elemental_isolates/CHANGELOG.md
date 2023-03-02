@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Scope queues
+- Scope pool in runner layer
+
 ## 0.1.0
 
 - Initial version.

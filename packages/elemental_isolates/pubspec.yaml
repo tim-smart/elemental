@@ -1,13 +1,13 @@
 name: elemental_isolates
 description: Run ZIO's from the elemental package in isolates.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/tim-smart/elemental.git
 
 environment:
   sdk: '>=2.19.0 <4.0.0'
 
 dependencies: 
-  elemental: ^0.0.93
+  elemental: ^0.0.94
 
 dev_dependencies:
   lints: ^2.0.0
