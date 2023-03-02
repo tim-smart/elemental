@@ -84,7 +84,8 @@ void Function(SendPort) _entrypoint<I, E, O>(IsolateHandler<I, E, O> handle) =>
       sendPort.send(receivePort.sendPort);
 
       await for (final _RequestWithPort<I> request in receivePort) {
-        final exit = await handle(request.first).run();
-        request.second.send(exit);
+        handle(request.first)
+            .tapExit((exit) => ZIO(() => request.second.send(exit)))
+            .run();
       }
     };
