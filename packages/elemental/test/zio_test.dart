@@ -115,4 +115,47 @@ void main() {
       expect(deferred.unsafeCompleted, true);
     });
   });
+
+  group('annotations', () {
+    test('set and retreive', () {
+      const key = Symbol("annotations test");
+      final result =
+          IO.annotationsIO(key).annotate(key, 'key', 123).runSyncOrThrow();
+      expect(result, const IMapConst({'key': 123}));
+    });
+
+    test('annotateLog', () {
+      final logger = TestLogger();
+
+      IO
+          .logInfoIO("hello")
+          .annotateLog("key", 123)
+          .zipRight(IO.logInfo("world"))
+          .provideService(loggerLayer)(logger)
+          .runSyncOrThrow();
+
+      expect(logger.items.length, 2);
+      expect(logger.items[0].first, "hello");
+      expect(logger.items[0].second["key"], 123);
+
+      expect(logger.items[1].first, "world");
+      expect(logger.items[1].second.isEmpty, true);
+    });
+  });
+}
+
+class TestLogger implements Logger {
+  final items = <Tuple2<String, IMap<String, dynamic>>>[];
+
+  @override
+  ZIO<R, E, Unit> log<R, E>(
+    LogLevel level,
+    DateTime time,
+    String message, {
+    IMap<String, dynamic> annotations = const IMapConst({}),
+  }) =>
+      ZIO(() {
+        items.add(tuple2(message, annotations));
+        return unit;
+      });
 }

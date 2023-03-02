@@ -29,14 +29,14 @@ class Logger {
 
   final void Function(String message) _print;
 
-  static String annotationsToString(Map<String, dynamic> annotations) =>
+  static String annotationsToString(IMap<String, dynamic> annotations) =>
       annotations.entries.map((e) => '${e.key}="${e.value}"').join(' ');
 
   ZIO<R, E, Unit> log<R, E>(
     LogLevel level,
     DateTime time,
     String message, {
-    Map<String, dynamic> annotations = const {},
+    IMap<String, dynamic> annotations = const IMapConst({}),
   }) =>
       ZIO<R, E, LogLevel>.layer(logLevelLayer).flatMap(
         (currentLevel) => level < currentLevel

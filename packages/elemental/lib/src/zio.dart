@@ -110,11 +110,11 @@ class ZIO<R, E, A> {
   factory ZIO(A Function() f) => ZIO.from((ctx) => Either.right(f()));
 
   /// Retrieves and clears the annotations for the provided key.
-  static ZIO<R, E, HashMap<String, dynamic>> annotations<R, E>(Symbol key) =>
-      ZIO.from((ctx) => Exit.right(ctx.unsafeGetAndClearAnnotations(key)));
+  static ZIO<R, E, IMap<String, dynamic>> annotations<R, E>(Symbol key) =>
+      ZIO.from((ctx) => Exit.right(ctx.unsafeGetAnnotations(key)));
 
   /// [IO] version of [annotations].
-  static IO<HashMap<String, dynamic>> annotationsIO(Symbol key) =>
+  static IO<IMap<String, dynamic>> annotationsIO(Symbol key) =>
       annotations(key);
 
   factory ZIO.async(void Function(AsyncContext<E, A> resume) f) =>
@@ -283,10 +283,9 @@ class ZIO<R, E, A> {
               level,
               DateTime.now(),
               message.toString(),
-              annotations: {
-                ...annotations ?? {},
-                ...ctx.unsafeGetAndClearAnnotations(loggerAnnotationsSymbol),
-              },
+              annotations: ctx
+                  .unsafeGetAnnotations(loggerAnnotationsSymbol)
+                  .addMap(annotations ?? {}),
             ),
           )
           .unsafeRun(ctx));
@@ -514,10 +513,7 @@ class ZIO<R, E, A> {
   /// Adds an annotation to the the current [ZIOContext], which can be retrieved
   /// later with [annotations].
   ZIO<R, E, A> annotate(Symbol key, String name, dynamic value) =>
-      ZIO.from((ctx) => unsafeRun(ctx).then((exit) {
-            ctx.unsafeAnnotate(key, name, value);
-            return exit;
-          }));
+      ZIO.from((ctx) => unsafeRun(ctx.unsafeAnnotate(key, name, value)));
 
   /// Adds an annotation to the next log entry.
   ZIO<R, E, A> annotateLog(String name, dynamic value) =>

@@ -7,7 +7,8 @@ class ZIOContext<R> {
     required this.env,
     required this.signal,
     required this.layers,
-  });
+    required IMap<Symbol, IMap<String, dynamic>> annotations,
+  }) : _annotations = annotations;
 
   /// Represents the context in which a [ZIO] is executed.
   factory ZIOContext({
@@ -20,6 +21,7 @@ class ZIOContext<R> {
         env: env,
         signal: signal,
         layers: LayerContext(),
+        annotations: const IMapConst({}),
       );
 
   final Runtime runtime;
@@ -31,23 +33,15 @@ class ZIOContext<R> {
         env: env,
         signal: signal,
         layers: layers,
+        annotations: _annotations,
       );
 
   ZIOContext<NoEnv> get noEnv => withEnv(const NoEnv());
 
-  ZIOContext<R> withRuntime(Runtime runtime) => ZIOContext._(
-        runtime: runtime,
-        env: env,
-        signal: signal,
-        layers: layers,
-      );
+  ZIOContext<R> withRuntime(Runtime runtime) => copyWith(runtime: runtime);
 
-  ZIOContext<R> withSignal(DeferredIO<Never> signal) => ZIOContext._(
-        runtime: runtime,
-        env: env,
-        signal: signal,
-        layers: layers,
-      );
+  ZIOContext<R> withSignal(DeferredIO<Never> signal) =>
+      copyWith(signal: signal);
 
   ZIOContext<R> get withoutSignal => withSignal(Deferred());
 
@@ -80,40 +74,44 @@ class ZIOContext<R> {
         return unit;
       });
 
-  ZIOContext<R> _mergeLayerContext(LayerContext layerContext) => ZIOContext._(
-        runtime: runtime,
-        env: env,
-        signal: signal,
+  ZIOContext<R> _mergeLayerContext(LayerContext layerContext) => copyWith(
         layers: layerContext._unsafeMerge(layerContext),
       );
 
-  ZIOContext<R> _withLayerContext(LayerContext layerContext) => ZIOContext._(
-        runtime: runtime,
-        env: env,
-        signal: signal,
-        layers: layerContext,
-      );
+  ZIOContext<R> _withLayerContext(LayerContext layerContext) =>
+      copyWith(layers: layerContext);
 
   // == annotations
-  final _annotations = HashMap<Symbol, HashMap<String, dynamic>>();
+  final IMap<Symbol, IMap<String, dynamic>> _annotations;
 
-  void unsafeAnnotate(
+  ZIOContext<R> unsafeAnnotate(
     Symbol key,
     String name,
     dynamic value,
-  ) {
-    final map = _annotations[key] ??= HashMap();
-    map[name] = value;
-  }
+  ) =>
+      copyWith(
+        annotations: _annotations.update(
+          key,
+          (_) => _.add(name, value),
+          ifAbsent: () => IMap<String, dynamic>().add(name, value),
+        ),
+      );
 
-  HashMap<String, dynamic> unsafeGetAnnotations(Symbol key) =>
-      _annotations[key] ?? HashMap();
+  IMap<String, dynamic> unsafeGetAnnotations(Symbol key) =>
+      _annotations[key] ?? const IMapConst({});
 
-  HashMap<String, dynamic> unsafeGetAndClearAnnotations(Symbol key) {
-    final a = _annotations[key] ?? HashMap();
-    _annotations.remove(key);
-    return a;
-  }
-
-  void unsafeClearAnnotations(Symbol key) => _annotations.remove(key);
+  ZIOContext<R> copyWith({
+    Runtime? runtime,
+    R? env,
+    DeferredIO<Never>? signal,
+    LayerContext? layers,
+    IMap<Symbol, IMap<String, dynamic>>? annotations,
+  }) =>
+      ZIOContext._(
+        runtime: runtime ?? this.runtime,
+        env: env ?? this.env,
+        signal: signal ?? this.signal,
+        layers: layers ?? this.layers,
+        annotations: annotations ?? this._annotations,
+      );
 }
