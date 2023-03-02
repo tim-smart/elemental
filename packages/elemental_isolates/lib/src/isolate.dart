@@ -1,6 +1,8 @@
 import 'dart:isolate';
 
 import 'package:elemental/elemental.dart';
+// ignore: implementation_imports
+import 'package:elemental/src/future_or.dart';
 
 typedef Request<I, E, O> = Tuple2<I, Deferred<E, O>>;
 typedef _RequestWithPort<I> = Tuple2<I, SendPort>;
@@ -84,8 +86,6 @@ void Function(SendPort) _entrypoint<I, E, O>(IsolateHandler<I, E, O> handle) =>
       sendPort.send(receivePort.sendPort);
 
       await for (final _RequestWithPort<I> request in receivePort) {
-        handle(request.first)
-            .tapExit((exit) => ZIO(() => request.second.send(exit)))
-            .run();
+        handle(request.first).run().then(request.second.send);
       }
     };

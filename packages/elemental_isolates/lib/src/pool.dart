@@ -37,15 +37,13 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
                 .unsafeGet()
                 .first
                 .offer(request)
-                .flatMap(
-                  (child) => children
-                      .updateIO((_) => _.remove(child).add(child))
-                      .zipRight(request.second.awaitIO.ignore)
-                      .alwaysIgnore(children.updateIO((_) {
-                    final newChild = _.firstWhere((_) => _ == child);
-                    return _.remove(newChild).add(newChild.addProcessed());
-                  })).lift(),
-                )
+                .flatMap((child) => children
+                    .updateIO((_) => _.replace(child))
+                    .zipRight(request.second.awaitIO.ignore)
+                    .alwaysIgnore(children.updateIO(
+                      (_) => _.replace(_.find(child).addProcessed()),
+                    ))
+                    .lift())
                 .forkIO,
           )
           .forever
@@ -112,8 +110,7 @@ class IsolatePoolChild<I, E, O>
       );
 
   @override
-  bool operator ==(Object other) =>
-      other is IsolatePoolChild<I, E, O> && id == other.id;
+  bool operator ==(Object other) => other is IsolatePoolChild && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -121,4 +118,10 @@ class IsolatePoolChild<I, E, O>
   @override
   String toString() =>
       'IsolatePoolChild<$I, $E, $O>(id: $id, processed: $processed, active: $active, lastActive: $lastActive)';
+}
+
+extension _ISetReplace<A> on ISet<A> {
+  A find(A item) => firstWhere((_) => _ == item);
+
+  ISet<A> replace(A item) => remove(item).add(item);
 }
