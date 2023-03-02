@@ -1,3 +1,8 @@
+## 0.0.94
+
+- forkScope
+- ZIOQueue.unboundedScope
+
 ## 0.0.93
 
 - Add [Fiber]
