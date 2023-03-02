@@ -52,6 +52,9 @@ abstract class Dequeue<A> {
 class ZIOQueue<A> implements Dequeue<A>, Enqueue<A> {
   ZIOQueue.unbounded();
 
+  static RIO<Scope<NoEnv>, ZIOQueue<A>> unboundedScope<A>() =>
+      IO(ZIOQueue<A>.unbounded).acquireRelease((_) => _.shutdownIO);
+
   final _buffer = ListQueue<A>();
   final _takers = LinkedList<_Taker<A>>();
 

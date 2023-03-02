@@ -1066,6 +1066,15 @@ extension ZIOFinalizerExt<R extends ScopeMixin, E, A> on ZIO<R, E, A> {
     IO<Unit> release,
   ) =>
       tapEnv((_, env) => env.addScopeFinalizer(release));
+
+  /// Fork this [ZIO] into a [Fiber], running it in the background.
+  ///
+  /// When the scope closes, the fiber will be interrupted.
+  ZIO<R, E2, Fiber<R, E, A>> forkScope<E2>() =>
+      fork<E2>().acquireRelease((_) => _.interruptIO);
+
+  /// An [IO] version of [fork].
+  RIO<R, Fiber<R, E, A>> get forkScopeIO => forkScope();
 }
 
 extension ZIOAskExt<E, A> on ZIO<NoEnv, E, A> {
@@ -1171,4 +1180,13 @@ extension ZIOForkExt<R, E, A> on ZIO<R, E, A> {
 
   /// An [IO] version of [fork].
   RIO<R, Fiber<R, E, A>> get forkIO => fork();
+
+  /// Fork this [ZIO] into a [Fiber], running it in the background.
+  ///
+  /// When the scope closes, the fiber will be interrupted.
+  ZIO<Scope<R>, E2, Fiber<R, E, A>> forkScope<E2>() =>
+      fork<E2>().acquireRelease((_) => _.interruptIO);
+
+  /// An [IO] version of [fork].
+  RIO<Scope<R>, Fiber<R, E, A>> get forkScopeIO => forkScope();
 }

@@ -22,12 +22,14 @@ class ZIOIsolateRunner {
 
 final zioIsolateRunnerLayer = Layer<Never, ZIOIsolateRunner>.scoped(
   ZIO.Do(($, env) {
-    final requests = ZIOQueue<Request<EIO, dynamic, dynamic>>.unbounded();
+    final requests = $.sync(
+      ZIOQueue.unboundedScope<Request<EIO, dynamic, dynamic>>(),
+    );
 
     $.sync(spawnIsolatePool<EIO, dynamic, dynamic>(
       (_) => _,
       requests: requests,
-    ).ignoreLogged.fork());
+    ).tapError(ZIO.logError).forkScope());
 
     return ZIOIsolateRunner(requests);
   }),

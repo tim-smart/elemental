@@ -15,12 +15,17 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
 
       RIO<Scope<NoEnv>, IsolatePoolChild<I, E, O>> spawnChild(int id) =>
           ZIO.Do(($, env) {
-            final child = IsolatePoolChild<I, E, O>.empty(id);
+            final child = IsolatePoolChild<I, E, O>.empty(
+              id,
+              $.sync(ZIOQueue.unboundedScope()),
+            );
+
             final schedule = respawnSchedule ??
                 Schedule.fixed(const Duration(seconds: 1)).lift();
-            final fiber = $
-                .sync(spawnIsolate(handle, child.queue).retry(schedule).fork());
-            fiber.addObserver(exitDeferred.unsafeCompleteExit);
+            $
+                .sync(spawnIsolate(handle, child.queue).retry(schedule).fork())
+                .addObserver(exitDeferred.unsafeCompleteExit);
+
             return child;
           });
 
@@ -62,11 +67,15 @@ class IsolatePoolChild<I, E, O>
     DateTime? lastActive,
   }) : lastActive = lastActive ?? DateTime.now();
 
-  factory IsolatePoolChild.empty(int id) => IsolatePoolChild(
+  factory IsolatePoolChild.empty(
+    int id,
+    ZIOQueue<Request<I, E, O>> queue,
+  ) =>
+      IsolatePoolChild(
         id: id,
         processed: 0,
         active: 0,
-        queue: ZIOQueue.unbounded(),
+        queue: queue,
       );
 
   final int id;
@@ -83,7 +92,9 @@ class IsolatePoolChild<I, E, O>
     return (other.active > active) ? -1 : 1;
   }
 
-  IO<IsolatePoolChild<I, E, O>> offer(Request<I, E, O> request) =>
+  IO<IsolatePoolChild<I, E, O>> offer(
+    Request<I, E, O> request,
+  ) =>
       queue.offerIO(request).as(addActive());
 
   IsolatePoolChild<I, E, O> addActive() => copyWith(
