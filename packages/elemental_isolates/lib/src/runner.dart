@@ -1,6 +1,5 @@
 import 'package:elemental/elemental.dart';
-import 'package:elemental_isolates/src/isolate.dart';
-import 'package:elemental_isolates/src/pool.dart';
+import 'package:elemental_isolates/elemental_isolates.dart';
 
 class ZIOIsolateRunner {
   const ZIOIsolateRunner(this.requests);

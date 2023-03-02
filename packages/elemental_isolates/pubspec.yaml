@@ -1,6 +1,6 @@
 name: elemental_isolates
 description: A starting point for Dart libraries or applications.
-version: 1.0.0
+version: 0.1.0
 # repository: https://github.com/my_org/my_repo
 
 environment:
@@ -8,12 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies: 
-  elemental: ^0.0.92
-  # path: ^1.8.0
-
-dependency_overrides:
-  elemental:
-    path: ../elemental
+  elemental: ^0.0.93
 
 dev_dependencies:
   lints: ^2.0.0

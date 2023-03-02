@@ -1,3 +1,5 @@
 library elemental_isolates;
 
-export 'src/index.dart';
+export 'src/isolate.dart';
+export 'src/pool.dart';
+export 'src/runner.dart';
