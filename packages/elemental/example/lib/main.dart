@@ -65,10 +65,10 @@ final todosLayer = Layer(dioLayer.accessWith((dio) => Todos(dio)));
 
 Future<void> main() async {
   final listAndPrintTodos = TodosIO.layer(todosLayer)
-      .annotateLog("custom key", true) // You can add annotations to the log
       .zipLeft(ZIO.logInfo('Fetching todos...'))
+      .annotateLog("custom key", true) // You can add annotations to the log
       .flatMap((todos) => todos.list)
-      .tap((_) => ZIO(() => print(_)));
+      .tap(ZIO.logInfo);
 
   await listAndPrintTodos.runOrThrow();
 }

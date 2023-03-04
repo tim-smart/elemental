@@ -6,8 +6,7 @@ void main() {
   final benchmark = group('async');
 
   benchmark('plain', () {
-    Future<void> fn() =>
-        Future.value(1).then((value) => Future<int>.value(value + 2));
+    Future<int> fn() => Future.value(1).then((value) => value + 2);
     return fn();
   });
 
