@@ -411,8 +411,13 @@ class ZIO<R, E, A> {
           return Exit.right(IList());
         }
 
-        final results =
-            iterable.map((a) => f(a).unsafeRun(ctx)).toList(growable: false);
+        final failure = Deferred<E, Never>();
+        final results = iterable
+            .map((a) => f(a)
+                .tapErrorCause(failure.failCause)
+                .race(failure.await())
+                .unsafeRun(ctx))
+            .toList(growable: false);
         final hasFuture = results.any((eb) => eb is Future);
 
         if (!hasFuture) {

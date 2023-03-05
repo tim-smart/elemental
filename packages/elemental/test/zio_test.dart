@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:elemental/elemental.dart';
 import 'package:test/test.dart';
 
@@ -163,6 +165,39 @@ void main() {
 
       expect(logger.items[1].first, "world");
       expect(logger.items[1].second.isEmpty, true);
+    });
+  });
+
+  group('collectPar', () {
+    test('collects results in parallel', () async {
+      final c = Completer<IList<int>>();
+      [
+        IO.succeed(1),
+        IO.succeed(2).delay(const Duration(milliseconds: 10)),
+        IO.succeed(3).delay(const Duration(milliseconds: 20)),
+      ].collectPar.runFutureOrThrow().then(c.complete);
+
+      await Future.delayed(const Duration(milliseconds: 25));
+
+      expect(c.isCompleted, true);
+      expect(await c.future, const IListConst([1, 2, 3]));
+    });
+
+    test('failure interrupts', () async {
+      final c = Completer<Exit<Never, IList<int>>>();
+      [
+        IO.succeed(1),
+        IO<int>.die("fail").delay(const Duration(milliseconds: 10)),
+        IO.succeed(3).delay(const Duration(milliseconds: 20)),
+      ].collectPar.runFuture().then(c.complete);
+
+      await Future.delayed(const Duration(milliseconds: 15));
+
+      expect(c.isCompleted, true);
+      expect(
+        await c.future,
+        Exit<Never, IList<int>>.left(Defect.current("fail")),
+      );
     });
   });
 }
