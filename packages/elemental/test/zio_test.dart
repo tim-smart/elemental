@@ -116,6 +116,29 @@ void main() {
     });
   });
 
+  group('asyncInterrupt', () {
+    test('finalizer is called', () async {
+      final deferred = DeferredIO<Unit>();
+      final zio = IO<Never>.asyncInterrupt((cb) {
+        return deferred.completeIO(unit);
+      });
+      final fiber = zio.fork().runSyncOrThrow();
+      fiber.interruptIO.runFutureOrThrow();
+      expect(deferred.unsafeCompleted, true);
+    });
+
+    test('finalizer is not called once returned', () async {
+      final deferred = DeferredIO<Unit>();
+      final zio = IO<Unit>.asyncInterrupt((resume) {
+        resume.succeed(unit);
+        return deferred.completeIO(unit);
+      });
+      final fiber = zio.fork().runSyncOrThrow();
+      fiber.interruptIO.runFutureOrThrow();
+      expect(deferred.unsafeCompleted, false);
+    });
+  });
+
   group('annotations', () {
     test('set and retreive', () {
       const key = Symbol("annotations test");

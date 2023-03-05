@@ -124,11 +124,8 @@ class ZIO<R, E, A> {
           return context._deferred.await().unsafeRun(ctx);
         }
 
-        final interuption = ctx.signal
-            .await<R>()
-            .zipRight(finalizer.lift())
-            .liftError<E>()
-            .zipRight(ZIO<R, E, Never>.failCause(const Interrupted()));
+        final interuption =
+            ctx.signal.await<R>().alwaysIgnore(finalizer.lift());
 
         return context._deferred
             .await<R>()

@@ -52,19 +52,20 @@ class _DeferredFiber<R, E, A> extends Fiber<R, E, A> {
   ZIO<R2, E, A> join<R2>() => _exit.await();
 
   // === run
-  late final _run = _zio.tapExit(
-    (exit) => _exit.completeExit<R, E>(exit).zipLeft(ZIO(() {
-      for (final observer in _observers) {
-        observer(exit);
-      }
-      _observers.clear();
-    })),
-  );
+  late final _run = _zio
+      .tapExit(
+        (exit) => _exit.completeExit<R, E>(exit).zipLeft(ZIO(() {
+          for (final observer in _observers) {
+            observer(exit);
+          }
+          _observers.clear();
+        })),
+      )
+      .race(_signal.await());
 
   @override
   ZIO<R, E2, Unit> run<E2>() => ZIO.from((ctx) {
-        ctx.runtime.run(_run.provide(ctx.env).race(_signal.await()),
-            interruptionSignal: ctx.signal);
+        _run.unsafeRun(ctx);
         return Exit.right(unit);
       });
 
