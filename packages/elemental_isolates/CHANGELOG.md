@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Update elemental
+
 ## 0.1.1
 
 - Scope queues
