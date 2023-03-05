@@ -1,3 +1,7 @@
+## 0.0.98
+
+- Fix collectPar failure
+
 ## 0.0.97
 
 - Fix asyncInterrupt
