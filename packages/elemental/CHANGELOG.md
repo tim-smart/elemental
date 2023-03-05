@@ -1,3 +1,7 @@
+## 0.0.97
+
+- Fix asyncInterrupt
+
 ## 0.0.96
 
 - Update fpdart
