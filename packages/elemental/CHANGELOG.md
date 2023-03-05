@@ -1,3 +1,7 @@
+## 0.0.96
+
+- Update fpdart
+
 ## 0.0.95
 
 - Update dependencies
