@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: fpdart
-      sha256: "21053522d5a97347737525c84e8839340a0af3c0ef592f98fac37380fdd6a57b"
+      sha256: "40dfb6f837ed1a24bc379083b564c196e6d771d713c9641cc30402a1fb989926"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.1"
+    version: "0.5.0"
   frontend_server_client:
     dependency: transitive
     description:

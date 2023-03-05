@@ -30,14 +30,6 @@ class NoEnv {
   String toString() => 'NoEnv()';
 }
 
-/// Represents the absence of a value for an [IOOption];
-class NoValue {
-  const NoValue();
-
-  @override
-  String toString() => 'NoValue()';
-}
-
 /// Represents an operation that cant fail, with no requirements
 typedef IO<A> = ZIO<NoEnv, Never, A>;
 
@@ -48,10 +40,10 @@ typedef RIO<R, A> = ZIO<R, Never, A>;
 typedef EIO<E, A> = ZIO<NoEnv, E, A>;
 
 /// Represents an operation that represent an optional value
-typedef IOOption<A> = ZIO<NoEnv, NoValue, A>;
+typedef IOOption<A> = ZIO<NoEnv, None, A>;
 
 /// Represents an operation that represent an optional value
-typedef RIOOption<R, A> = ZIO<R, NoValue, A>;
+typedef RIOOption<R, A> = ZIO<R, None, A>;
 
 /// Represents an operation that can fail with requirements
 class ZIO<R, E, A> {
@@ -224,7 +216,7 @@ class ZIO<R, E, A> {
   factory ZIO.fromExit(Exit<E, A> ea) => ZIO.from((ctx) => ea);
 
   /// Create an [IOOption] from the given nullable value, succeeding when it is
-  /// not null, and failing with [NoValue] when it is null.
+  /// not null, and failing with [None] when it is null.
   static IOOption<A> fromNullable<A>(A? a) =>
       ZIO.fromOption(Option.fromNullable(a));
 
@@ -234,9 +226,9 @@ class ZIO<R, E, A> {
       ZIO.fromOptionOrFail(Option.fromNullable(a), onNull);
 
   /// Create an [IOOption] from the given [Option], succeeding when it is a
-  /// [Some], and failing with [NoValue] when it is a [None].
+  /// [Some], and failing with [None] when it is a [None].
   static IOOption<A> fromOption<A>(Option<A> oa) => ZIO.fromEither(oa.match(
-        () => Either.left(const NoValue()),
+        () => Either.left(const None()),
         Either.right,
       ));
 
@@ -474,11 +466,11 @@ class ZIO<R, E, A> {
 
   /// A variant of [ZIO.tryCatch], that returns an [IOOption] instead of an [EIO].
   ///
-  /// Failures are mapped to [NoValue].
+  /// Failures are mapped to [None].
   static IOOption<A> tryCatchOption<A>(
     FutureOr<A> Function() f,
   ) =>
-      ZIO.tryCatch(f, (_, s) => const NoValue());
+      ZIO.tryCatch(f, (_, s) => const None());
 
   /// For the const unit
   static FutureOr<Exit<E, Unit>> _kZioUnit<R, E>(ZIOContext<R> ctx) =>
@@ -775,7 +767,7 @@ class ZIO<R, E, A> {
   ZIO<R, E, A> get microtask =>
       ZIO.from((ctx) => Future.microtask(() => unsafeRun(ctx)));
 
-  RIOOption<R, A> get option => mapError((_) => const NoValue());
+  RIOOption<R, A> get option => mapError((_) => const None());
 
   /// If the [ZIO] fails, turn the failure into a defect.
   RIO<R, A> get orDie => _mapCauseFOr((ctx, _) => _ is Failure<E>
@@ -1112,26 +1104,26 @@ extension ZIOScopeExt<R, E, A> on ZIO<Scope<R>, E, A> {
 }
 
 extension ZIONoneExt<R, A> on RIOOption<R, A> {
-  /// Filter a [IOOption] by the given predicate, failing with [NoValue] if the
+  /// Filter a [IOOption] by the given predicate, failing with [None] if the
   /// predicate is not satisfied.
   RIOOption<R, A> filter(
     bool Function(A _) predicate,
   ) =>
-      filterOrFail(predicate, (a) => const NoValue());
+      filterOrFail(predicate, (a) => const None());
 
-  /// If the given function [f] returns `null`, fail with [NoValue].
+  /// If the given function [f] returns `null`, fail with [None].
   /// Otherwise, return the result of [f].
   RIOOption<R, B> flatMapNullable<B>(
     B? Function(A _) f,
   ) =>
-      flatMapNullableOrFail(f, (a) => const NoValue());
+      flatMapNullableOrFail(f, (a) => const None());
 
-  /// If the given function [f] returns [None], fail with [NoValue].
+  /// If the given function [f] returns [None], fail with [None].
   /// Otherwise, return the result of [f].
   RIOOption<R, B> flatMapOption<B>(
     Option<B> Function(A _) f,
   ) =>
-      flatMapOptionOrFail(f, (a) => const NoValue());
+      flatMapOptionOrFail(f, (a) => const None());
 
   /// Transform an [IOOption] into an `IO<Option<A>>`.
   RIO<R, Option<A>> get option => matchSync(
