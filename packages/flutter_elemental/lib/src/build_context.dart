@@ -14,7 +14,7 @@ typedef BuildContextIOOption<A> = RIOOption<BuildContext, A>;
 
 extension ZIOBuildContextRunExt<E, A> on EIO<E, A> {
   /// Runs this [ZIO] asynchronously or synchronously as a [FutureOr], returning the [Exit] result.
-  FutureOr<Exit<E, A>> runWith(
+  FutureOr<Exit<E, A>> runContext(
     BuildContext context, {
     DeferredIO<Never>? interruptionSignal,
   }) =>
@@ -23,8 +23,18 @@ extension ZIOBuildContextRunExt<E, A> on EIO<E, A> {
             interruptionSignal: interruptionSignal,
           );
 
+  /// Runs this [ZIO] asynchronously or synchronously as a [FutureOr], returning the [Exit] result.
+  FutureOr<Exit<E, A>> runRegistry(
+    AtomRegistry registry, {
+    DeferredIO<Never>? interruptionSignal,
+  }) =>
+      registry.get(runtimeAtom).run(
+            this,
+            interruptionSignal: interruptionSignal,
+          );
+
   /// Runs this [ZIO] asynchronously and returns result as a [Future]. If the [ZIO] fails, the [Future] will throw.
-  Future<A> runFutureOrThrowWith(
+  Future<A> runFutureOrThrowContext(
     BuildContext context, {
     DeferredIO<Never>? interruptionSignal,
   }) =>
@@ -33,8 +43,18 @@ extension ZIOBuildContextRunExt<E, A> on EIO<E, A> {
             interruptionSignal: interruptionSignal,
           );
 
+  /// Runs this [ZIO] asynchronously and returns result as a [Future]. If the [ZIO] fails, the [Future] will throw.
+  Future<A> runFutureOrThrowRegistry(
+    AtomRegistry registry, {
+    DeferredIO<Never>? interruptionSignal,
+  }) =>
+      registry.get(runtimeAtom).runFutureOrThrow(
+            this,
+            interruptionSignal: interruptionSignal,
+          );
+
   /// Runs this [ZIO] asynchronously and returns the [Exit] result as a [Future].
-  Future<Exit<E, A>> runFutureWith(
+  Future<Exit<E, A>> runFutureContext(
     BuildContext context, {
     DeferredIO<Never>? interruptionSignal,
   }) =>
@@ -43,8 +63,18 @@ extension ZIOBuildContextRunExt<E, A> on EIO<E, A> {
             interruptionSignal: interruptionSignal,
           );
 
+  /// Runs this [ZIO] asynchronously and returns the [Exit] result as a [Future].
+  Future<Exit<E, A>> runFutureRegistry(
+    AtomRegistry registry, {
+    DeferredIO<Never>? interruptionSignal,
+  }) =>
+      registry.get(runtimeAtom).runFuture(
+            this,
+            interruptionSignal: interruptionSignal,
+          );
+
   /// Runs this [ZIO] synchronously or asynchronously as a [FutureOr], throwing if it fails.
-  FutureOr<A> runOrThrowWith(
+  FutureOr<A> runOrThrowContext(
     BuildContext context, {
     DeferredIO<Never>? interruptionSignal,
   }) =>
@@ -53,8 +83,18 @@ extension ZIOBuildContextRunExt<E, A> on EIO<E, A> {
             interruptionSignal: interruptionSignal,
           );
 
+  /// Runs this [ZIO] synchronously or asynchronously as a [FutureOr], throwing if it fails.
+  FutureOr<A> runOrThrowRegistry(
+    AtomRegistry registry, {
+    DeferredIO<Never>? interruptionSignal,
+  }) =>
+      registry.get(runtimeAtom).runOrThrow(
+            this,
+            interruptionSignal: interruptionSignal,
+          );
+
   /// Runs this [ZIO] synchronously and returns the result as an [Exit].
-  Exit<E, A> runSyncWith(
+  Exit<E, A> runSyncContext(
     BuildContext context, {
     DeferredIO<Never>? interruptionSignal,
   }) =>
@@ -63,7 +103,21 @@ extension ZIOBuildContextRunExt<E, A> on EIO<E, A> {
             interruptionSignal: interruptionSignal,
           );
 
+  /// Runs this [ZIO] synchronously and returns the result as an [Exit].
+  Exit<E, A> runSyncRegistry(
+    AtomRegistry registry, {
+    DeferredIO<Never>? interruptionSignal,
+  }) =>
+      registry.get(runtimeAtom).runSync(
+            this,
+            interruptionSignal: interruptionSignal,
+          );
+
   /// Runs this [ZIO] synchronously and throws if it fails.
-  A runSyncOrThrowWith(BuildContext context) =>
+  A runSyncOrThrowContext(BuildContext context) =>
       context.registry(listen: false).get(runtimeAtom).runSyncOrThrow(this);
+
+  /// Runs this [ZIO] synchronously and throws if it fails.
+  A runSyncOrThrowRegistry(AtomRegistry registry) =>
+      registry.get(runtimeAtom).runSyncOrThrow(this);
 }

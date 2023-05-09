@@ -1,3 +1,7 @@
+## 0.1.1
+
+- run Context/Registry
+
 ## 0.1.0
 
 - require BuildContext by default when running
