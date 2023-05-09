@@ -1,3 +1,7 @@
+## 0.0.99
+
+- update fpdart
+
 ## 0.0.98
 
 - Fix collectPar failure

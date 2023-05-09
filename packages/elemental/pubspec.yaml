@@ -1,6 +1,6 @@
 name: elemental
 description: A toolkit for writing software in dart. Effect-system, dependency management and more!
-version: 0.0.98
+version: 0.0.99
 homepage: https://github.com/tim-smart/elemental
 
 environment:
@@ -12,6 +12,6 @@ dev_dependencies:
 
 dependencies:
   fast_immutable_collections: ">=9.0.0 <10.0.0"
-  fpdart: ^0.5.0
+  fpdart: ^0.6.0
   meta: ^1.9.0
   nucleus: ^0.3.14

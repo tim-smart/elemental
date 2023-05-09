@@ -7,6 +7,7 @@ export 'package:fpdart/fpdart.dart'
         ComposeOnFunction2,
         IO,
         IOEither,
+        IOOption,
         IORef,
         random,
         randomBool,
