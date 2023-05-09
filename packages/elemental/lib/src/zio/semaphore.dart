@@ -57,6 +57,10 @@ class Semaphore {
   /// automatically release the permits when the [ZIO] completes.
   ZIO<R, E, A> withPermits<R, E, A>(int permits, ZIO<R, E, A> zio) =>
       take<R, E>(permits).zipRight(zio).alwaysIgnore(release(permits));
+
+  /// Runs the specified [ZIO] with a single permit. It will automatically
+  /// release the permit when the [ZIO] completes.
+  ZIO<R, E, A> use<R, E, A>(ZIO<R, E, A> zio) => withPermits(1, zio);
 }
 
 /// A [Guarded] is a wrapper around a value that can only be accessed by a

@@ -1,3 +1,7 @@
+## 0.1.0
+
+- require BuildContext by default when running
+
 ## 0.0.15
 
 - update deps
