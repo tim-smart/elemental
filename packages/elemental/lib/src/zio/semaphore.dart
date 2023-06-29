@@ -1,6 +1,6 @@
 part of '../zio.dart';
 
-class _Waiter extends LinkedListEntry<_Waiter> {
+final class _Waiter extends LinkedListEntry<_Waiter> {
   _Waiter(this.permits);
   final deferred = DeferredIO<Unit>();
   final int permits;

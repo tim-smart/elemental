@@ -16,7 +16,7 @@ class ZIORunner<E, A> {
       loading: false,
     ))
         .flatMap2((_) => ZIO.runtime())
-        .map((a) => ZIORunner._(a.second, zio, scope, a.first))
+        .map((a) => ZIORunner._(a.$2, zio, scope, a.$1))
         .provide(scope);
   }
 

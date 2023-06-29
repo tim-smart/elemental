@@ -23,7 +23,7 @@ abstract class TodosError {}
 class ListTodosError extends TodosError {}
 
 class TodosDioError extends TodosError {
-  final DioError dioError;
+  final DioException dioError;
   TodosDioError(this.dioError);
 
   @override

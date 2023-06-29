@@ -95,7 +95,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.99"
+    version: "0.0.100"
   fast_immutable_collections:
     dependency: transitive
     description:

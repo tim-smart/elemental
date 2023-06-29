@@ -523,8 +523,7 @@ class ZIO<R, E, A> {
     FutureOr<Exit<E2, A>> Function(
       ZIOContext<R>,
       Cause<E> _,
-    )
-        f,
+    ) f,
   ) =>
       ZIO.from(
         (ctx) => unsafeRun(ctx).then(
@@ -596,11 +595,11 @@ class ZIO<R, E, A> {
       );
 
   /// A variant of [flatMap] that zip's the result of this [ZIO] with the result
-  /// of the given [ZIO], returning a [Tuple2] of the results.
-  ZIO<R, E, Tuple2<A, B>> flatMap2<B>(
+  /// of the given [ZIO], returning a record of the results.
+  ZIO<R, E, (A, B)> flatMap2<B>(
     ZIO<R, E, B> Function(A _) f,
   ) =>
-      flatMap((a) => f(a).map((b) => tuple2(a, b)));
+      flatMap((a) => f(a).map((b) => (a, b)));
 
   /// A variant of [flatMap] that uses the resulting [Either] to determine
   /// the result.
@@ -917,15 +916,15 @@ class ZIO<R, E, A> {
 
   /// Combine the result of this [ZIO] with the result of the given [ZIO], returning
   /// a tuple of the results.
-  ZIO<R, E, Tuple2<A, B>> zip<B>(ZIO<R, E, B> zio) =>
-      zipWith(zio, (a, B b) => tuple2(a, b));
+  ZIO<R, E, (A, B)> zip<B>(ZIO<R, E, B> zio) =>
+      zipWith(zio, (a, B b) => (a, b));
 
   /// Combine the result of this [ZIO] with the result of the given [ZIO], returning
   /// a tuple of the results.
   ///
   /// The [ZIO]'s are run in parallel.
-  ZIO<R, E, Tuple2<A, B>> zipPar<B>(ZIO<R, E, B> zio) =>
-      zipParWith(zio, (a, B b) => tuple2(a, b));
+  ZIO<R, E, (A, B)> zipPar<B>(ZIO<R, E, B> zio) =>
+      zipParWith(zio, (a, B b) => (a, b));
 
   /// Run this [ZIO] and the given [ZIO] in parallel, ignoring the result of the
   /// given [ZIO].

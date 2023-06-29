@@ -1,6 +1,6 @@
 part of '../zio.dart';
 
-class _Taker<A> extends LinkedListEntry<_Taker<A>> {
+final class _Taker<A> extends LinkedListEntry<_Taker<A>> {
   final deferred = DeferredIO<A>();
 }
 

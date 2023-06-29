@@ -160,11 +160,11 @@ void main() {
           .runSyncOrThrow();
 
       expect(logger.items.length, 2);
-      expect(logger.items[0].first, "hello");
-      expect(logger.items[0].second["key"], 123);
+      expect(logger.items[0].$1, "hello");
+      expect(logger.items[0].$2["key"], 123);
 
-      expect(logger.items[1].first, "world");
-      expect(logger.items[1].second.isEmpty, true);
+      expect(logger.items[1].$1, "world");
+      expect(logger.items[1].$2.isEmpty, true);
     });
   });
 
@@ -203,7 +203,7 @@ void main() {
 }
 
 class TestLogger implements Logger {
-  final items = <Tuple2<String, IMap<String, dynamic>>>[];
+  final items = <(String, IMap<String, dynamic>)>[];
 
   @override
   ZIO<R, E, Unit> log<R, E>(
@@ -213,7 +213,7 @@ class TestLogger implements Logger {
     IMap<String, dynamic> annotations = const IMapConst({}),
   }) =>
       ZIO(() {
-        items.add(tuple2(message, annotations));
+        items.add((message, annotations));
         return unit;
       });
 }
