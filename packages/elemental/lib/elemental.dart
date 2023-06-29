@@ -3,8 +3,6 @@ export 'package:fast_immutable_collections/fast_immutable_collections.dart'
 export 'package:nucleus/nucleus.dart';
 export 'package:fpdart/fpdart.dart'
     hide
-        ComposeOnFunction1,
-        ComposeOnFunction2,
         IO,
         IOEither,
         IOOption,
@@ -14,6 +12,8 @@ export 'package:fpdart/fpdart.dart'
         randomInt,
         Reader,
         ReaderHKT,
+        ReaderTask,
+        ReaderTaskEither,
         State,
         StateAsync,
         Task,
