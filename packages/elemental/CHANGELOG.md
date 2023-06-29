@@ -1,3 +1,7 @@
+## 0.0.100
+
+- update fpdart
+
 ## 0.0.99
 
 - update fpdart
