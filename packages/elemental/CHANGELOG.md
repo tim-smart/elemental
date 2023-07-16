@@ -1,3 +1,8 @@
+## 0.1.0
+
+- use records
+- drop support for dart 2
+
 ## 0.0.100
 
 - update fpdart
