@@ -1,3 +1,7 @@
+## 0.2.0
+
+- update elemental
+
 ## 0.1.1
 
 - run Context/Registry
