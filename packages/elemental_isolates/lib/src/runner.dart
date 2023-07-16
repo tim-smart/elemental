@@ -9,7 +9,7 @@ class ZIOIsolateRunner {
   ZIO<R, E, A> run<R, E, A>(ZIO<R, E, A> zio) => ZIO.from((ctx) {
         final deferred = Deferred<dynamic, dynamic>();
         return requests
-            .offer<NoEnv, dynamic>(tuple2(
+            .offer<NoEnv, dynamic>((
               zio.mapError((_) => _ as dynamic).provide(ctx.env),
               deferred,
             ))

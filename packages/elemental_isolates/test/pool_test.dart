@@ -5,18 +5,17 @@ import 'package:test/test.dart';
 void main() {
   group('spawnPool', () {
     test('works', () async {
-      final requests =
-          ZIOQueue<Tuple2<int, Deferred<Never, String>>>.unbounded();
+      final requests = ZIOQueue<(int, Deferred<Never, String>)>.unbounded();
 
       final deferred1 = DeferredIO<String>();
-      requests.offerIO(tuple2(1, deferred1)).run();
+      requests.offerIO((1, deferred1)).run();
       final deferred2 = DeferredIO<String>();
-      requests.offerIO(tuple2(2, deferred2)).run();
+      requests.offerIO((2, deferred2)).run();
       final deferred3 = DeferredIO<String>();
-      requests.offerIO(tuple2(3, deferred3)).run();
+      requests.offerIO((3, deferred3)).run();
 
       final fiber = spawnIsolatePool(
-        (count) => ZIO.succeed("Got: $count"),
+        (int count) => ZIO.succeed("Got: $count"),
         requests: requests,
       ).asUnit.scoped.fork().runSyncOrThrow();
 

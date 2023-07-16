@@ -44,7 +44,7 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolatePool<I, E, O>(
                 .offer(request)
                 .flatMap((child) => children
                     .updateIO((_) => _.replace(child))
-                    .zipRight(request.second.awaitIO.ignore)
+                    .zipRight(request.$2.awaitIO.ignore)
                     .alwaysIgnore(children.updateIO(
                       (_) => _.replace(_.find(child).addProcessed()),
                     ))

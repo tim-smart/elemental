@@ -4,8 +4,8 @@ import 'package:elemental/elemental.dart';
 // ignore: implementation_imports
 import 'package:elemental/src/future_or.dart';
 
-typedef Request<I, E, O> = Tuple2<I, Deferred<E, O>>;
-typedef _RequestWithPort<I> = Tuple2<I, SendPort>;
+typedef Request<I, E, O> = (I, Deferred<E, O>);
+typedef _RequestWithPort<I> = (I, SendPort);
 
 typedef IsolateHandler<I, E, O> = EIO<E, O> Function(I input);
 typedef _IsolateIO<A> = ZIO<Scope<NoEnv>, IsolateError, A>;
@@ -49,7 +49,7 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
           _IsolateIO<ReceivePort>(() {
             activeRequests.add(request);
             final receive = ReceivePort();
-            sendPort.send(tuple2(request.first, receive.sendPort));
+            sendPort.send((request.$1, receive.sendPort));
             return receive;
           })
               .flatMapThrowable(
@@ -57,7 +57,14 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
                 (error, stack) => IsolateError(error),
               )
               .zipLeft(ZIO(() => activeRequests.remove(request)))
-              .flatMap((_) => request.second.completeExit(_));
+              .flatMap(
+            (_) {
+              return (_ as Exit<dynamic, dynamic>).match(
+                (cause) => request.$2.failCause(cause.lift()),
+                (value) => request.$2.complete(value),
+              );
+            },
+          );
 
       final send = requests
           .take<Scope<NoEnv>, IsolateError>()
@@ -67,7 +74,7 @@ ZIO<Scope<NoEnv>, IsolateError, Never> spawnIsolate<I, E, O>(
       await $(
         send.race(waitForExit).tapExit((exit) => ZIO(() {
               for (final request in activeRequests) {
-                request.second.unsafeCompleteExit(exit.mapLeft(
+                request.$2.unsafeCompleteExit(exit.mapLeft(
                   (_) => _.when<Cause<E>>(
                     failure: (_) => Defect.current(_.error),
                     defect: (_) => _.lift(),
@@ -86,6 +93,6 @@ void Function(SendPort) _entrypoint<I, E, O>(IsolateHandler<I, E, O> handle) =>
       sendPort.send(receivePort.sendPort);
 
       await for (final _RequestWithPort<I> request in receivePort) {
-        handle(request.first).run().then(request.second.send);
+        handle(request.$1).run().then(request.$2.send);
       }
     };
