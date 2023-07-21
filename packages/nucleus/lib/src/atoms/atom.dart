@@ -43,7 +43,7 @@ abstract class Atom<T> {
   String toString() => "$runtimeType(name: $_name)";
 }
 
-class AtomConfigMixin<A extends Atom> {
+abstract mixin class AtomConfigMixin<A extends Atom> {
   /// Prevent the state of this atom from being automatically disposed.
   A keepAlive() {
     (this as A)._keepAlive = true;

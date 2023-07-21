@@ -3,8 +3,8 @@ import 'package:creator_core/creator_core.dart';
 import 'utils.dart';
 
 final value = Creator.value(0);
-final valueKeepAlive = Creator.value(0, keepAlive:true);
-final family = Creator.arg1((ref, int i) => i);
+final valueKeepAlive = Creator.value(0, keepAlive: true);
+Creator<int> family(int i) => Creator.value(i);
 final nested = Creator((ref) => List.generate(10000, (i) => Creator.value(i)));
 final nested100 = Creator((ref) => List.generate(100, (i) => Creator.value(i)));
 

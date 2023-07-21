@@ -97,7 +97,7 @@ void main() {
         values,
         equals([
           FutureValue.loading(),
-          FutureValue.data(FamilyArg2(1, 2)),
+          FutureValue.data((1, 2)),
         ]),
       );
     });

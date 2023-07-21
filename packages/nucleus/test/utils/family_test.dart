@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:nucleus/nucleus.dart';
 import 'package:test/test.dart';
 
@@ -57,7 +59,7 @@ void main() {
 
       // Wait for GC
       await Future.delayed(Duration(seconds: 2));
-
+      debugger();
       expect(registry.get(family(1)), 1);
     });
   });
@@ -95,22 +97,25 @@ void main() {
     });
   });
 
-  group('atomFamily2', () {
+  group('atomFamily 2 args', () {
     test('it points to the same atom on multiple calls', () async {
-      final family = atomFamily2((int id, String name) => stateAtom({
-            'id': id,
-            'name': name,
+      final family = atomFamily(((int id, String name) args) => stateAtom({
+            'id': args.$1,
+            'name': args.$2,
           }));
       final registry = AtomRegistry();
 
-      expect(registry.get(family(1, 'Tim')), equals({'id': 1, 'name': 'Tim'}));
-      registry.set(family(1, 'Tim'), {'id': 1, 'name': 'John'});
-      expect(registry.get(family(1, 'Tim')), equals({'id': 1, 'name': 'John'}));
+      expect(
+          registry.get(family((1, 'Tim'))), equals({'id': 1, 'name': 'Tim'}));
+      registry.set(family((1, 'Tim')), {'id': 1, 'name': 'John'});
+      expect(
+          registry.get(family((1, 'Tim'))), equals({'id': 1, 'name': 'John'}));
 
       // Wait for GC
       await Future.microtask(() => null);
 
-      expect(registry.get(family(1, 'Tim')), equals({'id': 1, 'name': 'Tim'}));
+      expect(
+          registry.get(family((1, 'Tim'))), equals({'id': 1, 'name': 'Tim'}));
     });
   });
 }

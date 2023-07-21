@@ -59,7 +59,7 @@ abstract class FutureValue<A> {
     required B Function() orElse,
   });
 
-  FutureValue<FamilyArg2<A, B>> combineWith<B>(FutureValue<B> other) {
+  FutureValue<(A, B)> combineWith<B>(FutureValue<B> other) {
     final self = this;
     if (self is FutureError<A>) {
       return FutureValue.error(self.error, self.stackTrace);
@@ -70,7 +70,7 @@ abstract class FutureValue<A> {
     final loading = isLoading || other.isLoading;
     final data = (dataOrNull != null && other.dataOrNull != null)
         // ignore: null_check_on_nullable_type_parameter
-        ? FamilyArg2(dataOrNull!, other.dataOrNull!)
+        ? (dataOrNull!, other.dataOrNull!)
         : null;
 
     return loading || data == null
@@ -78,23 +78,23 @@ abstract class FutureValue<A> {
         : FutureValue.data(data);
   }
 
-  FutureValue<FamilyArg3<A, B, C>> combineWith2<B, C>(
+  FutureValue<(A, B, C)> combineWith2<B, C>(
     FutureValue<B> one,
     FutureValue<C> two,
   ) =>
       combineWith(one).combineWith(two).when(
-            data: (t) => FutureValue.data(FamilyArg3(
-              t.first.first,
-              t.first.second,
-              t.second,
+            data: (t) => FutureValue.data((
+              t.$1.$1,
+              t.$1.$2,
+              t.$2,
             )),
             error: (error, stackTrace) => FutureValue.error(error, stackTrace),
             loading: (t) => FutureValue.loading(
               t != null
-                  ? FamilyArg3(
-                      t.first.first,
-                      t.first.second,
-                      t.second,
+                  ? (
+                      t.$1.$1,
+                      t.$1.$2,
+                      t.$2,
                     )
                   : null,
             ),
