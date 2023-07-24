@@ -213,10 +213,10 @@ packages:
     dependency: "direct main"
     description:
       name: nucleus
-      sha256: "6448189039f8dbd2c8bd3a899274bc21f1addc4353accb70cf57406280d8681c"
+      sha256: a279b157bd781066095562d16f6b3ec1f6edec585619417195876bcd15776c9b
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.15"
+    version: "0.4.0"
   package_config:
     dependency: transitive
     description:
