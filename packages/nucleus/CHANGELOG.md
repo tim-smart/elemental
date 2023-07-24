@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Update to dart 3
+ 
 ## 0.3.15
 
 - Set generic on AtomInitialValue
