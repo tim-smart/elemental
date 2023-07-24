@@ -1,3 +1,7 @@
+## 0.2.1
+
+- update elemental
+
 ## 0.2.0
 
 - update elemental
