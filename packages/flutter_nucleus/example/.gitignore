@@ -48,3 +48,4 @@ app.*.map.json
 /macos
 /web
 /windows
+/test

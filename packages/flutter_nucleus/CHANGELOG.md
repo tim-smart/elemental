@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Update deps
+
 ## 0.3.5
 
 - Fix `AtomScope.withRegistry` API

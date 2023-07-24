@@ -41,7 +41,7 @@ class CounterText extends HookWidget {
     // [useAtom] returns and listens to atom value changes.
     final count = useAtom(counter);
 
-    return Text('$count', style: Theme.of(context).textTheme.headline4);
+    return Text('$count', style: Theme.of(context).textTheme.headlineMedium);
   }
 }
 
@@ -73,7 +73,7 @@ class MultipliedText extends StatelessWidget {
   Widget build(BuildContext context) =>
       AtomBuilder((context, get, child) => Text(
             '${get(multiplied)}$suffix',
-            style: Theme.of(context).textTheme.headline4,
+            style: Theme.of(context).textTheme.headlineMedium,
           ));
 }
 
@@ -86,10 +86,10 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text('You have pushed the button this many times:'),
             CounterText(),
             Text('Multiplied:'),
