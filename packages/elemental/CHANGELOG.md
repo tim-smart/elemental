@@ -1,3 +1,7 @@
+## 0.1.2
+
+- fix for type mismatches
+
 ## 0.1.1
 
 - update nucleus

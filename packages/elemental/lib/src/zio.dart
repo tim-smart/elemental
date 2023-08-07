@@ -414,7 +414,7 @@ class ZIO<R, E, A> {
         final failure = Deferred<E, Never>();
         final results = iterable
             .map((a) => f(a)
-                .tapErrorCause(failure.failCause)
+                .tapErrorCause((_) => failure.failCause(_))
                 .race(failure.await())
                 .unsafeRun(ctx))
             .toList(growable: false);
@@ -692,7 +692,7 @@ class ZIO<R, E, A> {
   RIO<R, Unit> get ignoreLogged => logged.ignore;
 
   /// Log any failures using [logInfo].
-  ZIO<R, E, A> get logged => tapErrorCause(logInfo);
+  ZIO<R, E, A> get logged => tapErrorCause((_) => logInfo(_));
 
   /// Succeed with the value of this [ZIO] if it succeeds, or succeed with the
   /// result of the given function if it fails.
@@ -701,7 +701,7 @@ class ZIO<R, E, A> {
   RIO<R, A> logOrElse(
     A Function(E _) orElse,
   ) =>
-      tapError(logInfo).getOrElse(orElse);
+      tapError((_) => logInfo(_)).getOrElse(orElse);
 
   /// Transform the success value of this [ZIO] using the given function.
   ZIO<R, E, B> map<B>(
