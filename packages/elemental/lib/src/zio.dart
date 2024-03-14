@@ -10,7 +10,6 @@ part 'zio/async.dart';
 part 'zio/context.dart';
 part 'zio/deferred.dart';
 part 'zio/do.dart';
-part 'zio/either.dart';
 part 'zio/exit.dart';
 part 'zio/fiber.dart';
 part 'zio/layer.dart';
