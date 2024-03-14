@@ -161,12 +161,15 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
       );
 
   /// Runs the given [zios] in sequence, discarding the results.
-  static ZIO<R, E, Unit> collectDiscard<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
+  static ZIO<R, E, Unit> collectDiscard<R, E, A>(
+    Iterable<IZIO<R, E, A>> zios,
+  ) =>
       collect(zios).asUnit;
 
   /// Runs the given [zios] in parallel, collecting the results.
   static ZIO<R, E, IList<A>> collectPar<R, E, A>(
-          Iterable<IZIO<R, E, A>> zios) =>
+    Iterable<IZIO<R, E, A>> zios,
+  ) =>
       ZIO.traverseIterablePar<R, E, IZIO<R, E, A>, A>(
         zios,
         identity,
@@ -174,7 +177,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
 
   /// Runs the given [zios] in parallel, discarding the results.
   static ZIO<R, E, Unit> collectParDiscard<R, E, A>(
-    Iterable<ZIO<R, E, A>> zios,
+    Iterable<IZIO<R, E, A>> zios,
   ) =>
       collectPar(zios).asUnit;
 
@@ -346,12 +349,12 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
   }) =>
       logError(message, annotations: annotations);
 
-  factory ZIO.raceAll(Iterable<ZIO<R, E, A>> others) => ZIO.from((ctx) {
+  factory ZIO.raceAll(Iterable<IZIO<R, E, A>> others) => ZIO.from((ctx) {
         final signal = DeferredIO<Never>();
         final deferred = Deferred<E, A>();
 
         for (final zio in others) {
-          zio
+          zio.asZIO
               .unsafeRun(ctx.withSignal(signal))
               .then(deferred.unsafeCompleteExit);
           if (deferred.unsafeCompleted) {
@@ -1107,7 +1110,7 @@ extension ZIONoneExt<R, A> on RIOOption<R, A> {
       );
 }
 
-extension ZIOIterableExt<R, E, A> on Iterable<ZIO<R, E, A>> {
+extension ZIOIterableExt<R, E, A> on Iterable<IZIO<R, E, A>> {
   /// Alias for [ZIO.collect]
   ZIO<R, E, IList<A>> get collect => ZIO.collect(this);
 
