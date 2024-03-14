@@ -10,6 +10,7 @@ part 'zio/async.dart';
 part 'zio/context.dart';
 part 'zio/deferred.dart';
 part 'zio/do.dart';
+part 'zio/either.dart';
 part 'zio/exit.dart';
 part 'zio/fiber.dart';
 part 'zio/layer.dart';
@@ -45,8 +46,12 @@ typedef IOOption<A> = ZIO<NoEnv, None, A>;
 /// Represents an operation that represent an optional value
 typedef RIOOption<R, A> = ZIO<R, None, A>;
 
+abstract interface class IZIO<R, E, A> {
+  ZIO<R, E, A> get asZIO;
+}
+
 /// Represents an operation that can fail with requirements
-class ZIO<R, E, A> {
+class ZIO<R, E, A> implements IZIO<R, E, A> {
   const ZIO._(
     this._unsafeRun, {
     this.stackTrace,
@@ -95,6 +100,9 @@ class ZIO<R, E, A> {
       return Exit.left(Defect(err, stack, stackTrace));
     }
   }
+
+  @override
+  get asZIO => this;
 
   // Constructors
 
@@ -147,8 +155,8 @@ class ZIO<R, E, A> {
       ZIO.fromExit(Either.left(Defect(defect, StackTrace.current)));
 
   /// Runs the given [zios] in sequence, collecting the results.
-  static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
-      ZIO.traverseIterable<R, E, ZIO<R, E, A>, A>(
+  static ZIO<R, E, IList<A>> collect<R, E, A>(Iterable<IZIO<R, E, A>> zios) =>
+      ZIO.traverseIterable<R, E, IZIO<R, E, A>, A>(
         zios,
         identity,
       );
@@ -158,8 +166,9 @@ class ZIO<R, E, A> {
       collect(zios).asUnit;
 
   /// Runs the given [zios] in parallel, collecting the results.
-  static ZIO<R, E, IList<A>> collectPar<R, E, A>(Iterable<ZIO<R, E, A>> zios) =>
-      ZIO.traverseIterablePar<R, E, ZIO<R, E, A>, A>(
+  static ZIO<R, E, IList<A>> collectPar<R, E, A>(
+          Iterable<IZIO<R, E, A>> zios) =>
+      ZIO.traverseIterablePar<R, E, IZIO<R, E, A>, A>(
         zios,
         identity,
       );
@@ -384,7 +393,7 @@ class ZIO<R, E, A> {
   /// Traverse an [Iterable] with the given function, collecting the results.
   static ZIO<R, E, IList<B>> traverseIterable<R, E, A, B>(
     Iterable<A> iterable,
-    ZIO<R, E, B> Function(A _) f,
+    IZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from((ctx) {
         if (iterable.isEmpty) {
@@ -404,7 +413,7 @@ class ZIO<R, E, A> {
   /// parallel.
   static ZIO<R, E, IList<B>> traverseIterablePar<R, E, A, B>(
     Iterable<A> iterable,
-    ZIO<R, E, B> Function(A _) f,
+    IZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from((ctx) {
         if (iterable.isEmpty) {
@@ -414,6 +423,7 @@ class ZIO<R, E, A> {
         final failure = Deferred<E, Never>();
         final results = iterable
             .map((a) => f(a)
+                .asZIO
                 .tapErrorCause((_) => failure.failCause(_))
                 .race(failure.await())
                 .unsafeRun(ctx))
@@ -489,18 +499,19 @@ class ZIO<R, E, A> {
   // ==========================
 
   /// Always run the given [ZIO] after this one, regardless of success or failure.
-  ZIO<R, E, A> always(ZIO<R, E, A> zio) =>
+  ZIO<R, E, A> always(IZIO<R, E, A> zio) =>
       ZIO.from((ctx) => unsafeRun(ctx).then(
-            (exit) => zio.unsafeRun(ctx.withoutSignal),
+            (exit) => zio.asZIO.unsafeRun(ctx.withoutSignal),
           ));
 
   /// Always run the given [ZIO] after this one, regardless of success or failure.
   ///
   /// The result of this [ZIO] is ignored.
-  ZIO<R, E, A> alwaysIgnore<X>(ZIO<R, E, X> zio) => ZIO.from(
+  ZIO<R, E, A> alwaysIgnore<X>(IZIO<R, E, X> zio) => ZIO.from(
         (ctx) => race(ctx.signal.awaitIO.lift<R, E>()).unsafeRun(ctx).then(
-              (exit) =>
-                  zio.unsafeRun(ctx.withoutSignal).then((_) => _.call(exit)),
+              (exit) => zio.asZIO
+                  .unsafeRun(ctx.withoutSignal)
+                  .then((_) => _.call(exit)),
             ),
       );
 
@@ -534,28 +545,29 @@ class ZIO<R, E, A> {
   /// Catch all defects that may occur on this [ZIO]. The result will be replaced
   /// by executing the [ZIO] resulting from the given function.
   ZIO<R, E2, A> catchCause<E2>(
-    ZIO<R, E2, A> Function(Cause<E> _) f,
+    IZIO<R, E2, A> Function(Cause<E> _) f,
   ) =>
-      _mapCauseFOr((ctx, _) => f(_).unsafeRun(ctx));
+      _mapCauseFOr((ctx, _) => f(_).asZIO.unsafeRun(ctx));
 
   /// Catch any [Defect]'s that may occur on this [ZIO]. The result will be
   /// replaced by executing the [ZIO] resulting from the given function.
   ZIO<R, E2, A> catchDefect<E2>(
-    ZIO<R, E2, A> Function(Defect<E> _) f,
+    IZIO<R, E2, A> Function(Defect<E> _) f,
   ) =>
       _mapCauseFOr(
         (ctx, _) =>
-            _ is Defect<E> ? f(_).unsafeRun(ctx) : Either.left(_.lift()),
+            _ is Defect<E> ? f(_).asZIO.unsafeRun(ctx) : Either.left(_.lift()),
       );
 
   /// Catch any errors that may occur on this [ZIO]. The result will be
   /// replaced by executing the [ZIO] resulting from the given function.
   ZIO<R, E2, A> catchError<E2>(
-    ZIO<R, E2, A> Function(E _) f,
+    IZIO<R, E2, A> Function(E _) f,
   ) =>
       _mapCauseFOr(
-        (ctx, _) =>
-            _ is Failure<E> ? f(_.error).unsafeRun(ctx) : Either.left(_.lift()),
+        (ctx, _) => _ is Failure<E>
+            ? f(_.error).asZIO.unsafeRun(ctx)
+            : Either.left(_.lift()),
       );
 
   /// Delay the evaluation of this [ZIO] by the given [duration].
@@ -583,13 +595,13 @@ class ZIO<R, E, A> {
   /// Passes the success value of this [ZIO] to the given function, and replaces
   /// the result by executing the resulting [ZIO].
   ZIO<R, E, B> flatMap<B>(
-    ZIO<R, E, B> Function(A _) f,
+    IZIO<R, E, B> Function(A _) f,
   ) =>
       ZIO.from(
         (ctx) => unsafeRun(ctx).then(
           (ea) => ea.match(
             (e) => Either.left(e),
-            (a) => f(a).unsafeRun(ctx),
+            (a) => f(a).asZIO.unsafeRun(ctx),
           ),
         ),
       );
@@ -597,58 +609,23 @@ class ZIO<R, E, A> {
   /// A variant of [flatMap] that zip's the result of this [ZIO] with the result
   /// of the given [ZIO], returning a record of the results.
   ZIO<R, E, (A, B)> flatMap2<B>(
-    ZIO<R, E, B> Function(A _) f,
+    IZIO<R, E, B> Function(A _) f,
   ) =>
-      flatMap((a) => f(a).map((b) => (a, b)));
-
-  /// A variant of [flatMap] that uses the resulting [Either] to determine
-  /// the result.
-  ///
-  /// [Right] values are mapped to the success channel, [Left] values are
-  /// mapped to the error channel.
-  ZIO<R, E, B> flatMapEither<B>(
-    Either<E, B> Function(A _) f,
-  ) =>
-      ZIO.from(
-        (ctx) => unsafeRun(ctx).then(
-          (ea) => ea.flatMapExitEither(f),
-        ),
-      );
+      flatMap((a) => f(a).asZIO.map((b) => (a, b)));
 
   /// A variant of [flatMap] that also provides the environment to the given
   /// function.
   ZIO<R, E, B> flatMapEnv<B>(
-    ZIO<R, E, B> Function(A _, R env) f,
+    IZIO<R, E, B> Function(A _, R env) f,
   ) =>
       ZIO.from(
         (ctx) => unsafeRun(ctx).then(
           (ea) => ea.match(
             (e) => Either.left(e),
-            (a) => f(a, ctx.env).unsafeRun(ctx),
+            (a) => f(a, ctx.env).asZIO.unsafeRun(ctx),
           ),
         ),
       );
-
-  /// A variant of [flatMap] that determines the result of the [ZIO] by
-  /// evaluating the resulting nullable value.
-  ///
-  /// If the value is `null`, the resulting [ZIO] will fail with [onNull].
-  ZIO<R, E, B> flatMapNullableOrFail<B>(
-    B? Function(A _) f,
-    E Function(A _) onNull,
-  ) =>
-      flatMapEither((a) => Either.fromNullable(f(a), () => onNull(a)));
-
-  /// A variant of [flatMap] that uses the resulting [Option] to determine
-  /// the result.
-  ///
-  /// [Some] values are mapped to the success channel, and if the value is
-  /// [None], the resulting [ZIO] will fail with [onNone].
-  ZIO<R, E, B> flatMapOptionOrFail<B>(
-    Option<B> Function(A _) f,
-    E Function(A _) onNone,
-  ) =>
-      flatMapEither((a) => Either.fromOption(f(a), () => onNone(a)));
 
   /// A variant of [flatMap] that uses the result of the given function. If the given
   /// function throws an error, the resulting [ZIO] will fail with the result of
@@ -720,14 +697,14 @@ class ZIO<R, E, A> {
   /// Reduce the success and error values of this [ZIO] using the given
   /// functions.
   ZIO<R, E2, B> match<E2, B>(
-    ZIO<R, E2, B> Function(E _) onError,
-    ZIO<R, E2, B> Function(A _) onSuccess,
+    IZIO<R, E2, B> Function(E _) onError,
+    IZIO<R, E2, B> Function(A _) onSuccess,
   ) =>
       ZIO.from(
         (ctx) => unsafeRun(ctx).then(
           (ea) => ea._matchExitFOr(
-            (e) => onError(e).unsafeRun(ctx),
-            (a) => onSuccess(a).unsafeRun(ctx),
+            (e) => onError(e).asZIO.unsafeRun(ctx),
+            (a) => onSuccess(a).asZIO.unsafeRun(ctx),
           ),
         ),
       );
@@ -802,7 +779,7 @@ class ZIO<R, E, A> {
                 .unsafeRun(ctx),
           );
 
-  ZIO<R, E, A> race(ZIO<R, E, A> other) => ZIO.raceAll([this, other]);
+  ZIO<R, E, A> race(IZIO<R, E, A> other) => ZIO.raceAll([this, other]);
 
   /// Repeat this [ZIO] using the given [Schedule].
   ZIO<R, E, A> repeat<O>(Schedule<R, E, A, O> schedule) =>
@@ -880,14 +857,14 @@ class ZIO<R, E, A> {
   /// A variant of [tap], where the success and failure channels are merged into
   /// an [Either].
   ZIO<R, E, A> tapEither<X>(
-    ZIO<R, E, X> Function(Either<E, A> _) f,
+    IZIO<R, E, X> Function(Either<E, A> _) f,
   ) =>
       ZIO.from(
         (ctx) => unsafeRun(ctx).then(
           (exit) => exit
               ._matchExitFOr(
-                (e) => f(Either.left(e)).unsafeRun(ctx),
-                (a) => f(Either.right(a)).unsafeRun(ctx),
+                (e) => f(Either.left(e)).asZIO.unsafeRun(ctx),
+                (a) => f(Either.right(a)).asZIO.unsafeRun(ctx),
               )
               .then((fExit) => fExit.flatMapExit((_) => exit)),
         ),
@@ -895,11 +872,12 @@ class ZIO<R, E, A> {
 
   /// A variant of [tap], passing the [Exit] value of this [ZIO].
   ZIO<R, E, A> tapExit<X>(
-    ZIO<R, E, X> Function(Exit<E, A> _) f,
+    IZIO<R, E, X> Function(Exit<E, A> _) f,
   ) =>
       ZIO.from(
         (ctx) => race(ctx.signal.awaitIO.lift<R, E>()).unsafeRun(ctx).then(
               (exit) => f(exit)
+                  .asZIO
                   .unsafeRun(ctx.withoutSignal)
                   .then((_) => _.call(exit)),
             ),
@@ -916,24 +894,24 @@ class ZIO<R, E, A> {
 
   /// Combine the result of this [ZIO] with the result of the given [ZIO], returning
   /// a tuple of the results.
-  ZIO<R, E, (A, B)> zip<B>(ZIO<R, E, B> zio) =>
+  ZIO<R, E, (A, B)> zip<B>(IZIO<R, E, B> zio) =>
       zipWith(zio, (a, B b) => (a, b));
 
   /// Combine the result of this [ZIO] with the result of the given [ZIO], returning
   /// a tuple of the results.
   ///
   /// The [ZIO]'s are run in parallel.
-  ZIO<R, E, (A, B)> zipPar<B>(ZIO<R, E, B> zio) =>
+  ZIO<R, E, (A, B)> zipPar<B>(IZIO<R, E, B> zio) =>
       zipParWith(zio, (a, B b) => (a, b));
 
   /// Run this [ZIO] and the given [ZIO] in parallel, ignoring the result of the
   /// given [ZIO].
-  ZIO<R, E, A> zipParLeft<B>(ZIO<R, E, B> zio) =>
+  ZIO<R, E, A> zipParLeft<B>(IZIO<R, E, B> zio) =>
       zipParWith(zio, (a, B b) => a);
 
   /// Run this [ZIO] and the given [ZIO] in parallel, only returning the result of
   /// the given [ZIO].
-  ZIO<R, E, B> zipParRight<B>(ZIO<R, E, B> zio) =>
+  ZIO<R, E, B> zipParRight<B>(IZIO<R, E, B> zio) =>
       zipParWith(zio, (a, B b) => b);
 
   /// Combine the result of this [ZIO] with the result of the given [ZIO], using
@@ -941,25 +919,26 @@ class ZIO<R, E, A> {
   ///
   /// The [ZIO]'s are run in parallel.
   ZIO<R, E, C> zipParWith<B, C>(
-    ZIO<R, E, B> zio,
+    IZIO<R, E, B> zio,
     C Function(A a, B b) resolve,
   ) =>
-      ZIO.collectPar([this, zio]).map((a) => resolve(a[0] as A, a[1] as B));
+      ZIO.collectPar([this, zio.asZIO]).map(
+          (a) => resolve(a[0] as A, a[1] as B));
 
-  /// Run this [ZIO] and the given [ZIO] sequentially, ignoring the result of the
-  /// given [ZIO].
-  ZIO<R, E, A> zipLeft<X>(ZIO<R, E, X> zio) => tap((a) => zio);
+  /// Run this [ZIO] and the given [IZIO] sequentially, ignoring the result of the
+  /// given [IZIO].
+  ZIO<R, E, A> zipLeft<X>(IZIO<R, E, X> zio) => tap((a) => zio.asZIO);
 
-  /// Run this [ZIO] and the given [ZIO] sequentially, only returning the result of
-  /// the given [ZIO].
+  /// Run this [ZIO] and the given [IZIO] sequentially, only returning the result of
+  /// the given [IZIO].
   ///
   /// Almost identical to [flatMap];
-  ZIO<R, E, B> zipRight<B>(ZIO<R, E, B> zio) => flatMap((a) => zio);
+  ZIO<R, E, B> zipRight<B>(IZIO<R, E, B> zio) => flatMap((a) => zio.asZIO);
 
   /// Combine the result of this [ZIO] with the result of the given [ZIO], using
   /// the given function to determine the result.
-  ZIO<R, E, C> zipWith<B, C>(ZIO<R, E, B> zio, C Function(A a, B b) resolve) =>
-      flatMap((a) => zio.map((b) => resolve(a, b)));
+  ZIO<R, E, C> zipWith<B, C>(IZIO<R, E, B> zio, C Function(A a, B b) resolve) =>
+      flatMap((a) => zio.asZIO.map((b) => resolve(a, b)));
 }
 
 extension ZIORunExt<E, A> on EIO<E, A> {
@@ -1117,14 +1096,10 @@ extension ZIONoneExt<R, A> on RIOOption<R, A> {
   RIOOption<R, B> flatMapNullable<B>(
     B? Function(A _) f,
   ) =>
-      flatMapNullableOrFail(f, (a) => const None());
-
-  /// If the given function [f] returns [None], fail with [None].
-  /// Otherwise, return the result of [f].
-  RIOOption<R, B> flatMapOption<B>(
-    Option<B> Function(A _) f,
-  ) =>
-      flatMapOptionOrFail(f, (a) => const None());
+      flatMap((a) {
+        final b = f(a);
+        return b == null ? ZIO.fail(const None()) : ZIO.succeed(b);
+      });
 
   /// Transform an [IOOption] into an `IO<Option<A>>`.
   RIO<R, Option<A>> get option => matchSync(
