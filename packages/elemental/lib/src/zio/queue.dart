@@ -109,10 +109,10 @@ class ZIOQueue<A> implements Dequeue<A>, Enqueue<A> {
   @override
   ZIO<R, E, Option<A>> poll<R, E>() => ZIO(() {
         if (_buffer.isNotEmpty) {
-          return some(_buffer.removeFirst());
+          return Option.of(_buffer.removeFirst());
         }
 
-        return none();
+        return const Option.none();
       });
 
   @override

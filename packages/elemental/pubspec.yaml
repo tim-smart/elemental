@@ -12,6 +12,5 @@ dev_dependencies:
 
 dependencies:
   fast_immutable_collections: ">=9.0.0 <10.0.0"
-  fpdart: ^1.0.0
   meta: ^1.9.0
   nucleus: ^0.4.0

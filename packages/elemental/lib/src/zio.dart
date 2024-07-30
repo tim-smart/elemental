@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:elemental/elemental.dart';
-import 'package:elemental/src/future_or.dart';
-import 'package:fpdart/fpdart.dart' as fpdart;
 import 'package:meta/meta.dart';
+export 'package:fast_immutable_collections/fast_immutable_collections.dart'
+    hide Predicate, Tuple, Tuple2;
 
+import 'future_or.dart';
+import 'unit.dart' show Unit;
+import 'unit.dart' as unit_;
 part 'zio/async.dart';
 part 'zio/context.dart';
 part 'zio/deferred.dart';
@@ -123,7 +126,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
         return context._deferred.await().unsafeRun(ctx);
       });
 
-  factory ZIO.asyncInterrupt(IO<Unit> Function(AsyncContext<E, A> $) f) =>
+  factory ZIO.asyncInterrupt(IO<unit_.Unit> Function(AsyncContext<E, A> $) f) =>
       ZIO.from((ctx) {
         final context = AsyncContext<E, A>();
         final finalizer = f(context);
@@ -379,7 +382,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
 
   /// Sleep for the given [duration].
   static ZIO<R, E, Unit> sleep<R, E>(Duration duration) =>
-      ZIO.future(() => Future.delayed(duration, () => fpdart.unit));
+      ZIO.future(() => Future.delayed(duration, () => unit_.unit));
 
   /// An [IO] version of [sleep].
   static IO<Unit> sleepIO(Duration duration) => sleep(duration);
@@ -488,7 +491,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
 
   /// For the const unit
   static FutureOr<Exit<E, Unit>> _kZioUnit<R, E>(ZIOContext<R> ctx) =>
-      const Right(fpdart.unit);
+      const Right(unit_.unit);
 
   /// Returns a [ZIO] that succeeds with [unit].
   static ZIO<R, E, Unit> unit<R, E>() => const ZIO._(_kZioUnit);
@@ -530,7 +533,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
   ZIO<R, E, B> as<B>(B b) => map((_) => b);
 
   /// Maps the success value of this [ZIO] to [unit].
-  ZIO<R, E, Unit> get asUnit => as(fpdart.unit);
+  ZIO<R, E, Unit> get asUnit => as(unit_.unit);
 
   ZIO<R, E2, A> _mapCauseFOr<E2>(
     FutureOr<Exit<E2, A>> Function(
@@ -592,7 +595,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
     bool Function(A _) predicate,
     E Function(A _) onFalse,
   ) =>
-      flatMapEither((a) => Either.fromPredicate(a, predicate, onFalse));
+      flatMap((a) => predicate(a) ? ZIO.succeed(a) : ZIO.fail(onFalse(a)));
 
   /// Passes the success value of this [ZIO] to the given function, and replaces
   /// the result by executing the resulting [ZIO].
@@ -629,6 +632,17 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
         ),
       );
 
+  /// If the given function [f] returns `null`, fail with the specified error.
+  /// Otherwise, return the result of [f].
+  ZIO<R, E, B> flatMapNullableOrFail<B>(
+    B? Function(A _) f,
+    E Function(A _) orFailWith,
+  ) =>
+      flatMap((a) {
+        final b = f(a);
+        return b == null ? ZIO.fail(orFailWith(a)) : ZIO.succeed(b);
+      });
+
   /// A variant of [flatMap] that uses the result of the given function. If the given
   /// function throws an error, the resulting [ZIO] will fail with the result of
   /// [onThrow].
@@ -664,7 +678,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
   RIO<R, A?> get getOrNull => matchSync((e) => null, identity);
 
   /// Ignore both the success and failure values of this [ZIO].
-  RIO<R, Unit> get ignore => matchSync((e) => fpdart.unit, (a) => fpdart.unit);
+  RIO<R, Unit> get ignore => matchSync((e) => unit_.unit, (a) => unit_.unit);
 
   /// Ignore both the success and failure values of this [ZIO], and log any
   /// failure using [logInfo].
