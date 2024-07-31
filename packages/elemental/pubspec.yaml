@@ -1,6 +1,6 @@
 name: elemental
 description: A toolkit for writing software in dart. Effect-system, dependency management and more!
-version: 0.1.2
+version: 0.2.0
 homepage: https://github.com/tim-smart/elemental
 
 environment:

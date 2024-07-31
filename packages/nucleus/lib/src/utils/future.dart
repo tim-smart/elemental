@@ -132,7 +132,7 @@ class FutureData<A> extends FutureValue<A> {
       data?.call(this.data) ?? orElse();
 
   @override
-  operator ==(Object? other) => other is FutureData<A> && other.data == data;
+  operator ==(Object other) => other is FutureData<A> && other.data == data;
 
   @override
   int get hashCode => Object.hash(runtimeType, data);
@@ -173,7 +173,7 @@ class FutureError<A> extends FutureValue<A> {
       error?.call(this.error, stackTrace) ?? orElse();
 
   @override
-  operator ==(Object? other) =>
+  operator ==(Object other) =>
       other is FutureError<A> &&
       other.error == error &&
       other.stackTrace == stackTrace;
@@ -219,7 +219,7 @@ class FutureLoading<A> extends FutureValue<A> {
       loading?.call(previousData) ?? orElse();
 
   @override
-  operator ==(Object? other) =>
+  operator ==(Object other) =>
       other is FutureLoading<A> && other.previousData == previousData;
 
   @override

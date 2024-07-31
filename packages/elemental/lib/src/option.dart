@@ -1,8 +1,4 @@
 import 'package:elemental/elemental.dart';
-import 'package:elemental/src/zio.dart';
-
-import 'function.dart';
-import 'either.dart';
 
 final class _OptionThrow {
   const _OptionThrow();
@@ -13,14 +9,6 @@ A _doAdapter<A>(Option<A> option) =>
     option.getOrElse(() => throw const _OptionThrow());
 
 typedef DoFunctionOption<A> = A Function(DoAdapterOption $);
-
-// `Option<T> implements Functor<OptionHKT, T>` expresses correctly the
-// return type of the `map` function as `HKT<OptionHKT, B>`.
-// This tells us that the actual type parameter changed from `T` to `B`,
-// according to the types `T` and `B` of the callable we actually passed as a parameter of `map`.
-//
-// Moreover, it informs us that we are still considering an higher kinded type
-// with respect to the `OptionHKT` tag
 
 /// A type that can contain a value of type `T` in a [Some] or no value with [None].
 ///
@@ -204,8 +192,11 @@ sealed class Option<T> implements IZIO<NoEnv, None, T> {
   /// Change type of this [Option] based on its value of type `T`, the
   /// value of type `C` of a second [Option], and the value of type `D`
   /// of a third [Option].
-  Option<E> map3<C, D, E>(covariant Option<C> mc, covariant Option<D> md,
-          E Function(T t, C c, D d) f) =>
+  Option<E> map3<C, D, E>(
+    covariant Option<C> mc,
+    covariant Option<D> md,
+    E Function(T t, C c, D d) f,
+  ) =>
       flatMap((a) => mc.flatMap((c) => md.map((d) => f(a, c, d))));
 
   /// {@template elemental_option_match}
@@ -215,19 +206,7 @@ sealed class Option<T> implements IZIO<NoEnv, None, T> {
   /// [🍌].match(() => 🍎, (🍌) => 🍌 * 2) -> 🍌🍌
   /// [_].match(() => 🍎, (🍌) => 🍌 * 2) -> 🍎
   /// ```
-  ///
-  /// Same as `fold`.
   B match<B>(B Function() onNone, B Function(T t) onSome);
-
-  /// {@macro elemental_option_match}
-  /// ```dart
-  /// [🍌].fold(() => 🍎, (🍌) => 🍌 * 2) -> 🍌🍌
-  /// [_].fold(() => 🍎, (🍌) => 🍌 * 2) -> 🍎
-  /// ```
-  ///
-  /// Same as `match`.
-  B fold<B>(B Function() onNone, B Function(T t) onSome) =>
-      match(onNone, onSome);
 
   /// Return `true` when value is [Some].
   bool isSome();

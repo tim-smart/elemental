@@ -7,7 +7,6 @@ export 'package:fast_immutable_collections/fast_immutable_collections.dart'
     hide Predicate, Tuple, Tuple2;
 
 import 'future_or.dart';
-import 'unit.dart' show Unit;
 import 'unit.dart' as unit_;
 part 'zio/async.dart';
 part 'zio/context.dart';
@@ -126,7 +125,7 @@ class ZIO<R, E, A> implements IZIO<R, E, A> {
         return context._deferred.await().unsafeRun(ctx);
       });
 
-  factory ZIO.asyncInterrupt(IO<unit_.Unit> Function(AsyncContext<E, A> $) f) =>
+  factory ZIO.asyncInterrupt(IO<Unit> Function(AsyncContext<E, A> $) f) =>
       ZIO.from((ctx) {
         final context = AsyncContext<E, A>();
         final finalizer = f(context);
