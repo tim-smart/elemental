@@ -7,6 +7,7 @@ export 'src/atoms.dart';
 export 'src/either.dart';
 export 'src/function.dart';
 export 'src/iterable.dart';
+export 'src/map.dart';
 export 'src/option.dart';
 export 'src/order.dart';
 export 'src/predicate.dart';
