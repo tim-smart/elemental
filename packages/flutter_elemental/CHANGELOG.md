@@ -1,3 +1,7 @@
+## 0.3.1
+
+- update flutter_hooks
+
 ## 0.3.0
 
 - update elemental
